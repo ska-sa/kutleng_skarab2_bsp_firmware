@@ -52,7 +52,7 @@
 -- Tool Versions    : N/A                                                      -
 -- Description      : This module is used to map the L-BUS to AXIS interface.  -
 --                                                                             -
--- Dependencies     : N/A                                                      -
+-- Dependencies     : maplbusdatatoaxis,mapmtytotkeep                          -
 -- Revision History : V1.0 - Initial design                                    -
 --------------------------------------------------------------------------------
 
