@@ -80,7 +80,7 @@ entity arpmodule is
 		axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
 		axis_rx_tlast     : in  STD_LOGIC;
 		--Outputs to AXIS bus 
-		axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH-1 downto 0);
+		axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 		axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
 		axis_tx_tvalid    : out STD_LOGIC;
 		axis_tx_tready    : in  STD_LOGIC;

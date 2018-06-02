@@ -44,17 +44,17 @@
 		<link>
 			<name>Common Libraries/IEEE</name>
 			<type>2</type>
-			<locationURI>sigasiresource:/vhdl/93/IEEE</locationURI>
+			<locationURI>sigasiresource:/vhdl/2008/IEEE</locationURI>
 		</link>
 		<link>
 			<name>Common Libraries/IEEE Synopsys</name>
 			<type>2</type>
-			<locationURI>sigasiresource:/vhdl/93/IEEE%20Synopsys</locationURI>
+			<locationURI>sigasiresource:/vhdl/2008/IEEE%20Synopsys</locationURI>
 		</link>
 		<link>
 			<name>Common Libraries/STD</name>
 			<type>2</type>
-			<locationURI>sigasiresource:/vhdl/93/STD</locationURI>
+			<locationURI>sigasiresource:/vhdl/2008/STD</locationURI>
 		</link>
 		<link>
 			<name>constraints/xilinx</name>
@@ -108,11 +108,6 @@
 		</link>
 		<link>
 			<name>vhdl/rtl/ringbuffer</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -207,16 +202,6 @@
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/ringbuffer/packetstatusram.vhd</locationURI>
 		</link>
 		<link>
-			<name>vhdl/rtl/testbench/rx</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench/tx</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
 			<name>vhdl/rtl/udp/ipcomms.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/udp/ipcomms.vhd</locationURI>
@@ -245,26 +230,6 @@
 			<name>vhdl/rtl/arp/testbench/iladata_debug.csv</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/arp/testbench/iladata_debug.csv</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench/rx/lbusrxaxistx_tb.vhd</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/testbench/rx/lbusrxaxistx_tb.vhd</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench/rx/wave.do</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/testbench/rx/wave.do</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench/tx/lbustxaxsirx_tb.vhd</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/testbench/tx/lbustxaxsirx_tb.vhd</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/testbench/tx/wave.do</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/testbench/tx/wave.do</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/udp/macinterface/axisfabricmultiplexer.vhd</name>
