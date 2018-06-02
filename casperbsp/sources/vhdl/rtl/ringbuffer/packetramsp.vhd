@@ -61,23 +61,23 @@ use ieee.numeric_std.all;
 
 entity packetramsp is
 	generic(
-		C_ADDR_WIDTH : natural := 8 + 2;
-		C_DATA_WIDTH : natural := 64
+		G_ADDR_WIDTH : natural := 8 + 2;
+		G_DATA_WIDTH : natural := 64
 	);
 	port(
 		Clk          : in  STD_LOGIC;
-		WriteAddress : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
-		ReadAddress  : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
+		WriteAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+		ReadAddress  : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		WriteEnable  : in  STD_LOGIC;
 		ReadEnable   : in  STD_LOGIC;
-		WriteData    : in  STD_LOGIC_VECTOR(C_DATA_WIDTH - 1 downto 0);
-		ReadData     : out STD_LOGIC_VECTOR(C_DATA_WIDTH - 1 downto 0)
+		WriteData    : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+		ReadData     : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0)
 	);
 end entity packetramsp;
 
 architecture rtl of packetramsp is
 	-- Declaration of ram signals
-	type PacketRAM_t is array ((2**C_ADDR_WIDTH) - 1 downto 0) of std_logic_vector(C_DATA_WIDTH - 1 downto 0);
+	type PacketRAM_t is array ((2**G_ADDR_WIDTH) - 1 downto 0) of std_logic_vector(G_DATA_WIDTH - 1 downto 0);
 	signal RAMData : PacketRAM_t;
 begin
 

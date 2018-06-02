@@ -103,7 +103,7 @@ end entity packetringbuffer;
 architecture rtl of packetringbuffer is
 	component packetstatusram is
 		generic(
-			C_ADDR_WIDTH : natural := 4
+			G_ADDR_WIDTH : natural := 4
 		);
 		port(
 			ClkA          : in  STD_LOGIC;
@@ -112,10 +112,10 @@ architecture rtl of packetringbuffer is
 			EnableA       : in  STD_LOGIC;
 			WriteAEnable  : in  STD_LOGIC;
 			WriteAData    : in  STD_LOGIC_VECTOR(1 downto 0);
-			WriteAAddress : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
+			WriteAAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			ReadAData     : out STD_LOGIC_VECTOR(1 downto 0);
 			-- Port B
-			WriteBAddress : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
+			WriteBAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			EnableB       : in  STD_LOGIC;
 			WriteBEnable  : in  STD_LOGIC;
 			WriteBData    : in  STD_LOGIC_VECTOR(1 downto 0);
@@ -124,17 +124,17 @@ architecture rtl of packetringbuffer is
 	end component packetstatusram;
 	component packetramsp is
 		generic(
-			C_ADDR_WIDTH : natural := 8 + 2;
-			C_DATA_WIDTH : natural := 64
+			G_ADDR_WIDTH : natural := 8 + 2;
+			G_DATA_WIDTH : natural := 64
 		);
 		port(
 			Clk          : in  STD_LOGIC;
-			WriteAddress : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
-			ReadAddress  : in  STD_LOGIC_VECTOR(C_ADDR_WIDTH - 1 downto 0);
+			WriteAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+			ReadAddress  : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			WriteEnable  : in  STD_LOGIC;
 			ReadEnable   : in  STD_LOGIC;
-			WriteData    : in  STD_LOGIC_VECTOR(C_DATA_WIDTH - 1 downto 0);
-			ReadData     : out STD_LOGIC_VECTOR(C_DATA_WIDTH - 1 downto 0)
+			WriteData    : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+			ReadData     : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0)
 		);
 	end component packetramsp;
 
@@ -150,7 +150,7 @@ begin
 
 	packetstatusram_i : packetstatusram
 		generic map(
-			C_ADDR_WIDTH => G_SLOT_WIDTH
+			G_ADDR_WIDTH => G_SLOT_WIDTH
 		)
 		port map(
 			ClkA          => Clk,
@@ -185,8 +185,8 @@ begin
 
 	Buffer_i : packetramsp
 		generic map(
-			C_ADDR_WIDTH => (RxPacketAddress'length + RxPacketSlotID'length),
-			C_DATA_WIDTH => (RxPacketData'length + RxPacketByteEnable'length)
+			G_ADDR_WIDTH => (RxPacketAddress'length + RxPacketSlotID'length),
+			G_DATA_WIDTH => (RxPacketData'length + RxPacketByteEnable'length)
 		)
 		port map(
 			Clk          => Clk,
