@@ -51,7 +51,9 @@
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
 -- Description      : The macifudpreceiver module receives UDP/IP data streams,-
---                    from a packetringbuffer.                                 -
+--                    from a the AXI-Stream interface and writes them to a     -
+--                    packetringbuffer module as segmented packets with the    -
+--                    respective addressing and header information.            -
 --                    TODO                                                     -
 --                                                                             -
 -- Dependencies     : packetringbuffer                                         -
