@@ -281,7 +281,7 @@ begin
                             lPacketSlotID <= unsigned(lPacketSlotID) + 1;
                         end if;
 
-                        if ((axis_rx_tvalid = '1') and (axis_rx_tuser /= '1') and (lHardType = byteswap(C_ETHERNET_TYPE)) and (lProtoType = byteswap(C_IPV4_TYPE)) and (lHardSize = C_HWMAC_SIZE) and (lProtoSize = C_IPV4_SIZE)) then
+                        if ((axis_rx_tvalid = '1') and (lHardType = byteswap(C_ETHERNET_TYPE)) and (lProtoType = byteswap(C_IPV4_TYPE)) and (lHardSize = C_HWMAC_SIZE) and (lProtoSize = C_IPV4_SIZE)) then
 
                             if (((lDestinationMAC = byteswap(C_BROADCAST_MAC)) or (lDestinationMAC = byteswap(ARPMACAddress))) and (lARPOperation = byteswap(C_ARP_REQ)) and (lDestIP = byteswap(ARPIPAddress)) and (lEtherType = byteswap(C_ARP_TYPE))) then
                                 -- This is an ARP request to this system
@@ -289,12 +289,25 @@ begin
                                 if (axis_rx_tlast = '1') then
                                     -- If this is the last segment then restart the packet address
                                     lPacketAddress <= (others => '0');
+                                    if (axis_rx_tuser = '0') then
+                                        -- packet has no errors
+                                        lPacketSlotSet <= '1';
+                                    else
+                                        -- This is a packet containing 
+                                        -- errors, drop it
+                                        lPacketSlotSet <= '0';
+                                    end if;
+                                    -- tkeep(0) is always 1 when writing data is valid 
+                                    lPacketByteEnable(0)           <= '1';
+                                    lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
                                 else
+                                    -- tkeep(0) is always 1 when writing data is valid 
+                                    lPacketByteEnable(0)           <= '0';
+                                    lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                    lPacketSlotSet <= '0';                                
                                     lPacketAddress <= unsigned(lPacketAddress) + 1;
                                 end if;
                                 lPacketDataWrite <= '1';
-                                lPacketSlotSet <= axis_rx_tvalid;
-                                lPacketByteEnable <= axis_rx_tkeep;
                                 lPacketSlotType <= axis_rx_tlast;
                                 --Send the ARP Response
                                 lPacketData(47 downto 0) <= lSourceMAC;
@@ -315,13 +328,26 @@ begin
                                     --Supply RARP Request signals and progress slots
                                     if (axis_rx_tlast = '1') then
                                         -- If this is the last segment then restart the packet address
+                                        if (axis_rx_tuser = '0') then
+                                            -- packet has no errors
+                                            lPacketSlotSet <= '1';
+                                        else
+                                            -- This is a packet containing 
+                                            -- errors, drop it
+                                            lPacketSlotSet <= '0';
+                                        end if;
                                         lPacketAddress <= (others => '0');
+                                        -- tkeep(0) is always 1 when writing data is valid 
+                                        lPacketByteEnable(0)           <= '1';
+                                        lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
                                     else
+                                        -- tkeep(0) is always 1 when writing data is valid 
+                                        lPacketByteEnable(0)           <= '0';
+                                        lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
+                                        lPacketSlotSet <= '0';
                                         lPacketAddress <= unsigned(lPacketAddress) + 1;
                                     end if;
                                     lPacketDataWrite <= '1';
-                                    lPacketSlotSet <= axis_rx_tvalid;
-                                    lPacketByteEnable <= axis_rx_tkeep;
                                     lPacketSlotType <= axis_rx_tlast;
                                     --Send the RARP Response
                                     lPacketData(47 downto 0) <= lSourceMAC;

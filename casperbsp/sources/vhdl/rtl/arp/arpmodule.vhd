@@ -183,6 +183,8 @@ begin
                         StateVariable        <= WaitSlotSt;
                         axis_tx_tvalid       <= '0';
                         axis_tx_tlast        <= '0';
+                        axis_tx_tkeep        <= (others => '0');
+                        axis_tx_tdata        <= (others => '0');
                         lRingBufferAddress   <= (others => '0');
                         lRingBufferDataRead  <= '0';
                         lRingBufferSlotClear <= '0';
@@ -196,6 +198,8 @@ begin
                             -- The current slot has data 
                             -- Pull the data 
                             lRingBufferDataRead <= '1';
+                            -- Reset the data address
+                            lRingBufferAddress  <= (others => '0');
                             StateVariable       <= WaitPacketSt;
                         else
                             lRingBufferDataRead <= '0';
@@ -207,6 +211,7 @@ begin
                         lRingBufferSlotID    <= lRingBufferSlotID + 1;
                         axis_tx_tvalid       <= '0';
                         axis_tx_tlast        <= '0';
+                        axis_tx_tkeep        <= (others => '0');
                         lRingBufferSlotClear <= '0';
                         StateVariable        <= WaitSlotSt;
 
@@ -215,23 +220,28 @@ begin
                         StateVariable <= ProcessPacketSt;
 
                     when ProcessPacketSt =>
-                        axis_tx_tvalid <= lRingBufferSlotStatus;
-                        axis_tx_tlast  <= lRingBufferSlotTypeStatus;
+                        axis_tx_tvalid <= '1';
                         axis_tx_tdata  <= lRingBufferDataOut;
-                        axis_tx_tkeep  <= lRingBufferDataEnable;
+                        axis_tx_tkeep  <= lRingBufferDataEnable(63 downto 1) & '1';
                         if (axis_tx_tready = '1') then
-                            if (lRingBufferSlotTypeStatus = '1') then
+                            if (lRingBufferDataEnable(0) = '1') then
+                                -- Got TLAST
+                                axis_tx_tlast        <= '1';
                                 -- Reset the data address
-                                lRingBufferAddress <= (others => '0');
+                                lRingBufferAddress   <= (others => '0');
+                                -- Clear the current slot
+                                lRingBufferSlotClear <= '1';
+                                -- Stop reading data
+                                lRingBufferDataRead  <= '0';
+                                -- Go to next slot
+                                StateVariable        <= NextSlotSt;
                             else
                                 -- read next address
-                                lRingBufferAddress <= lRingBufferAddress + 1;
+                                axis_tx_tlast        <= '0';
+                                lRingBufferSlotClear <= '0';
+                                lRingBufferAddress   <= lRingBufferAddress + 1;
+                                lRingBufferDataRead  <= '1';
                             end if;
-                            -- Clear the current slot
-                            lRingBufferSlotClear <= '1';
-                            -- Go to next slot
-                            lRingBufferDataRead <= '0';
-                            StateVariable <= NextSlotSt;
                         else
                             -- Keep reading the slot till ready
                             lRingBufferSlotClear <= '0';
