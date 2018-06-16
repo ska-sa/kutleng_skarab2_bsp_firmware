@@ -118,7 +118,7 @@ architecture rtl of configcontroller is
         InitialiseSt,                   -- On the reset state
         CheckSlotSt,
         NextSlotSt,
-        ProcessPacketSt,
+        ComposeResponsePacketSt,
         CheckCommandSt,
         ProcessCommandSt,
         ProcessFrameSt,
@@ -165,7 +165,6 @@ architecture rtl of configcontroller is
     alias lPRPacketID : std_logic_vector(15 downto 0) is RecvRingBufferDataIn(351 downto 336);
     alias lPRPacketSequence : std_logic_vector(31 downto 0) is RecvRingBufferDataIn(383 downto 352);
     alias lPRDWordCommand : std_logic_vector(31 downto 0) is RecvRingBufferDataIn(415 downto 384);
-    signal lFilledSlots : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lDWordIndex : natural range 0 to C_DWORD_MAX;
     signal lFramePacketIndex : natural range 0 to C_FRAME_PACKET_MAX;
     signal lResponcePacketHDR : std_logic_vector(15 downto 0);
@@ -258,6 +257,8 @@ architecture rtl of configcontroller is
 begin
     RecvRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
     RecvRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
+    SenderRingBufferSlotID<= std_logic_vector(lSenderRingBufferSlotID); 
+    SenderRingBufferAddress <= std_logic_vector(lSenderRingBufferAddress);
     FilledSlotsProc : process(icap_clk)
     begin
         if rising_edge(icap_clk) then
@@ -265,15 +266,12 @@ begin
         end if;
     end process FilledSlotsProc;
 
-    SaveDWordArrayProc : process(icap_clk)
+    MapDWordArrayProc : process(RecvRingBufferDataIn)
     begin
-        -- Investigate not saving this on a register
-        if rising_edge(icap_clk) then
             for i in 0 to 15 loop
                 lReadDWordArray(i) <= RecvRingBufferDataIn((32 * (i + 1)) - 1 downto (32 * (i)));
             end loop;
-        end if;
-    end process SaveDWordArrayProc;
+    end process MapDWordArrayProc;
 
     SynchStateProc : process(icap_clk)
     begin
@@ -309,7 +307,7 @@ begin
                             -- The current slot has data 
                             -- Pull the data 
                             RecvRingBufferDataRead <= '1';
-                            StateVariable          <= ProcessPacketSt;
+                            StateVariable          <= ComposeResponsePacketSt;
                         else
                             RecvRingBufferDataRead <= '0';
                             StateVariable          <= CheckSlotSt;
@@ -324,11 +322,13 @@ begin
                         ICAP_CSIB               <= '1';
                         StateVariable           <= CheckSlotSt;
 
-                    when ProcessPacketSt =>
+                    when ComposeResponsePacketSt =>
                         -- Go to check the command
                         StateVariable <= CheckCommandSt;
 
                     when CheckCommandSt =>
+                        
+                        lResponcePacketSequenceNumber <= lPRPacketSequence;
 
                         if (lPRPacketID = X"DA01") then
                             -- Forward the ICAP status bits
