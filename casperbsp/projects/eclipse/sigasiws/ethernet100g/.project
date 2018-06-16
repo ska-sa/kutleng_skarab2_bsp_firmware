@@ -107,6 +107,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>vhdl/rtl/preconfig</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>vhdl/rtl/ringbuffer</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -185,6 +190,11 @@
 			<name>vhdl/rtl/ledblinker/partialblinker.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/ledblinker/partialblinker.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/preconfig/configcontroller.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/configcontroller.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/ringbuffer/packetramsp.vhd</name>
