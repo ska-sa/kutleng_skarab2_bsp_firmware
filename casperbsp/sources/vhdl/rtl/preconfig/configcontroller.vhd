@@ -121,13 +121,7 @@ architecture rtl of configcontroller is
         ProcessPacketSt,
         CheckCommandSt,
         ProcessCommandSt,
-        WriteCommandToICAPSt,
-        WaitCommandAvailICAPSt,
         ProcessFrameSt,
-        FetchDWordSt,
-        WriteFrameDWordToICAPSt,
-        WaitFrameAvailICAPSt,
-        NextFrameDWordSt,
         GetICAPStatusSt,
         GenerateIPCheckSumSt,
         WriteUDPResponceSt,
@@ -135,15 +129,19 @@ architecture rtl of configcontroller is
         NextSlotsSt,
         SendErrorResponseSt
     );
-    signal StateVariable            : ConfigurationControllerSM_t   := InitialiseSt;
+    signal StateVariable              : ConfigurationControllerSM_t := InitialiseSt;
     -- Tuples registers
-    signal lRecvRingBufferSlotID    : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    signal lSenderRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lSenderRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    constant C_DWORD_MAX            : natural                       := (16 - 1);
-    constant C_FIRST_DWORD_OFFSET   : natural                       := 12;
-    constant C_ICAP_NOP_COMMAND     : std_logic_vector(31 downto 0) := X"20000000";
+    signal lRecvRingBufferSlotID      : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRecvRingBufferAddress     : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    signal lSenderRingBufferSlotID    : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lSenderRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    constant C_DWORD_MAX              : natural                     := (16 - 1);
+    constant C_LAST_FRAME_DWORD_INDEX : natural                     := (13);
+    constant C_FRAME_PACKET_MAX       : natural                     := (8 - 1);
+    constant C_FRAME_PACKET_STOP      : natural                     := (7 - 1);
+
+    constant C_FIRST_DWORD_OFFSET : natural                       := 12;
+    constant C_ICAP_NOP_COMMAND   : std_logic_vector(31 downto 0) := X"20000000";
 
     type DWordArray16_t is array (0 to C_DWORD_MAX) of std_logic_vector(31 downto 0);
     signal lReadDWordArray : DWordArray16_t;
@@ -169,6 +167,7 @@ architecture rtl of configcontroller is
     alias lPRDWordCommand : std_logic_vector(31 downto 0) is RecvRingBufferDataIn(415 downto 384);
     signal lFilledSlots : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lDWordIndex : natural range 0 to C_DWORD_MAX;
+    signal lFramePacketIndex : natural range 0 to C_FRAME_PACKET_MAX;
     signal lResponcePacketHDR : std_logic_vector(15 downto 0);
     signal lResponcePacketSequenceNumber : std_logic_vector(31 downto 0);
     signal lResponcePacketICAPOut : std_logic_vector(31 downto 0);
@@ -220,13 +219,37 @@ architecture rtl of configcontroller is
 
     function bitbyteswap(DataIn : in std_logic_vector)
     return std_logic_vector is
+        variable RData48 : std_logic_vector(47 downto 0);
         variable RData32 : std_logic_vector(31 downto 0);
+        variable RData24 : std_logic_vector(23 downto 0);
+        variable RData16 : std_logic_vector(15 downto 0);
     begin
+        if (DataIn'length = RData48'length) then
+            RData48(7 downto 0)   := bitreverse(DataIn(47 downto 40));
+            RData48(15 downto 8)  := bitreverse(DataIn(39 downto 32));
+            RData48(23 downto 16) := bitreverse(DataIn(31 downto 24));
+            RData48(31 downto 24) := bitreverse(DataIn(23 downto 16));
+            RData48(39 downto 32) := bitreverse(DataIn(15 downto 8));
+            RData48(47 downto 40) := bitreverse(DataIn(7 downto 0));
+            return std_logic_vector(RData48);
+        end if;
         if (DataIn'length = RData32'length) then
-            for i in 0 to 3 loop
-                RData32((8 + (8 * i)) - 1 downto (8 * i)) := bitreverse(DataIn((8 + (8 * i)) - 1 downto (8 * i)));
-            end loop;
+            RData32(7 downto 0)   := bitreverse(DataIn(31 downto 24));
+            RData32(15 downto 8)  := bitreverse(DataIn(23 downto 16));
+            RData32(23 downto 16) := bitreverse(DataIn(15 downto 8));
+            RData32(31 downto 24) := bitreverse(DataIn(7 downto 0));
             return std_logic_vector(RData32);
+        end if;
+        if (DataIn'length = RData24'length) then
+            RData24(7 downto 0)   := bitreverse(DataIn(23 downto 16));
+            RData24(15 downto 8)  := bitreverse(DataIn(15 downto 8));
+            RData24(23 downto 16) := bitreverse(DataIn(7 downto 0));
+            return std_logic_vector(RData24);
+        end if;
+        if (DataIn'length = RData16'length) then
+            RData16(7 downto 0)  := bitreverse(DataIn(15 downto 8));
+            RData16(15 downto 8) := bitreverse(DataIn(7 downto 0));
+            return std_logic_vector(RData16);
         else
             return DataIn;
         end if;
@@ -260,7 +283,7 @@ begin
                 ICAP_RDWRB    <= '0';
                 ICAP_CSIB     <= '1';
                 -- Tie ICAP Data to NOP Command when being initialized
-                ICAP_DataIn   <= bitbyteswap(C_ICAP_NOP_COMMAND);
+                ICAP_DataIn   <= bitbyteswap(byteswap(C_ICAP_NOP_COMMAND));
                 StateVariable <= InitialiseSt;
             else
                 case (StateVariable) is
@@ -278,7 +301,7 @@ begin
                         ICAP_CSIB                 <= '1';
                         ICAP_RDWRB                <= '0';
                         -- Tie ICAP Data to NOP Command when being initialized
-                        ICAP_DataIn   <= bitbyteswap(C_ICAP_NOP_COMMAND);
+                        ICAP_DataIn               <= bitbyteswap(byteswap(C_ICAP_NOP_COMMAND));
 
                     when CheckSlotSt =>
                         lRecvRingBufferAddress <= (others => '0');
@@ -313,6 +336,8 @@ begin
                             StateVariable      <= ProcessCommandSt;
                         else
                             if (lPRPacketID = X"A562") then
+                                lDWordIndex        <= C_FIRST_DWORD_OFFSET;
+                                lFramePacketIndex  <= 0;
                                 StateVariable      <= ProcessFrameSt;
                                 lResponcePacketHDR <= ICAP_PRERROR & ICAP_PRDONE & lPRPacketID(13 downto 0);
                             else
@@ -321,35 +346,55 @@ begin
                             end if;
                         end if;
 
+                    when ProcessFrameSt =>
+                        -- Send 98 DWORD Frame
+                        if (ICAP_AVAIL = '1') then
+                            -- Set write command
+                            ICAP_RDWRB  <= '0';
+                            ICAP_CSIB   <= '0';
+                            ICAP_DataIn <= bitbyteswap(lReadDWordArray(lDWordIndex));
+                            if (lDWordIndex = C_DWORD_MAX) then
+                                lDWordIndex       <= 0;
+                                -- Read the next 64 bytes on the ringbuffer
+                                lRecvRingBufferAddress <=lRecvRingBufferAddress +1;
+                                lFramePacketIndex <= lFramePacketIndex + 1;
+                                StateVariable <= ProcessFrameSt;
+                            else
+                                -- Point to next DWORD
+                                lDWordIndex <= lDWordIndex + 1;
+                                if ((lFramePacketIndex = C_FRAME_PACKET_STOP) and (lDWordIndex = C_LAST_FRAME_DWORD_INDEX)) then
+                                    -- This is the DWORD
+                                    -- Go to get the ICAP Status
+                                    StateVariable <= GetICAPStatusSt;
+                                else
+                                    StateVariable <= ProcessFrameSt;
+                                end if;
+                            end if;
+                        else
+                            -- Stop writing since the ICAP is not ready
+                            ICAP_CSIB   <= '1';                            
+                            StateVariable <= ProcessFrameSt;
+                        end if;
+
                     when ProcessCommandSt =>
                         
-                        -- Start Process to write DWORD Command to the ICAP                        
-                        StateVariable <= WaitCommandAvailICAPSt;
-
-                    when WaitCommandAvailICAPSt =>
-                        
-                        -- Check if the ICAP is ready to receive commands
-                        -- i.e read or write
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready write the command
                             -- Set ICAP to Write mode
                             ICAP_RDWRB    <= '0';
+                            ICAP_CSIB   <= '0';
                             -- Do the Xilinx bitswapping on bytes, refer to
                             -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
                             ICAP_DataIn   <= bitbyteswap(lPRDWordCommand);
-                            StateVariable <= WriteCommandToICAPSt;
+                            -- Done with write 
+                            StateVariable <= GetICAPStatusSt;
                         else
+                            -- Stop writing since the ICAP is not ready
+                            ICAP_CSIB   <= '1';                            
                             -- Wait for the ICAP to be ready
-                            StateVariable <= WaitCommandAvailICAPSt;
+                            StateVariable <= ProcessCommandSt;
                         end if;
-                        
-                    when WriteCommandToICAPSt =>
-                        
-                        -- Assert chip select for the ICAP
-                        -- It is active low :(
-                        ICAP_CSIB     <= '0';
-                        -- Go to save the ICAP Status after the command
-                        StateVariable <= GetICAPStatusSt;
+
 
                     -- Error processing    
                     when SendErrorResponseSt =>
@@ -359,13 +404,13 @@ begin
                     -- Response processing    
                     when GetICAPStatusSt =>
                         -- Disselect the ICAP.
-                        ICAP_CSIB          <= '1';
+                        ICAP_CSIB              <= '1';
                         -- Append the ICAP status on the return bytes
                         -- Update the status bits on the Response Header
-                        lResponcePacketHDR <= ICAP_PRERROR & ICAP_PRDONE & lResponcePacketHDR(13 downto 0);
+                        lResponcePacketHDR     <= ICAP_PRERROR & ICAP_PRDONE & lResponcePacketHDR(13 downto 0);
                         -- Save the ICAP Status Data
-                        lResponcePacketICAPOut <= ICAP_DataOut;
-                        StateVariable      <= GenerateIPCheckSumSt;
+                        lResponcePacketICAPOut <= byteswap(ICAP_DataOut);
+                        StateVariable          <= GenerateIPCheckSumSt;
 
                     when GenerateIPCheckSumSt =>
                         -- Calculate the IP Checksum Here
@@ -376,16 +421,16 @@ begin
 
                     when ProcessSlotsSt =>
                         -- Clear the receiver slot						
-                        RecvRingBufferSlotClear <= '1';
+                        RecvRingBufferSlotClear    <= '1';
                         -- Set the transmitter slot
-                        SenderRingBufferSlotSet <= '1';
+                        SenderRingBufferSlotSet    <= '1';
                         -- Save the return packet
                         SenderRingBufferDataEnable <= RecvRingBufferDataEnable;
                         -- Write the response packet to the Ringbuffer                        
-                        SenderRingBufferDataWrite <= '1';
+                        SenderRingBufferDataWrite  <= '1';
                         -- Go to the next slots so that the system
                         -- can progress on the systems slots
-                        StateVariable           <= NextSlotsSt;
+                        StateVariable              <= NextSlotsSt;
 
                     when NextSlotsSt =>
                         -- Transmitter
