@@ -297,16 +297,15 @@ begin
                                         -- errors, drop it
                                         lPacketSlotSet <= '0';
                                     end if;
-                                    -- tkeep(0) is always 1 when writing data is valid 
-                                    lPacketByteEnable(0)           <= '1';
-                                    lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
                                 else
-                                    -- tkeep(0) is always 1 when writing data is valid 
-                                    lPacketByteEnable(0)           <= '0';
-                                    lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
                                     lPacketSlotSet <= '0';                                
                                     lPacketAddress <= unsigned(lPacketAddress) + 1;
                                 end if;
+                                -- tkeep(0) is always 1 when writing data is valid
+                                -- For the case of TLAST insert TLAST
+                                -- on the last bit  
+                                lPacketByteEnable(0)           <= axis_rx_tlast;
+                                lPacketByteEnable(63 downto 1) <= axis_rx_tkeep(63 downto 1);
                                 lPacketDataWrite <= '1';
                                 lPacketSlotType <= axis_rx_tlast;
                                 --Send the ARP Response
