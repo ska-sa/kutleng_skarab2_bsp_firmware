@@ -25,7 +25,7 @@ if { [info exists ::origin_dir_loc] } {
 }
 
 # Set the project name
-set _xil_proj_name_ "vcu118project"
+set _xil_proj_name_ "vcu1525project"
 
 # Use project name variable, if specified in the tcl shell
 if { [info exists ::user_project_name] } {
@@ -33,14 +33,14 @@ if { [info exists ::user_project_name] } {
 }
 
 variable script_file
-set script_file "ethmacvcu118.tcl"
+set script_file "ethmacvcu1525.tcl"
 
 #Set and make the output directory where all the generated files and reports will be stored
 set outputDir $origin_dir/../project_flow/${_xil_proj_name_}
 file mkdir $outputDir
 
 #create project
-create_project ${_xil_proj_name_} $outputDir -part xcvu9p-flga2104-2L-e -force
+create_project ${_xil_proj_name_} $outputDir -part xcvu9p-fsgd2104-2L-e -force
 
 # Set the directory path for the new project
 set proj_dir [get_property directory [current_project]]
@@ -48,7 +48,7 @@ set proj_dir [get_property directory [current_project]]
 
 # Set project properties
 set obj [current_project]
-set_property -name "board_part" -value "xilinx.com:vcu118:part0:2.0" -objects $obj
+set_property -name "board_part" -value "xilinx.com:vcu1525:part0:1.1" -objects $obj
 set_property -name "default_lib" -value "xil_defaultlib" -objects $obj
 set_property -name "ip_cache_permissions" -value "read write" -objects $obj
 set_property -name "ip_output_repo" -value "$proj_dir/${_xil_proj_name_}.cache/ip" -objects $obj
@@ -59,18 +59,18 @@ set_property -name "xpm_libraries" -value "XPM_CDC XPM_FIFO XPM_MEMORY" -objects
 
 
 #Project op level file
-add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu118/top/gmactop.vhd
+add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu1525/top/gmactop.vhd
 
 #LED files
 add_files $origin_dir/../../../sources/vhdl/rtl/ledblinker/ledflasher.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/ledblinker/partialblinker.vhd
+add_files $origin_dir/../../..//sources/vhdl/implementation/xilinx/vcu1525/partialreconfig/partialblinker.vhd
 
 
 #MAC + PHY 1
-add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu118/top/gmacqsfp1top.vhd
+add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu1525/top/gmacqsfp1top.vhd
 
 #MAC + PHY 2
-add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu118/top/gmacqsfp2top.vhd
+add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/vcu1525/top/gmacqsfp2top.vhd
 
 #Packet ring buffers
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetramsp.vhd
@@ -109,29 +109,29 @@ add_files $origin_dir/../../../sources/vhdl/rtl/udp/ipcomms.vhd
 # Add Xilinx IP Blocks
 
 #MAC + PHY 1
-add_files $origin_dir/../../../sources/ip/vcu118/ethmacphy100gqsfp14x/EthMACPHY100GQSFP14x.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/ethmacphy100gqsfp14x/EthMACPHY100GQSFP14x.xci
 
 #MAC + PHY 2
-add_files $origin_dir/../../../sources/ip/vcu118/ethmacphy100gqsfp24x/EthMACPHY100GQSFP24x.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/ethmacphy100gqsfp24x/EthMACPHY100GQSFP24x.xci
 
 #AXI FIFO PACKER BUFFER
-add_files $origin_dir/../../../sources/ip/vcu118/axispacketbufferfifo/axispacketbufferfifo.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/axispacketbufferfifo/axispacketbufferfifo.xci
 
 # Clock Generator
-add_files $origin_dir/../../../sources/ip/vcu118/clockgen100mhz/clockgen100mhz.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/clockgen100mhz/clockgen100mhz.xci
 
 
 #Debug files
 #AXIS ILA
-add_files $origin_dir/../../../sources/ip/vcu118/axisila/axisila.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/axisila/axisila.xci
 
 #AXIS ILA
-add_files $origin_dir/../../../sources/ip/vcu118/resetvio/resetvio.xci
+add_files $origin_dir/../../../sources/ip/vcu1525/resetvio/resetvio.xci
 
 # Add constraints
 create_fileset -constrset ethconstrs
 
-add_files -fileset ethconstrs $origin_dir/../../../sources/constraints/xilinx/vcu118/gmactop.xdc
+add_files -fileset ethconstrs $origin_dir/../../../sources/constraints/xilinx/vcu1525/gmactop.xdc
 
 
 
