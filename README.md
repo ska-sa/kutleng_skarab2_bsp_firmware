@@ -28,7 +28,24 @@ source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab
 
 #You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/} folder
 
+#This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/vcu118project/vcu118project.xpr}
+
+
+
+
+cd kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525
+
+vivado
+
+#on vivado prompt source the project file for the vcu1525
+
+#on my machine it is as follows
+
+source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525/ethmacvcu1525.tcl
+
+#Yours maybe source ethmacvcu1525.tcl
+
+#You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525/} folder
+
 #This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/vcu1525project/vcu1525project.xpr}
-
-
 
