@@ -49,3 +49,7 @@ source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab
 
 #This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/vcu1525project/vcu1525project.xpr}
 
+
+Fixed 100G links on VCU1525 Using IP Address 192.168.100.10/15
+
+Tagging this to V1.1
