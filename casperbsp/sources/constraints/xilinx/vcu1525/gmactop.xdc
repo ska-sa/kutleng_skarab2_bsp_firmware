@@ -5,8 +5,8 @@ set_property PACKAGE_PIN AW19 [get_ports sysclk1_300_n]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_p]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_n]
 
-create_clock -period 3.333 [get_ports sysclk1_300_n]
-set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_n]] 0.033
+create_clock -period 3.333 [get_ports sysclk1_300_p]
+set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_p]] 0.010
 
 
 
@@ -20,15 +20,15 @@ set_property LOC CMACE4_X0Y6 [get_cells -hierarchical -filter {NAME =~ *inst/i_E
 # Debug LEDs
 set_property PACKAGE_PIN BC21 [get_ports {blink_led[0]}]
 set_property PACKAGE_PIN BB21 [get_ports {blink_led[1]}]
-set_property IOSTANDARD LVCMOS12 [get_ports {blink_led[*]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {blink_led[*]}]
 
 #This is the partial loaded pins
 set_property PACKAGE_PIN BA20 [get_ports partial_bit_led]
-set_property IOSTANDARD LVCMOS12 [get_ports partial_bit_led]
+set_property IOSTANDARD LVCMOS18 [get_ports partial_bit_led]
 
 # QSFP0 Clock
-set_property PACKAGE_PIN P10 [get_ports mgt_qsfp2_clock_n]
-set_property PACKAGE_PIN P11 [get_ports mgt_qsfp2_clock_p]
+set_property PACKAGE_PIN T10 [get_ports mgt_qsfp2_clock_n]
+set_property PACKAGE_PIN T11 [get_ports mgt_qsfp2_clock_p]
 
 create_clock -period 6.400 [get_ports mgt_qsfp2_clock_p]
 
@@ -63,24 +63,23 @@ set_property PACKAGE_PIN P7 [get_ports qsfp2_mgt_tx3_p]
 set_property PACKAGE_PIN P6 [get_ports qsfp2_mgt_tx3_n]
 
 # QSFP0 Settings
-
 set_property PACKAGE_PIN BE21 [get_ports qsfp2_intl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_intl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_intl_ls]
 set_property PACKAGE_PIN BD18 [get_ports qsfp2_lpmode_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_lpmode_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_lpmode_ls]
 set_property PACKAGE_PIN BE20 [get_ports qsfp2_modprsl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_modprsl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_modprsl_ls]
 set_property PACKAGE_PIN BE16 [get_ports qsfp2_modsell_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_modsell_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_modsell_ls]
 set_property PACKAGE_PIN BE17 [get_ports qsfp2_resetl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_resetl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_resetl_ls]
 
 
 
 
 # QSFP1 Clocks
-set_property PACKAGE_PIN K10 [get_ports mgt_qsfp1_clock_n]
-set_property PACKAGE_PIN K11 [get_ports mgt_qsfp1_clock_p]
+set_property PACKAGE_PIN M10 [get_ports mgt_qsfp1_clock_n]
+set_property PACKAGE_PIN M11 [get_ports mgt_qsfp1_clock_p]
 
 create_clock -period 6.400 [get_ports mgt_qsfp1_clock_p]
 
@@ -118,15 +117,15 @@ set_property PACKAGE_PIN K6 [get_ports qsfp1_mgt_tx3_n]
 # QSFP1 Settings
 
 set_property PACKAGE_PIN AV21 [get_ports qsfp1_intl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_intl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_intl_ls]
 set_property PACKAGE_PIN AV22 [get_ports qsfp1_lpmode_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_lpmode_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_lpmode_ls]
 set_property PACKAGE_PIN BC19 [get_ports qsfp1_modprsl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_modprsl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_modprsl_ls]
 set_property PACKAGE_PIN AY20 [get_ports qsfp1_modsell_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_modsell_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_modsell_ls]
 set_property PACKAGE_PIN BC18 [get_ports qsfp1_resetl_ls]
-set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_resetl_ls]
+set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_resetl_ls]
 
 
 

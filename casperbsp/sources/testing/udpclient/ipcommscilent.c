@@ -9,7 +9,7 @@
 #include <netinet/in.h>
  
 #define PORT     10000
-#define MAXLINE 2048
+#define MAXLINE 4
 #define MAXSEND 1500-64
  
 // Driver code
@@ -30,7 +30,7 @@ int main() {
     // Filling server information
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = inet_addr("192.168.10.10");
+    servaddr.sin_addr.s_addr = inet_addr("192.168.100.10");
      
     int n, len;
     int sendnum=MAXSEND;

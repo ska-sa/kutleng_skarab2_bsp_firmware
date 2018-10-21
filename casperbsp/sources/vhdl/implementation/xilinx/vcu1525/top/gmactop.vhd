@@ -427,8 +427,8 @@ architecture rtl of gmactop is
 
     constant C_EMAC_ADDR_1     : std_logic_vector(47 downto 0) := X"000A_3502_4192";
     constant C_EMAC_ADDR_2     : std_logic_vector(47 downto 0) := X"000A_3502_4194";
-    constant C_IP_ADDR_1       : std_logic_vector(31 downto 0) := X"C0A8_0A0A"; --192.168.10.10
-    constant C_IP_ADDR_2       : std_logic_vector(31 downto 0) := X"C0A8_0A0F"; --192.168.10.15
+    constant C_IP_ADDR_1       : std_logic_vector(31 downto 0) := X"C0A8_640A"; --192.168.100.10
+    constant C_IP_ADDR_2       : std_logic_vector(31 downto 0) := X"C0A8_640F"; --192.168.100.15
     constant C_UDP_SERVER_PORT : natural                       := 10000;
     constant C_PR_SERVER_PORT  : natural                       := 20000;
 
@@ -440,14 +440,14 @@ begin
     -- Dont select the module
     qsfp1_modsell_ls <= '1';
     -- Keep the module out of reset    
-    qsfp1_resetl_ls  <= '1';
+    qsfp1_resetl_ls  <= (not Reset);
 
     -- Dont set module to low power mode
     qsfp2_lpmode_ls  <= '0';
     -- Dont select the module
     qsfp2_modsell_ls <= '1';
     -- Keep the module out of reset    
-    qsfp2_resetl_ls  <= '1';
+    qsfp2_resetl_ls  <= (not Reset);
 
     -- Make this the partial black box
     PartialBlinker_i : partialblinker
@@ -691,3 +691,4 @@ begin
         );
 
 end architecture rtl;
+
