@@ -75,19 +75,16 @@ entity protocolresponderprconfigsm is
     port(
         icap_clk                       : in  STD_LOGIC;
         axis_reset                     : in  STD_LOGIC;
-        -- Packet Write in addressed bus format
-        -- Packet Readout in addressed bus format
-        RecvRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferSlotClear        : out STD_LOGIC;
-        RecvRingBufferSlotStatus       : in  STD_LOGIC;
-        RecvRingBufferSlotTypeStatus   : in  STD_LOGIC;
-        RecvRingBufferSlotsFilled      : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferDataRead         : out STD_LOGIC;
-        -- Enable[0] is a special bit (we assume always 1 when packet is valid)
-        -- we use it to save TLAST
-        RecvRingBufferDataEnable       : in  STD_LOGIC_VECTOR(63 downto 0);
-        RecvRingBufferDataIn           : in  STD_LOGIC_VECTOR(511 downto 0);
-        RecvRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        -- Source IP Addressing information
+        ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
+        ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+        ServerPort                     : in  STD_LOGIC_VECTOR(15 downto 0);
+        -- Response IP Addressing information
+        ClientMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
+        ClientIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+        ClientPort                     : in  STD_LOGIC_VECTOR(15 downto 0);
+        -- IP Identification        
+        ClientIdentification           : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Readout in addressed bus format
         SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         SenderRingBufferSlotSet        : out STD_LOGIC;
@@ -100,14 +97,19 @@ entity protocolresponderprconfigsm is
         SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
         SenderRingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
         SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-        --Inputs from AXIS bus of the MAC side
+        -- Handshaking signals
+        -- Status signal to show when the packet sender is busy
+        SenderBusy                     : out STD_LOGIC;
+        -- Protocol Error
+        ProtocolError                  : in  STD_LOGIC;
+        ProtocolErrorClear             : out STD_LOGIC;
+        -- ICAP Writer Response
+        ICAPWriteDone                  : in  STD_LOGIC;
+        ICAPWriteResponseSent          : out STD_LOGIC;        
         --ICAPE3 interface
-        ICAP_CSIB                      : out STD_LOGIC;
-        ICAP_RDWRB                     : out STD_LOGIC;
         ICAP_PRDONE                    : in  STD_LOGIC;
         ICAP_PRERROR                   : in  STD_LOGIC;
         ICAP_AVAIL                     : in  STD_LOGIC;
-        ICAP_DataIn                    : out STD_LOGIC_VECTOR(31 downto 0);
         ICAP_DataOut                   : in  STD_LOGIC_VECTOR(31 downto 0)
     );
 end entity protocolresponderprconfigsm;
