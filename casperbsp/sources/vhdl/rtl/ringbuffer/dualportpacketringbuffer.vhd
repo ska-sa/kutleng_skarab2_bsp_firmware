@@ -98,7 +98,9 @@ entity dualportpacketringbuffer is
         RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         RxPacketSlotSet        : in  STD_LOGIC;
         RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RxPacketSlotType       : in  STD_LOGIC
+        RxPacketSlotType       : in  STD_LOGIC;
+        RxPacketSlotStatus     : out STD_LOGIC;
+        RxPacketSlotTypeStatus : out STD_LOGIC
     );
 end entity dualportpacketringbuffer;
 
@@ -175,7 +177,8 @@ begin
             WriteAData(0) => RxPacketSlotSet,
             WriteAData(1) => RxPacketSlotType,
             WriteAAddress => RxPacketSlotID,
-            ReadAData     => open,
+            ReadAData(0)  => RxPacketSlotStatus,
+            ReadAData(1)  => RxPacketSlotTypeStatus,
             -- Port B
             WriteBAddress => TxPacketSlotID,
             EnableB       => VCC_onebit,
