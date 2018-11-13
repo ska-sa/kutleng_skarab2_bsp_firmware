@@ -197,9 +197,65 @@ architecture rtl of prconfigcontroller is
             RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             RxPacketSlotSet        : in  STD_LOGIC;
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            RxPacketSlotType       : in  STD_LOGIC
+            RxPacketSlotType       : in  STD_LOGIC;
+            RxPacketSlotStatus     : out STD_LOGIC;
+            RxPacketSlotTypeStatus : out STD_LOGIC
         );
     end component dualportpacketringbuffer;
+    
+    component protocolresponderprconfigsm is
+        generic(
+            G_SLOT_WIDTH : natural := 4;
+            --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+            -- The address width is log2(2048/(512/8))=5 bits wide
+            G_ADDR_WIDTH : natural := 5
+        );
+        port(
+            icap_clk                       : in  STD_LOGIC;
+            axis_reset                     : in  STD_LOGIC;
+            -- Source IP Addressing information
+            ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
+            ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+            ServerPort                     : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- Response IP Addressing information
+            ClientMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
+            ClientIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+            ClientPort                     : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- IP Identification        
+            ClientIdentification           : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- Packet Readout in addressed bus format
+            SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            SenderRingBufferSlotSet        : out STD_LOGIC;
+            SenderRingBufferSlotStatus     : out STD_LOGIC;
+            SenderRingBufferSlotTypeStatus : out STD_LOGIC;
+            SenderRingBufferSlotsFilled    : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            SenderRingBufferDataWrite      : out STD_LOGIC;
+            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
+            -- we use it to save TLAST
+            SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
+            SenderRingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
+            SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            -- Handshaking signals
+            -- Status signal to show when the packet sender is busy
+            SenderBusy                     : out STD_LOGIC;
+            -- Protocol Error
+            ProtocolError                  : in  STD_LOGIC;
+            ProtocolErrorClear             : out STD_LOGIC;
+            -- ICAP Writer Response
+            ICAPWriteDone                  : in  STD_LOGIC;
+            ICAPWriteResponseSent          : out STD_LOGIC;        
+            --ICAPE3 interface
+            ICAP_PRDONE                    : in  STD_LOGIC;
+            ICAP_PRERROR                   : in  STD_LOGIC;
+            ICAP_AVAIL                     : in  STD_LOGIC;
+            ICAP_DataOut                   : in  STD_LOGIC_VECTOR(31 downto 0)
+        );
+    end component protocolresponderprconfigsm;
+    
+    
+    
+    
+    
     constant C_DATA_WIDTH             : natural := 512;
 
 
@@ -225,15 +281,29 @@ architecture rtl of prconfigcontroller is
     signal   SynchSenderRingBufferSlotSet   : std_logic_vector(3 downto 0);
     signal   SenderRingBufferPacketSlotSet  : std_logic;
     
-    signal   SenderRingBufferPacketByteEnable : std_logic_vector((G_DATA_WIDTH / 8) - 1 downto 0);
+    signal   SenderRingBufferPacketByteEnable : std_logic_vector((C_DATA_WIDTH / 8) - 1 downto 0);
     signal   SenderRingBufferPacketDataWrite  : std_logic;
-    signal   SenderRingBufferPacketData       : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+    signal   SenderRingBufferPacketData       : std_logic_vector(C_DATA_WIDTH - 1 downto 0);
     signal   SenderRingBufferPacketAddress    : std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
     signal   SenderRingBufferPacketSlotID     : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal   SenderRingBufferPacketSlotType   : std_logic;
-
+    signal   SenderRingBufferPacketSlotStatus : std_logic;
     
-
+    signal   ClientMACAddress                 : std_logic_vector(47 downto 0);
+    signal   ClientIPAddress                  : std_logic_vector(31 downto 0);
+    signal   ClientPort                       : std_logic_vector(15 downto 0);
+    signal   ClientIdentification             : std_logic_vector(15 downto 0);
+    
+    signal   SenderBusy                     : std_logic;
+    signal   ProtocolError                  : std_logic;
+    signal   ProtocolErrorClear             : std_logic;
+    signal   ICAPWriteDone                  : std_logic;
+    signal   ICAPWriteResponseSent          : std_logic;        
+    signal   ICAP_PRDONE                    : std_logic;
+    signal   ICAP_PRERROR                   : std_logic;
+    signal   ICAP_AVAIL                     : std_logic;
+    signal   ICAP_DataOut                   : std_logic_vector(31 downto 0);
+    
 begin
 
     ----------------------------------------------------------------------------
@@ -349,7 +419,53 @@ begin
             RxPacketAddress        => SenderRingBufferPacketAddress,
             RxPacketSlotSet        => SenderRingBufferPacketSlotSet,
             RxPacketSlotID         => SenderRingBufferPacketSlotID,
-            RxPacketSlotType       => SenderRingBufferPacketSlotType
+            RxPacketSlotType       => SenderRingBufferPacketSlotType,
+            RxPacketSlotStatus     => SenderRingBufferPacketSlotStatus,
+            RxPacketSlotTypeStatus => open
+        );
+
+    TXResponder_i:protocolresponderprconfigsm
+        generic map(
+            G_SLOT_WIDTH => G_SLOT_WIDTH,
+            G_ADDR_WIDTH => G_ADDR_WIDTH
+        )
+        port map(
+            icap_clk                       => icap_clk,
+            axis_reset                     => icap_reset,
+            -- Source IP Addressing information
+            ServerMACAddress               => ServerMACAddress,
+            ServerIPAddress                => ServerIPAddress,
+            ServerPort                     => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT,16)),
+            -- Response IP Addressing information
+            ClientMACAddress               => ClientMACAddress,
+            ClientIPAddress                => ClientIPAddress,
+            ClientPort                     => ClientPort,
+            -- IP Identification        
+            ClientIdentification           => ClientIdentification,
+            -- Packet Readout in addressed bus format
+            SenderRingBufferSlotID         => SenderRingBufferPacketSlotID,
+            SenderRingBufferSlotSet        => SenderRingBufferPacketSlotSet,
+            SenderRingBufferSlotStatus     => SenderRingBufferPacketSlotStatus,
+            SenderRingBufferDataWrite      => SenderRingBufferPacketDataWrite,
+            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
+            -- we use it to save TLAST
+            SenderRingBufferDataEnable     => SenderRingBufferPacketByteEnable,
+            SenderRingBufferDataOut        => SenderRingBufferPacketData,
+            SenderRingBufferAddress        => SenderRingBufferPacketAddress,
+            -- Handshaking signals
+            -- Status signal to show when the packet sender is busy
+            SenderBusy                     => SenderBusy,
+            -- Protocol Error
+            ProtocolError                  => ProtocolError,
+            ProtocolErrorClear             => ProtocolErrorClear,
+            -- ICAP Writer Response
+            ICAPWriteDone                  => ICAPWriteDone,
+            ICAPWriteResponseSent          => ICAPWriteResponseSent,        
+            --ICAPE3 interface
+            ICAP_PRDONE                    => ICAP_PRDONE,
+            ICAP_PRERROR                   => ICAP_PRERROR,
+            ICAP_AVAIL                     => ICAP_AVAIL,
+            ICAP_DataOut                   => ICAP_DataOut
         );
 
 end architecture rtl;
