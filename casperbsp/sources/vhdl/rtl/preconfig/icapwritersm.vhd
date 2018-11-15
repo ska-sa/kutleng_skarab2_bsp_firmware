@@ -73,42 +73,33 @@ entity icapwritersm is
         G_ADDR_WIDTH : natural := 5
     );
     port(
-        icap_clk                       : in  STD_LOGIC;
-        axis_reset                     : in  STD_LOGIC;
+        icap_clk                 : in  STD_LOGIC;
+        axis_reset               : in  STD_LOGIC;
         -- Packet Write in addressed bus format
         -- Packet Readout in addressed bus format
-        RecvRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferSlotClear        : out STD_LOGIC;
-        RecvRingBufferSlotStatus       : in  STD_LOGIC;
-        RecvRingBufferSlotTypeStatus   : in  STD_LOGIC;
-        RecvRingBufferSlotsFilled      : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferDataRead         : out STD_LOGIC;
+        RingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        RingBufferSlotClear      : out STD_LOGIC;
+        RingBufferSlotStatus     : in  STD_LOGIC;
+        RingBufferSlotTypeStatus : in  STD_LOGIC;
+        RingBufferSlotsFilled    : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        RingBufferDataRead       : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        RecvRingBufferDataEnable       : in  STD_LOGIC_VECTOR(63 downto 0);
-        RecvRingBufferDataIn           : in  STD_LOGIC_VECTOR(511 downto 0);
-        RecvRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-        -- Packet Readout in addressed bus format
-        SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        SenderRingBufferSlotSet        : out STD_LOGIC;
-        SenderRingBufferSlotStatus     : out STD_LOGIC;
-        SenderRingBufferSlotTypeStatus : out STD_LOGIC;
-        SenderRingBufferSlotsFilled    : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        SenderRingBufferDataWrite      : out STD_LOGIC;
-        -- Enable[0] is a special bit (we assume always 1 when packet is valid)
-        -- we use it to save TLAST
-        SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-        SenderRingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
-        SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        RingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
+        RingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+        RingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        -- Handshake Signals
+        ICAPWriteDone            : out STD_LOGIC;
+        ICAPWriteResponseSent    : in  STD_LOGIC;
         --Inputs from AXIS bus of the MAC side
         --ICAPE3 interface
-        ICAP_CSIB                      : out STD_LOGIC;
-        ICAP_RDWRB                     : out STD_LOGIC;
-        ICAP_PRDONE                    : in  STD_LOGIC;
-        ICAP_PRERROR                   : in  STD_LOGIC;
-        ICAP_AVAIL                     : in  STD_LOGIC;
-        ICAP_DataIn                    : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAP_DataOut                   : in  STD_LOGIC_VECTOR(31 downto 0)
+        ICAP_CSIB                : out STD_LOGIC;
+        ICAP_RDWRB               : out STD_LOGIC;
+        ICAP_PRDONE              : in  STD_LOGIC;
+        ICAP_PRERROR             : in  STD_LOGIC;
+        ICAP_AVAIL               : in  STD_LOGIC;
+        ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0);
+        ICAP_DataOut             : in  STD_LOGIC_VECTOR(31 downto 0)
     );
 end entity icapwritersm;
 
