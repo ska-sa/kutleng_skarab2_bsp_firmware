@@ -77,27 +77,30 @@ entity protocolchecksumprconfigsm is
         axis_reset                     : in  STD_LOGIC;
         -- Packet Write in addressed bus format
         -- Packet Readout in addressed bus format
-        FilterRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        FilterRingBufferSlotClear        : out STD_LOGIC;
-        FilterRingBufferSlotStatus       : in  STD_LOGIC;
-        FilterRingBufferSlotTypeStatus   : in  STD_LOGIC;
-        FilterRingBufferDataRead         : out STD_LOGIC;
+        FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        FilterRingBufferSlotClear      : out STD_LOGIC;
+        FilterRingBufferSlotStatus     : in  STD_LOGIC;
+        FilterRingBufferSlotTypeStatus : in  STD_LOGIC;
+        FilterRingBufferDataRead       : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        FilterRingBufferByteEnable       : in  STD_LOGIC_VECTOR(3 downto 0);
-        FilterRingBufferDataIn           : in  STD_LOGIC_VECTOR(31 downto 0);
-        FilterRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(3 downto 0);
+        FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(31 downto 0);
+        FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         -- Packet Readout in addressed bus format
-        ICAPRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        ICAPRingBufferSlotSet        : out STD_LOGIC;
-        ICAPRingBufferSlotStatus     : out STD_LOGIC;
-        ICAPRingBufferSlotTypeStatus : out STD_LOGIC;
-        ICAPRingBufferDataWrite      : out STD_LOGIC;
+        ICAPRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        ICAPRingBufferSlotSet          : out STD_LOGIC;
+        ICAPRingBufferSlotStatus       : out STD_LOGIC;
+        ICAPRingBufferSlotTypeStatus   : out STD_LOGIC;
+        ICAPRingBufferDataWrite        : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        ICAPRingBufferByteEnable     : out STD_LOGIC_VECTOR(3 downto 0);
-        ICAPRingBufferDataOut        : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAPRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0)
+        ICAPRingBufferByteEnable       : out STD_LOGIC_VECTOR(3 downto 0);
+        ICAPRingBufferDataOut          : out STD_LOGIC_VECTOR(31 downto 0);
+        ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        -- Protocol Error
+        ProtocolError                  : out STD_LOGIC;
+        ProtocolErrorClear             : in  STD_LOGIC
     );
 end entity protocolchecksumprconfigsm;
 
