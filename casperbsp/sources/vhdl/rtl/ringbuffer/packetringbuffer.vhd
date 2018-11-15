@@ -46,7 +46,7 @@
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
 -- Design Name      : CASPER BSP                                               -
--- Module Name      : packetramsp - rtl                                        -
+-- Module Name      : packetringbuffer - rtl                                   -
 -- Project Name     : SKARAB2                                                  -
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
