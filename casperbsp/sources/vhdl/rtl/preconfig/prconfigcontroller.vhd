@@ -287,7 +287,10 @@ architecture rtl of prconfigcontroller is
             -- we use it to save TLAST
             ICAPRingBufferByteEnable       : out STD_LOGIC_VECTOR(3 downto 0);
             ICAPRingBufferDataOut          : out STD_LOGIC_VECTOR(31 downto 0);
-            ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0)
+            ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            -- Protocol Error
+            ProtocolError                  : out STD_LOGIC;
+            ProtocolErrorClear             : in  STD_LOGIC
         );
     end component protocolchecksumprconfigsm;
 
@@ -482,7 +485,10 @@ begin
             -- we use it to save TLAST
             ICAPRingBufferByteEnable       => ICAPRingBufferByteEnable,
             ICAPRingBufferDataOut          => ICAPRingBufferData,
-            ICAPRingBufferAddress          => ICAPRingBufferAddress
+            ICAPRingBufferAddress          => ICAPRingBufferAddress,
+            -- Protocol Error
+            ProtocolError                  => ProtocolError,
+            ProtocolErrorClear             => ProtocolErrorClear
         );
     ----------------------------------------------------------------------------
     --                           ICAP Section                                  -
