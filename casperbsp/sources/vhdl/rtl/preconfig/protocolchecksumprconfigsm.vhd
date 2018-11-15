@@ -73,42 +73,31 @@ entity protocolchecksumprconfigsm is
         G_ADDR_WIDTH : natural := 5
     );
     port(
-        icap_clk                       : in  STD_LOGIC;
+        axis_clk                       : in  STD_LOGIC;
         axis_reset                     : in  STD_LOGIC;
         -- Packet Write in addressed bus format
         -- Packet Readout in addressed bus format
-        RecvRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferSlotClear        : out STD_LOGIC;
-        RecvRingBufferSlotStatus       : in  STD_LOGIC;
-        RecvRingBufferSlotTypeStatus   : in  STD_LOGIC;
-        RecvRingBufferSlotsFilled      : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        RecvRingBufferDataRead         : out STD_LOGIC;
+        FilterRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        FilterRingBufferSlotClear        : out STD_LOGIC;
+        FilterRingBufferSlotStatus       : in  STD_LOGIC;
+        FilterRingBufferSlotTypeStatus   : in  STD_LOGIC;
+        FilterRingBufferDataRead         : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        RecvRingBufferDataEnable       : in  STD_LOGIC_VECTOR(63 downto 0);
-        RecvRingBufferDataIn           : in  STD_LOGIC_VECTOR(511 downto 0);
-        RecvRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        FilterRingBufferByteEnable       : in  STD_LOGIC_VECTOR(3 downto 0);
+        FilterRingBufferDataIn           : in  STD_LOGIC_VECTOR(31 downto 0);
+        FilterRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         -- Packet Readout in addressed bus format
-        SenderRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        SenderRingBufferSlotSet        : out STD_LOGIC;
-        SenderRingBufferSlotStatus     : out STD_LOGIC;
-        SenderRingBufferSlotTypeStatus : out STD_LOGIC;
-        SenderRingBufferSlotsFilled    : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        SenderRingBufferDataWrite      : out STD_LOGIC;
+        ICAPRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        ICAPRingBufferSlotSet        : out STD_LOGIC;
+        ICAPRingBufferSlotStatus     : out STD_LOGIC;
+        ICAPRingBufferSlotTypeStatus : out STD_LOGIC;
+        ICAPRingBufferDataWrite      : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-        SenderRingBufferDataOut        : out STD_LOGIC_VECTOR(511 downto 0);
-        SenderRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-        --Inputs from AXIS bus of the MAC side
-        --ICAPE3 interface
-        ICAP_CSIB                      : out STD_LOGIC;
-        ICAP_RDWRB                     : out STD_LOGIC;
-        ICAP_PRDONE                    : in  STD_LOGIC;
-        ICAP_PRERROR                   : in  STD_LOGIC;
-        ICAP_AVAIL                     : in  STD_LOGIC;
-        ICAP_DataIn                    : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAP_DataOut                   : in  STD_LOGIC_VECTOR(31 downto 0)
+        ICAPRingBufferByteEnable     : out STD_LOGIC_VECTOR(3 downto 0);
+        ICAPRingBufferDataOut        : out STD_LOGIC_VECTOR(31 downto 0);
+        ICAPRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0)
     );
 end entity protocolchecksumprconfigsm;
 
@@ -269,9 +258,9 @@ begin
     RecvRingBufferAddress   <= std_logic_vector(lRecvRingBufferAddress);
     SenderRingBufferSlotID  <= std_logic_vector(lSenderRingBufferSlotID);
     SenderRingBufferAddress <= std_logic_vector(lSenderRingBufferAddress);
-    FilledSlotsProc : process(icap_clk)
+    FilledSlotsProc : process(axis_clk)
     begin
-        if rising_edge(icap_clk) then
+        if rising_edge(axis_clk) then
             SenderRingBufferSlotsFilled <= RecvRingBufferSlotsFilled;
         end if;
     end process FilledSlotsProc;
