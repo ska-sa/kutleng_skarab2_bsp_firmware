@@ -197,9 +197,39 @@
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/configcontroller.vhd</locationURI>
 		</link>
 		<link>
+			<name>vhdl/rtl/preconfig/icapwritersm.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/icapwritersm.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/preconfig/prconfigcontroller.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/prconfigcontroller.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/preconfig/protocolchecksumprconfigsm.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/protocolchecksumprconfigsm.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/preconfig/protocolresponderprconfigsm.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/protocolresponderprconfigsm.vhd</locationURI>
+		</link>
+		<link>
 			<name>vhdl/rtl/preconfig/testbench</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/ringbuffer/dualportpacketringbuffer.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/ringbuffer/dualportpacketringbuffer.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/rtl/ringbuffer/packetramdp.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/ringbuffer/packetramdp.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/ringbuffer/packetramsp.vhd</name>
