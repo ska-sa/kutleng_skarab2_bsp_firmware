@@ -170,6 +170,41 @@ architecture rtl of ipcomms is
             axis_tx_tlast     : out STD_LOGIC
         );
     end component arpmodule;
+    
+    component prconfigcontroller is
+        generic(
+            G_SLOT_WIDTH      : natural                          := 4;
+            G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+            -- The address width is log2(2048/(512/8))=5 bits wide
+            G_ADDR_WIDTH      : natural                          := 5
+        );
+        port(
+            --312.50MHz system clock
+            axis_clk          : in  STD_LOGIC;
+            -- 95 MHz ICAP clock
+            icap_clk          : in  STD_LOGIC;
+            -- Module reset
+            -- Must be synchronized internally for each clock domain
+            axis_reset        : in  STD_LOGIC;
+            -- Setup information
+            ServerMACAddress  : in  STD_LOGIC_VECTOR(47 downto 0);
+            ServerIPAddress   : in  STD_LOGIC_VECTOR(31 downto 0);
+            --Inputs from AXIS bus of the MAC side
+            axis_rx_tdata     : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tvalid    : in  STD_LOGIC;
+            axis_rx_tuser     : in  STD_LOGIC;
+            axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tlast     : in  STD_LOGIC;
+            --Outputs to AXIS bus MAC side 
+            axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH-1 downto 0);
+            axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tvalid    : out STD_LOGIC;
+            axis_tx_tready    : in  STD_LOGIC;
+            axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tlast     : out STD_LOGIC
+        );
+    end component prconfigcontroller;
+    
 
     component axisthreeportfabricmultiplexer is
         generic(
@@ -245,16 +280,6 @@ architecture rtl of ipcomms is
     signal UDPRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
     signal UDPRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
     signal UDPRingBufferAddress        : STD_LOGIC_VECTOR(5 - 1 downto 0);
-
-    signal PRRingBufferSlotID         : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
-    signal PRRingBufferSlotClear      : STD_LOGIC;
-    signal PRRingBufferSlotStatus     : STD_LOGIC;
-    signal PRRingBufferSlotTypeStatus : STD_LOGIC;
-    signal PRRingBufferSlotsFilled    : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
-    signal PRRingBufferDataRead       : STD_LOGIC;
-    signal PRRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
-    signal PRRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
-    signal PRRingBufferAddress        : STD_LOGIC_VECTOR(5 - 1 downto 0);
 
 begin
 
@@ -334,7 +359,7 @@ begin
             axis_rx_tlast                  => axis_rx_tlast
         );
 
-    PRDATAApp_i : macifudpserver
+    PRDATAApp_i : prconfigcontroller
         generic map(
             G_SLOT_WIDTH      => C_PRIORITY_WIDTH,
             G_UDP_SERVER_PORT => G_PR_SERVER_PORT,
@@ -342,35 +367,13 @@ begin
         )
         port map(
             axis_clk                       => axis_clk,
+            -- TODO --
+            -- Change this to 95 MHz ICAP Clock --
+            icap_clk                       => axis_clk, 
             axis_reset                     => axis_reset,
             -- Setup information
             ServerMACAddress               => G_EMAC_ADDR,
             ServerIPAddress                => G_IP_ADDR,
-            -- Packet Readout in addressed bus format
-            RecvRingBufferSlotID           => PRRingBufferSlotID,
-            RecvRingBufferSlotClear        => PRRingBufferSlotClear,
-            RecvRingBufferSlotStatus       => PRRingBufferSlotStatus,
-            RecvRingBufferSlotTypeStatus   => PRRingBufferSlotTypeStatus,
-            RecvRingBufferSlotsFilled      => PRRingBufferSlotsFilled,
-            RecvRingBufferDataRead         => PRRingBufferDataRead,
-            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
-            -- we use it to save TLAST
-            RecvRingBufferDataEnable       => PRRingBufferDataEnable,
-            RecvRingBufferDataOut          => PRRingBufferData,
-            RecvRingBufferAddress          => PRRingBufferAddress,
-            -- Packet Readout in addressed bus format
-            SenderRingBufferSlotID         => PRRingBufferSlotID,
-            SenderRingBufferSlotClear      => PRRingBufferSlotClear,
-            SenderRingBufferSlotStatus     => PRRingBufferSlotStatus,
-            SenderRingBufferSlotTypeStatus => PRRingBufferSlotTypeStatus,
-            SenderRingBufferSlotsFilled    => PRRingBufferSlotsFilled,
-            SenderRingBufferDataRead       => PRRingBufferDataRead,
-            -- Enable[0] is a special bit (we assume always 1 when packet is valid
-            -- we use it to save TLAST                                 
-            SenderRingBufferDataEnable     => PRRingBufferDataEnable,
-            SenderRingBufferDataIn         => PRRingBufferData,
-            SenderRingBufferAddress        => PRRingBufferAddress,
-            --Inputs from AXIS bus of the MAC side
             --Outputs to AXIS bus MAC side 
             axis_tx_tpriority              => axis_tx_tpriority_1_pr,
             axis_tx_tdata                  => axis_tx_tdata_1_pr,
@@ -401,22 +404,21 @@ begin
             axis_tx_tkeep       => axis_tx_tkeep,
             axis_tx_tlast       => axis_tx_tlast,
             axis_tx_tuser       => axis_tx_tuser,
-            -- Port 1
-            -- Port 1
+            -- Port 1 - ARP Controller Module
             axis_rx_tpriority_1 => axis_tx_tpriority_1_arp,
             axis_rx_tdata_1     => axis_tx_tdata_1_arp,
             axis_rx_tvalid_1    => axis_tx_tvalid_1_arp,
             axis_rx_tready_1    => axis_tx_tready_1_arp,
             axis_rx_tkeep_1     => axis_tx_tkeep_1_arp,
             axis_rx_tlast_1     => axis_tx_tlast_1_arp,
-            -- Port 2
+            -- Port 2 - Streaming Data Module
             axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
             axis_rx_tdata_2     => axis_tx_tdata_1_udp,
             axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
             axis_rx_tready_2    => axis_tx_tready_1_udp,
             axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
             axis_rx_tlast_2     => axis_tx_tlast_1_udp,
-            -- Port 3
+            -- Port 3 - Partial Reconfiguration Controller Module
             axis_rx_tpriority_3 => axis_tx_tpriority_1_pr,
             axis_rx_tdata_3     => axis_tx_tdata_1_pr,
             axis_rx_tvalid_3    => axis_tx_tvalid_1_pr,
