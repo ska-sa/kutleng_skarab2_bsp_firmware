@@ -73,6 +73,7 @@ entity ipcomms is
     );
     port(
         axis_clk       : in  STD_LOGIC;
+        icap_clk       : in  STD_LOGIC;
         axis_reset     : in  STD_LOGIC;
         --Outputs to AXIS bus MAC side 
         axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
@@ -367,9 +368,8 @@ begin
         )
         port map(
             axis_clk                       => axis_clk,
-            -- TODO --
-            -- Change this to 95 MHz ICAP Clock --
-            icap_clk                       => axis_clk, 
+            -- 95 MHz ICAP Clock 
+            icap_clk                       => icap_clk, 
             axis_reset                     => axis_reset,
             -- Setup information
             ServerMACAddress               => G_EMAC_ADDR,
