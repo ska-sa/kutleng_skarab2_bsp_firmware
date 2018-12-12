@@ -248,6 +248,7 @@ architecture rtl of gmactop is
     component clockgen100mhz is
         port(
             clk_out1  : out STD_LOGIC;
+            clk_out2  : out STD_LOGIC;
             locked    : out STD_LOGIC;
             clk_in1_p : in  STD_LOGIC;
             clk_in1_n : in  STD_LOGIC
@@ -337,6 +338,7 @@ architecture rtl of gmactop is
         );
         port(
             axis_clk       : in  STD_LOGIC;
+            icap_clk       : in  STD_LOGIC;            
             axis_reset     : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
@@ -379,6 +381,7 @@ architecture rtl of gmactop is
     end component partialblinker;
 
     signal RefClk100MHz    : std_logic;
+    signal ICAPClk95MHz    : std_logic;
     signal RefClkLocked    : std_logic;
     signal Reset           : std_logic;
     signal lReset          : std_logic;
@@ -480,6 +483,7 @@ begin
     ClockGen100MHz_i : clockgen100mhz
         port map(
             clk_out1  => RefClk100MHz,
+            clk_out2  => ICAPClk95MHz,            
             locked    => RefClkLocked,
             clk_in1_p => sysclk1_300_p,
             clk_in1_n => sysclk1_300_n
@@ -556,6 +560,7 @@ begin
         )
         port map(
             axis_clk       => ClkQSFP1,
+            icap_clk       => ICAPClk95MHz,
             axis_reset     => Reset,
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  => axis_tx_tdata_1,
