@@ -85,7 +85,7 @@ entity protocolchecksumprconfigsm is
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
         FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(3 downto 0);
-        FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(31 downto 0);
+        FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
         FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         -- Packet Readout in addressed bus format
         ICAPRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -115,16 +115,15 @@ architecture rtl of protocolchecksumprconfigsm is
         InitialiseSt,                   -- On the reset state
         CheckSlotSt,
         NextSlotSt,
-        ComposeResponsePacketSt,
-        CheckCommandSt,
-        ProcessCommandSt,
-        ProcessFrameSt,
-        GetICAPStatusSt,
-        PrepareResponseHeader,
-        GenerateIPCheckSumSt,
-        WriteUDPResponceSt,
-        ProcessSlotsSt,
-        NextSlotsSt,
+        ReadBufferSt,
+        CacheDecodePacketSt,
+        SaveUDPIPDataSt,
+        WriteICAPBufferSt,
+        UpdateCheckOffsetSt,
+        UpdateCheckIterationSt,
+        ClearSlotSt,
+        CompareChecksumSt,
+        SetAndNextICAPBufferSlotSt,
         SendErrorResponseSt
     );
     signal StateVariable              : ConfigurationControllerSM_t := InitialiseSt;
@@ -209,81 +208,84 @@ begin
                         lRecvRingBufferAddress <= (others => '0');
                         if (FilterRingBufferSlotStatus = '1') then
                             -- The current slot has data 
-                            -- Pull the data 
-                            FilterRingBufferDataRead <= '1';
-                            StateVariable          <= ComposeResponsePacketSt;
+                            StateVariable          <= ReadBufferSt;
                         else
                             FilterRingBufferDataRead <= '0';
                             StateVariable          <= CheckSlotSt;
                         end if;
 
-                    when NextSlotSt =>
-                        -- Go to next Slot
-                        lRecvRingBufferSlotID   <= lRecvRingBufferSlotID + 1;
-                        lRecvRingBufferAddress  <= (others => '0');
-                        FilterRingBufferSlotClear <= '0';
-                        FilterRingBufferDataRead  <= '0';
-                        StateVariable           <= CheckSlotSt;
 
-                    when ComposeResponsePacketSt =>
-                        StateVariable                           <= CheckCommandSt;
 
-                    when CheckCommandSt =>
+                    when ReadBufferSt =>
+                        -- Pull the data 
+                        FilterRingBufferDataRead <= '1';
+                        StateVariable                           <= CacheDecodePacketSt;
 
-                                StateVariable      <= SendErrorResponseSt;
+                    when CacheDecodePacketSt =>
+                        if(Iterations = '0') then
+                            StateVariable      <= SaveUDPIPDataSt;
+                        else
+                            StateVariable      <= WriteICAPBufferSt;
+                        end if;
+                            
 
-                    when ProcessFrameSt =>
-                            -- Stop writing since the ICAP is not ready
-                            StateVariable <= ProcessFrameSt;
+                    when SaveUDPIPDataSt =>
+                        if(InvalidPacket = '1') then
+                            StateVariable      <= SendErrorResponseSt;
+                        else
+                            StateVariable      <= WriteICAPBufferSt;
+                        end if;
 
-                    when ProcessCommandSt =>
+                    when WriteICAPBufferSt =>
 
                             -- Wait for the ICAP to be ready
-                            StateVariable <= ProcessCommandSt;
+                            StateVariable <= UpdateCheckOffsetSt;
 
+                    when UpdateCheckOffsetSt =>
+
+                            -- Wait for the ICAP to be ready
+                            StateVariable <= UpdateCheckIterationSt;
+                            
+                    when UpdateCheckIterationSt =>
+                        
+                        if(Iterations = MaxIterations) then
+                            -- Done with data
+                            StateVariable      <= ClearSlotSt;
+                        else
+                            -- Keep reading data
+                            StateVariable      <= ReadBufferSt;
+                        end if;
+                        
+                    -- Response processing    
+                    when ClearSlotSt =>
+
+                        StateVariable <= NextSlotSt;                           
+
+                    -- Response processing    
+                    when NextSlotSt =>
+
+                        StateVariable <= CompareChecksumSt; 
+                        
+                    -- Response processing    
+                    when CompareChecksumSt =>
+
+                        if(NewCheckSum = UDPChecksum) then
+                            -- Done with data
+                            StateVariable      <= SetAndNextICAPBufferSlotSt;
+                        else
+                            -- Keep reading data
+                            StateVariable      <= SendErrorResponseSt;
+                        end if;                     
+                                        
+
+                    when SetAndNextICAPBufferSlotSt =>
+
+                        StateVariable <= CheckSlotSt;
+                                                   
                     -- Error processing    
                     when SendErrorResponseSt =>
                         -- Prepare a UDP Error packet
-                        StateVariable <= GetICAPStatusSt;
-
-                    -- Response processing    
-                    when GetICAPStatusSt =>
-
-                        StateVariable <= PrepareResponseHeader;
-
-                    when PrepareResponseHeader =>
-
-                        StateVariable <= GenerateIPCheckSumSt;
-
-                    when GenerateIPCheckSumSt =>
-                        -- TODO Do the calculation
-                        -- Calculate the IP Checksum Here
-                        StateVariable                           <= WriteUDPResponceSt;
-                    when WriteUDPResponceSt =>
-                        -- Prepare the response packet to the Ringbuffer
-                        StateVariable <= ProcessSlotsSt;
-
-                    when ProcessSlotsSt =>
-                        -- Set the transmitter slot
-                        ICAPRingBufferSlotSet        <= '1';
-                        -- Save the return packet
-                        -- Write the response packet to the Ringbuffer                        
-                        ICAPRingBufferDataWrite      <= '1';
-                        -- Go to the next slots so that the system
-                        -- can progress on the systems slots
-                        StateVariable                  <= NextSlotsSt;
-
-                    when NextSlotsSt =>
-                        -- Transmitter
-                        lSenderRingBufferSlotID    <= lSenderRingBufferSlotID + 1;
-                        lSenderRingBufferAddress   <= (others => '0');
-                        ICAPRingBufferDataOut    <= (others => '0');
-                        ICAPRingBufferSlotSet    <= '0';
-                        ICAPRingBufferDataWrite  <= '0';
-                        -- Clear the receiver slot
-                        FilterRingBufferSlotClear    <= '1';
-                        -- Go to check the next available receiver slot
-                        StateVariable              <= NextSlotSt;
+                        StateVariable <= CheckSlotSt;
 
                     when others =>
                         StateVariable <= InitialiseSt;

@@ -276,8 +276,8 @@ architecture rtl of prconfigcontroller is
             FilterRingBufferDataRead       : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(3 downto 0);
-            FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(31 downto 0);
+            FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
+            FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
             FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --
             SenderBusy                     : in  STD_LOGIC;
@@ -407,8 +407,8 @@ architecture rtl of prconfigcontroller is
     signal ReceiverRingBufferSlotTypeStatus   : std_logic;
     signal ReceiverRingBufferSlotsFilled      : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal ReceiverRingBufferDataRead         : std_logic;
-    signal ReceiverRingBufferDataEnable       : std_logic_vector(3 downto 0);
-    signal ReceiverRingBufferDataOut          : std_logic_vector(31 downto 0);
+    signal ReceiverRingBufferDataEnable       : std_logic_vector(63 downto 0);
+    signal ReceiverRingBufferDataOut          : std_logic_vector(511 downto 0);
     signal ReceiverRingBufferAddress          : std_logic_vector(6 downto 0);
     signal ICAPWriterRingBufferSlotID         : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal ICAPWriterRingBufferSlotClear      : std_logic;
@@ -466,9 +466,8 @@ begin
             RingBufferSlotTypeStatus => ReceiverRingBufferSlotTypeStatus,
             RingBufferSlotsFilled    => ReceiverRingBufferSlotsFilled,
             RingBufferDataRead       => ReceiverRingBufferDataRead,
-            --TODO--
---            RingBufferDataEnable     => ReceiverRingBufferDataEnable, Must change this to 4 bits
---            RingBufferDataOut        => ReceiverRingBufferDataOut, --must change this to 32 bits 
+            RingBufferDataEnable     => ReceiverRingBufferDataEnable, 
+            RingBufferDataOut        => ReceiverRingBufferDataOut,  
             RingBufferAddress        => ReceiverRingBufferAddress,
             axis_rx_tdata            => axis_rx_tdata,
             axis_rx_tvalid           => axis_rx_tvalid,
@@ -704,6 +703,8 @@ begin
             ServerIPAddress            => ServerIPAddress,
             ServerPort                 => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
             -- Response IP Addressing information
+            --TODO--
+            -- Source all addressing data 
             ClientMACAddress           => ClientMACAddress,
             ClientIPAddress            => ClientIPAddress,
             ClientPort                 => ClientPort,

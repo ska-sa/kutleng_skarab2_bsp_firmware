@@ -486,7 +486,7 @@ begin
                         -- Change the UDP length
                         -- TODO Set the UDP Packet length
                         lUDPDataStreamLength            <= byteswap(C_RESPONSE_UDP_LENGTH);
-                        -- The UDP Checksum must change or can put to Zero
+                        -- The UDP Checksum must change or can put to zero
                         lUDPCheckSum                    <= (others => '0');
                         -- These three will be overwritten later
                         -- The response PacketID
@@ -497,7 +497,7 @@ begin
                         lPRDWordCommand                 <= byteswap(lPacketDWORDCommand);
                         -- Rest of data is zeros
                         lRingBufferData(511 downto 416) <= (others => '0');
-                        -- Go to check if adressing has changed
+                        -- Go to check if dressing has changed
                         StateVariable                   <= CheckAddressingChangesSt;
 
                     when CheckAddressingChangesSt =>
