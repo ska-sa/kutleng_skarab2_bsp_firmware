@@ -131,6 +131,66 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
     signal lSenderRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lSenderRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    
+    constant C_DWORD_MAX : natural                     := (16 - 1);
+
+    constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";
+    constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";
+    constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
+    constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)  := X"45";
+    constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)  := X"00";
+    constant C_RESPONSE_FLAGS_OFFSET  : std_logic_vector(15 downto 0) := X"4000";
+    constant C_RESPONSE_TIME_TO_LEAVE : std_logic_vector(7 downto 0)  := X"40";
+    constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
+
+    -- Tuples registers
+    signal lRingBufferData          : std_logic_vector(511 downto 0);
+
+    alias lDestinationMACAddress    : std_logic_vector(47 downto 0) is lRingBufferData(47 downto 0);
+    alias lSourceMACAddress         : std_logic_vector(47 downto 0) is lRingBufferData(95 downto 48);
+    alias lEtherType                : std_logic_vector(15 downto 0) is lRingBufferData(111 downto 96);
+    alias lIPVIHL                   : std_logic_vector(7  downto 0) is lRingBufferData(119 downto 112);
+    alias lDSCPECN                  : std_logic_vector(7  downto 0) is lRingBufferData(127 downto 120);
+    alias lTotalLength              : std_logic_vector(15 downto 0) is lRingBufferData(143 downto 128);
+    alias lIdentification           : std_logic_vector(15 downto 0) is lRingBufferData(159 downto 144);
+    alias lFlagsOffset              : std_logic_vector(15 downto 0) is lRingBufferData(175 downto 160);
+    alias lTimeToLeave              : std_logic_vector(7  downto 0) is lRingBufferData(183 downto 176);
+    alias lProtocol                 : std_logic_vector(7  downto 0) is lRingBufferData(191 downto 184);
+    alias lIPHeaderChecksum         : std_logic_vector(15 downto 0) is lRingBufferData(207 downto 192);
+    alias lSourceIPAddress          : std_logic_vector(31 downto 0) is lRingBufferData(239 downto 208);
+    alias lDestinationIPAddress     : std_logic_vector(31 downto 0) is lRingBufferData(271 downto 240);
+    alias lSourceUDPPort            : std_logic_vector(15 downto 0) is lRingBufferData(287 downto 272);
+    alias lDestinationUDPPort       : std_logic_vector(15 downto 0) is lRingBufferData(303 downto 288);
+    alias lUDPDataStreamLength      : std_logic_vector(15 downto 0) is lRingBufferData(319 downto 304);
+    alias lUDPCheckSum              : std_logic_vector(15 downto 0) is lRingBufferData(335 downto 320);
+    alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
+    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
+    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
+    signal lIPHDRCheckSum           : unsigned(16 downto 0);
+    signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
+    signal lUDPHDRCheckSum          : unsigned(17 downto 0);
+    signal lPreUDPHDRCheckSum       : unsigned(17 downto 0);
+    signal lServerMACAddress        : std_logic_vector(47 downto 0);
+    signal lServerMACAddressChanged : std_logic;
+    signal lServerIPAddress         : std_logic_vector(31 downto 0);
+    signal lServerIPAddressChanged  : std_logic;
+    signal lServerPort              : std_logic_vector(15 downto 0);
+    signal lServerPortChanged       : std_logic;
+    signal lClientMACAddress        : std_logic_vector(47 downto 0);
+    signal lClientMACAddressChanged : std_logic;
+    signal lClientIPAddress         : std_logic_vector(31 downto 0);
+    signal lClientIPAddressChanged  : std_logic;
+    signal lClientPort              : std_logic_vector(15 downto 0);
+    signal lClientPortChanged       : std_logic;
+    signal lAddressingChanged       : std_logic;
+    signal lICAP_PRDONE             : std_logic;
+    signal lICAP_PRERROR            : std_logic;
+    signal lProtocolErrorStatus     : std_logic;
+    signal lIPIdentification        : unsigned(15 downto 0);
+    signal lPacketID                : std_logic_vector(15 downto 0);
+    signal lPacketSequence          : std_logic_vector(31 downto 0);
+    signal lPacketDWORDCommand      : std_logic_vector(31 downto 0);
+    signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;    
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in std_logic_vector)
@@ -195,10 +255,10 @@ begin
                     when InitialiseSt =>
                         -- Wait for packet after initialization
                         StateVariable             <= CheckSlotSt;
-                        lRecvRingBufferAddress    <= (others => '0');
                         FilterRingBufferDataRead    <= '0';
                         FilterRingBufferSlotClear   <= '0';
                         lRecvRingBufferSlotID     <= (others => '0');
+                        lRecvRingBufferAddress    <= (others => '0');
                         lSenderRingBufferSlotID   <= (others => '0');
                         lSenderRingBufferAddress  <= (others => '0');
                         ICAPRingBufferDataWrite <= '0';
