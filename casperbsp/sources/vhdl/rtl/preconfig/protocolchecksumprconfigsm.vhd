@@ -50,12 +50,11 @@
 -- Project Name     : SKARAB2                                                  -
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
--- Description      : The configcontroller module receives commands and frames -
---                    for partial reconfiguration and writes to the ICAPE3.    -
---                    The module doesn't check for errors or anything,it just  -
---                    writes the DWORD or the FRAME.It responds with a DWORD   -
---                    status that contains all the necessary errors or status  -
---                    of the partial reconfiguration operation.                -
+-- Description      : The protocolchecksumprconfigsm module receives UDP frames-
+--                    and verifies all frames for UDP checksum integrity.      -
+--                    When the checksum is correct then the fame is passed on  -
+--                    for ICAP3 writing else an error is reported if there is  -
+--                    a checksum error of bad frame.                           -
 --                                                                             -
 -- Dependencies     : N/A                                                      -
 -- Revision History : V1.0 - Initial design                                    -
@@ -69,12 +68,19 @@ entity protocolchecksumprconfigsm is
     generic(
         G_SLOT_WIDTH : natural := 4;
         --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+        -- ICAP Ring buffer needs 100 DWORDS
+        -- The address is log2(100))=7 bits wide
+        G_ICAP_RB_ADDR_WIDTH : natural := 7;        
         -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH : natural := 5
     );
     port(
         axis_clk                       : in  STD_LOGIC;
         axis_reset                     : in  STD_LOGIC;
+        -- IP Addressing information
+        ClientMACAddress               : out STD_LOGIC_VECTOR(47 downto 0);
+        ClientIPAddress                : out STD_LOGIC_VECTOR(31 downto 0);
+        ClientPort                     : out STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Write in addressed bus format
         -- Packet Readout in addressed bus format
         FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -84,7 +90,7 @@ entity protocolchecksumprconfigsm is
         FilterRingBufferDataRead       : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
-        FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(3 downto 0);
+        FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
         FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
         FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         -- Packet Readout in addressed bus format
@@ -93,18 +99,25 @@ entity protocolchecksumprconfigsm is
         ICAPRingBufferSlotStatus       : in  STD_LOGIC;
         ICAPRingBufferSlotType         : out STD_LOGIC;
         ICAPRingBufferDataWrite        : out STD_LOGIC;
-        SenderBusy                     : in  STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
         ICAPRingBufferByteEnable       : out STD_LOGIC_VECTOR(3 downto 0);
         ICAPRingBufferDataOut          : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
         -- Protocol Error
+        -- Backoff signal to indicate sender is busy with response                 
+        SenderBusy                     : in  STD_LOGIC;
+        -- Signal to indicate an erroneous packet condition  
         ProtocolError                  : out STD_LOGIC;
+        -- Clear signal to indicate acknowledgement of transaction
         ProtocolErrorClear             : in  STD_LOGIC;
+        -- Error type indication
         ProtocolErrorID                : out STD_LOGIC_VECTOR(31 downto 0);
+        -- IP Identification 
         ProtocolIPIdentification       : out STD_LOGIC_VECTOR(15 downto 0);
+        -- Protocol ID for framing
         ProtocolID                     : out STD_LOGIC_VECTOR(15 downto 0);
+        -- Protocol frame sequence
         ProtocolSequence               : out STD_LOGIC_VECTOR(31 downto 0)
     );
 end entity protocolchecksumprconfigsm;
@@ -116,6 +129,7 @@ architecture rtl of protocolchecksumprconfigsm is
         CheckSlotSt,
         NextSlotSt,
         ReadBufferSt,
+        WaitBufferSt,
         CacheDecodePacketSt,
         SaveUDPIPDataSt,
         WriteICAPBufferSt,
@@ -126,14 +140,16 @@ architecture rtl of protocolchecksumprconfigsm is
         SetAndNextICAPBufferSlotSt,
         SendErrorResponseSt
     );
-    signal StateVariable              : ConfigurationControllerSM_t := InitialiseSt;
+    signal StateVariable            : ConfigurationControllerSM_t := InitialiseSt;
     signal lRecvRingBufferSlotID    : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
     signal lSenderRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lSenderRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
     
-    constant C_DWORD_MAX : natural                     := (16 - 1);
 
+    constant C_DWORD_MAX : natural := (16 - 1);
+    -- Have 7 iterations for a maximum frame of 98DWORDS on 512 bit AXI-bus with 
+    constant C_BUFFER_FRAME_ITERATIONS_MAX : natural := (7 - 1);
     constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";
     constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
@@ -145,52 +161,59 @@ architecture rtl of protocolchecksumprconfigsm is
 
     -- Tuples registers
     signal lRingBufferData          : std_logic_vector(511 downto 0);
+    type PayLoadArray_t is array (0 to 15) of std_logic_vector(31 downto 0);
+    signal lPayloadArray            : PayLoadArray_t;
 
-    alias lDestinationMACAddress    : std_logic_vector(47 downto 0) is lRingBufferData(47 downto 0);
-    alias lSourceMACAddress         : std_logic_vector(47 downto 0) is lRingBufferData(95 downto 48);
-    alias lEtherType                : std_logic_vector(15 downto 0) is lRingBufferData(111 downto 96);
-    alias lIPVIHL                   : std_logic_vector(7  downto 0) is lRingBufferData(119 downto 112);
-    alias lDSCPECN                  : std_logic_vector(7  downto 0) is lRingBufferData(127 downto 120);
-    alias lTotalLength              : std_logic_vector(15 downto 0) is lRingBufferData(143 downto 128);
+--    alias lDestinationMACAddress    : std_logic_vector(47 downto 0) is lRingBufferData(47 downto 0);
+--    alias lSourceMACAddress         : std_logic_vector(47 downto 0) is lRingBufferData(95 downto 48);
+--    alias lEtherType                : std_logic_vector(15 downto 0) is lRingBufferData(111 downto 96);
+--    alias lIPVIHL                   : std_logic_vector(7  downto 0) is lRingBufferData(119 downto 112);
+--    alias lDSCPECN                  : std_logic_vector(7  downto 0) is lRingBufferData(127 downto 120);
+--    alias lTotalLength              : std_logic_vector(15 downto 0) is lRingBufferData(143 downto 128);
     alias lIdentification           : std_logic_vector(15 downto 0) is lRingBufferData(159 downto 144);
-    alias lFlagsOffset              : std_logic_vector(15 downto 0) is lRingBufferData(175 downto 160);
-    alias lTimeToLeave              : std_logic_vector(7  downto 0) is lRingBufferData(183 downto 176);
-    alias lProtocol                 : std_logic_vector(7  downto 0) is lRingBufferData(191 downto 184);
-    alias lIPHeaderChecksum         : std_logic_vector(15 downto 0) is lRingBufferData(207 downto 192);
-    alias lSourceIPAddress          : std_logic_vector(31 downto 0) is lRingBufferData(239 downto 208);
-    alias lDestinationIPAddress     : std_logic_vector(31 downto 0) is lRingBufferData(271 downto 240);
-    alias lSourceUDPPort            : std_logic_vector(15 downto 0) is lRingBufferData(287 downto 272);
-    alias lDestinationUDPPort       : std_logic_vector(15 downto 0) is lRingBufferData(303 downto 288);
+--    alias lFlagsOffset              : std_logic_vector(15 downto 0) is lRingBufferData(175 downto 160);
+--    alias lTimeToLeave              : std_logic_vector(7  downto 0) is lRingBufferData(183 downto 176);
+--    alias lProtocol                 : std_logic_vector(7  downto 0) is lRingBufferData(191 downto 184);
+--    alias lIPHeaderChecksum         : std_logic_vector(15 downto 0) is lRingBufferData(207 downto 192);
+--    alias lSourceIPAddress          : std_logic_vector(31 downto 0) is lRingBufferData(239 downto 208);
+--    alias lDestinationIPAddress     : std_logic_vector(31 downto 0) is lRingBufferData(271 downto 240);
+--    alias lSourceUDPPort            : std_logic_vector(15 downto 0) is lRingBufferData(287 downto 272);
+--    alias lDestinationUDPPort       : std_logic_vector(15 downto 0) is lRingBufferData(303 downto 288);
     alias lUDPDataStreamLength      : std_logic_vector(15 downto 0) is lRingBufferData(319 downto 304);
     alias lUDPCheckSum              : std_logic_vector(15 downto 0) is lRingBufferData(335 downto 320);
-    alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
-    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
-    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
-    signal lIPHDRCheckSum           : unsigned(16 downto 0);
-    signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
+--    alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
+--    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
+--    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
+--    signal lIPHDRCheckSum           : unsigned(16 downto 0);
+--    signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
     signal lUDPHDRCheckSum          : unsigned(17 downto 0);
-    signal lPreUDPHDRCheckSum       : unsigned(17 downto 0);
-    signal lServerMACAddress        : std_logic_vector(47 downto 0);
-    signal lServerMACAddressChanged : std_logic;
-    signal lServerIPAddress         : std_logic_vector(31 downto 0);
-    signal lServerIPAddressChanged  : std_logic;
-    signal lServerPort              : std_logic_vector(15 downto 0);
-    signal lServerPortChanged       : std_logic;
-    signal lClientMACAddress        : std_logic_vector(47 downto 0);
-    signal lClientMACAddressChanged : std_logic;
-    signal lClientIPAddress         : std_logic_vector(31 downto 0);
-    signal lClientIPAddressChanged  : std_logic;
-    signal lClientPort              : std_logic_vector(15 downto 0);
-    signal lClientPortChanged       : std_logic;
-    signal lAddressingChanged       : std_logic;
-    signal lICAP_PRDONE             : std_logic;
-    signal lICAP_PRERROR            : std_logic;
-    signal lProtocolErrorStatus     : std_logic;
-    signal lIPIdentification        : unsigned(15 downto 0);
-    signal lPacketID                : std_logic_vector(15 downto 0);
-    signal lPacketSequence          : std_logic_vector(31 downto 0);
-    signal lPacketDWORDCommand      : std_logic_vector(31 downto 0);
-    signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;    
+    signal lUDPFinalCheckSum          : std_logic_vector(15 downto 0);
+    
+--    signal lPreUDPHDRCheckSum       : unsigned(17 downto 0);
+--    signal lServerMACAddress        : std_logic_vector(47 downto 0);
+--    signal lServerMACAddressChanged : std_logic;
+--    signal lServerIPAddress         : std_logic_vector(31 downto 0);
+--    signal lServerIPAddressChanged  : std_logic;
+--    signal lServerPort              : std_logic_vector(15 downto 0);
+--    signal lServerPortChanged       : std_logic;
+--    signal lClientMACAddress        : std_logic_vector(47 downto 0);
+--    signal lClientMACAddressChanged : std_logic;
+--    signal lClientIPAddress         : std_logic_vector(31 downto 0);
+--    signal lClientIPAddressChanged  : std_logic;
+--    signal lClientPort              : std_logic_vector(15 downto 0);
+--    signal lClientPortChanged       : std_logic;
+--    signal lAddressingChanged       : std_logic;
+--    signal lICAP_PRDONE             : std_logic;
+--    signal lICAP_PRERROR            : std_logic;
+--    signal lProtocolErrorStatus     : std_logic;
+--    signal lIPIdentification        : unsigned(15 downto 0);
+--    signal lPacketID                : std_logic_vector(15 downto 0);
+--    signal lPacketSequence          : std_logic_vector(31 downto 0);
+--    signal lPacketDWORDCommand      : std_logic_vector(31 downto 0);
+--    signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;
+    signal lBufferFrameIterations   : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
+    signal lInvalidPacket           : std_logic;
+    
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in std_logic_vector)
@@ -229,19 +252,11 @@ architecture rtl of protocolchecksumprconfigsm is
         end if;
     end byteswap;
 
-
 begin
-    FilterRingBufferSlotID    <= std_logic_vector(lRecvRingBufferSlotID);
-    FilterRingBufferAddress   <= std_logic_vector(lRecvRingBufferAddress);
-    ICAPRingBufferSlotID  <= std_logic_vector(lSenderRingBufferSlotID);
-    ICAPRingBufferAddress <= std_logic_vector(lSenderRingBufferAddress);
-    
-    FilledSlotsProc : process(axis_clk)
-    begin
-        if rising_edge(axis_clk) then
-            --ICAPRingBufferSlotsFilled <= FilterRingBufferSlotsFilled;
-        end if;
-    end process FilledSlotsProc;
+    FilterRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
+    FilterRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
+    ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
+    ICAPRingBufferAddress   <= std_logic_vector(lSenderRingBufferAddress);
 
 
     SynchStateProc : process(axis_clk)
@@ -255,93 +270,109 @@ begin
                     when InitialiseSt =>
                         -- Wait for packet after initialization
                         StateVariable             <= CheckSlotSt;
-                        FilterRingBufferDataRead    <= '0';
-                        FilterRingBufferSlotClear   <= '0';
+                        FilterRingBufferDataRead  <= '0';
+                        FilterRingBufferSlotClear <= '0';
                         lRecvRingBufferSlotID     <= (others => '0');
                         lRecvRingBufferAddress    <= (others => '0');
                         lSenderRingBufferSlotID   <= (others => '0');
                         lSenderRingBufferAddress  <= (others => '0');
-                        ICAPRingBufferDataWrite <= '0';
-                        ICAPRingBufferSlotSet   <= '0';
+                        ICAPRingBufferDataWrite   <= '0';
+                        ICAPRingBufferSlotSet     <= '0';
 
                     when CheckSlotSt =>
                         lRecvRingBufferAddress <= (others => '0');
                         if (FilterRingBufferSlotStatus = '1') then
                             -- The current slot has data 
-                            StateVariable          <= ReadBufferSt;
+                            StateVariable <= ReadBufferSt;
                         else
                             FilterRingBufferDataRead <= '0';
-                            StateVariable          <= CheckSlotSt;
+                            lBufferFrameIterations <= 0;
+                            StateVariable            <= CheckSlotSt;
                         end if;
-
-
 
                     when ReadBufferSt =>
                         -- Pull the data 
                         FilterRingBufferDataRead <= '1';
-                        StateVariable                           <= CacheDecodePacketSt;
+                        StateVariable            <= WaitBufferSt;
 
+                    when WaitBufferSt =>
+                        -- Wait for the data 
+                        FilterRingBufferDataRead <= '1';
+                        StateVariable            <= CacheDecodePacketSt;
+                        
                     when CacheDecodePacketSt =>
-                        if(Iterations = '0') then
-                            StateVariable      <= SaveUDPIPDataSt;
-                        else
-                            StateVariable      <= WriteICAPBufferSt;
-                        end if;
+                        FilterRingBufferDataRead <= '0';
+                        
+                        if (lBufferFrameIterations = 0) then
+                            -- Save the data on the correct framing order                                                        
+                            lPayloadArray(0) <= lRingBufferData((32*(10+1))-1 downto ((32*10)-16)) & byteswap(lIdentification);                            
+                            for i in 1 to 5 loop
+                                lPayloadArray(i) <= lRingBufferData((32*((i+10)+1))-1 downto (32*(i+10)));
+                            end loop;
                             
+                            StateVariable <= SaveUDPIPDataSt;
+                            
+                        else
+                            -- Save the ring buffer data.
+                            for i in 0 to 15 loop
+                                lPayloadArray(i) <= lRingBufferData((32*(i+1))-1 downto (32*i));
+                            end loop;
+                            
+                            StateVariable <= WriteICAPBufferSt;
+                        end if;
 
                     when SaveUDPIPDataSt =>
-                        if(InvalidPacket = '1') then
-                            StateVariable      <= SendErrorResponseSt;
+                        if (lInvalidPacket = '1') then
+                            StateVariable <= SendErrorResponseSt;
                         else
-                            StateVariable      <= WriteICAPBufferSt;
+                            StateVariable <= WriteICAPBufferSt;
                         end if;
 
                     when WriteICAPBufferSt =>
 
-                            -- Wait for the ICAP to be ready
-                            StateVariable <= UpdateCheckOffsetSt;
+                        -- Wait for the ICAP to be ready
+                        StateVariable <= UpdateCheckOffsetSt;
 
                     when UpdateCheckOffsetSt =>
 
-                            -- Wait for the ICAP to be ready
-                            StateVariable <= UpdateCheckIterationSt;
-                            
+                        -- Wait for the ICAP to be ready
+                        StateVariable <= UpdateCheckIterationSt;
+
                     when UpdateCheckIterationSt =>
-                        
-                        if(Iterations = MaxIterations) then
+
+                        if (lBufferFrameIterations = C_BUFFER_FRAME_ITERATIONS_MAX) then
                             -- Done with data
-                            StateVariable      <= ClearSlotSt;
+                            StateVariable <= ClearSlotSt;
                         else
                             -- Keep reading data
-                            StateVariable      <= ReadBufferSt;
+                            StateVariable <= ReadBufferSt;
                         end if;
-                        
+
                     -- Response processing    
                     when ClearSlotSt =>
 
-                        StateVariable <= NextSlotSt;                           
+                        StateVariable <= NextSlotSt;
 
                     -- Response processing    
                     when NextSlotSt =>
 
-                        StateVariable <= CompareChecksumSt; 
-                        
+                        StateVariable <= CompareChecksumSt;
+
                     -- Response processing    
                     when CompareChecksumSt =>
 
-                        if(NewCheckSum = UDPChecksum) then
+                        if (lUDPFinalCheckSum = lUDPCheckSum) then
                             -- Done with data
-                            StateVariable      <= SetAndNextICAPBufferSlotSt;
+                            StateVariable <= SetAndNextICAPBufferSlotSt;
                         else
                             -- Keep reading data
-                            StateVariable      <= SendErrorResponseSt;
-                        end if;                     
-                                        
+                            StateVariable <= SendErrorResponseSt;
+                        end if;
 
                     when SetAndNextICAPBufferSlotSt =>
 
                         StateVariable <= CheckSlotSt;
-                                                   
+
                     -- Error processing    
                     when SendErrorResponseSt =>
                         -- Prepare a UDP Error packet
