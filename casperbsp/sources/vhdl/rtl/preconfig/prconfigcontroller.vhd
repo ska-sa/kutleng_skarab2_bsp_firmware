@@ -267,6 +267,10 @@ architecture rtl of prconfigcontroller is
         port(
             axis_clk                       : in  STD_LOGIC;
             axis_reset                     : in  STD_LOGIC;
+            -- IP Addressing information
+            ClientMACAddress               : out STD_LOGIC_VECTOR(47 downto 0);
+            ClientIPAddress                : out STD_LOGIC_VECTOR(31 downto 0);
+            ClientPort                     : out STD_LOGIC_VECTOR(15 downto 0);            
             -- Packet Write in addressed bus format
             -- Packet Readout in addressed bus format
             FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -466,8 +470,8 @@ begin
             RingBufferSlotTypeStatus => ReceiverRingBufferSlotTypeStatus,
             RingBufferSlotsFilled    => ReceiverRingBufferSlotsFilled,
             RingBufferDataRead       => ReceiverRingBufferDataRead,
-            RingBufferDataEnable     => ReceiverRingBufferDataEnable, 
-            RingBufferDataOut        => ReceiverRingBufferDataOut,  
+            RingBufferDataEnable     => ReceiverRingBufferDataEnable,
+            RingBufferDataOut        => ReceiverRingBufferDataOut,
             RingBufferAddress        => ReceiverRingBufferAddress,
             axis_rx_tdata            => axis_rx_tdata,
             axis_rx_tvalid           => axis_rx_tvalid,
@@ -484,6 +488,9 @@ begin
         port map(
             axis_clk                       => axis_clk,
             axis_reset                     => axis_reset,
+            ClientMACAddress               => ClientMACAddress,
+            ClientIPAddress                => ClientIPAddress,
+            ClientPort                     => ClientPort,            
             -- Packet Write in addressed bus format
             -- Packet Readout in addressed bus format
             FilterRingBufferSlotID         => ReceiverRingBufferSlotID,
