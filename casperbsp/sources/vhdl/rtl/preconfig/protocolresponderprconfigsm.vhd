@@ -78,7 +78,7 @@ entity protocolresponderprconfigsm is
         -- Source IP Addressing information
         ServerMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
         ServerIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
-        ServerPort                 : in  STD_LOGIC_VECTOR(15 downto 0);
+        ServerUDPPort              : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Response IP Addressing information
         ClientMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
         ClientIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
@@ -175,14 +175,14 @@ architecture rtl of protocolresponderprconfigsm is
     signal lServerMACAddressChanged : std_logic;
     signal lServerIPAddress         : std_logic_vector(31 downto 0);
     signal lServerIPAddressChanged  : std_logic;
-    signal lServerPort              : std_logic_vector(15 downto 0);
-    signal lServerPortChanged       : std_logic;
+    signal lServerUDPPort           : std_logic_vector(15 downto 0);
+    signal lServerUDPPortChanged    : std_logic;
     signal lClientMACAddress        : std_logic_vector(47 downto 0);
     signal lClientMACAddressChanged : std_logic;
     signal lClientIPAddress         : std_logic_vector(31 downto 0);
     signal lClientIPAddressChanged  : std_logic;
-    signal lClientPort              : std_logic_vector(15 downto 0);
-    signal lClientPortChanged       : std_logic;
+    signal lClientUDPPort           : std_logic_vector(15 downto 0);
+    signal lClientUDPPortChanged    : std_logic;
     signal lAddressingChanged       : std_logic;
     signal lICAP_PRDONE             : std_logic;
     signal lICAP_PRERROR            : std_logic;
@@ -224,8 +224,8 @@ architecture rtl of protocolresponderprconfigsm is
             return unsigned(RData24);
         end if;
         if (DataIn'length = RData16'length) then
-            RData16(7 downto 0)  := DataIn(15 + DataIn'right downto 8 + DataIn'right);
-            RData16(15 downto 8) := DataIn(7 + DataIn'right downto 0 + DataIn'right);
+            RData16(7 downto 0)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData16(15 downto 8) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData16);
         end if;
     end byteswap;
@@ -260,14 +260,14 @@ architecture rtl of protocolresponderprconfigsm is
             return std_logic_vector(RData24);
         end if;
         if (DataIn'length = RData16'length) then
-            RData16(7 downto 0)  := DataIn(15 + DataIn'right downto 8 + DataIn'right);
-            RData16(15 downto 8) := DataIn(7 + DataIn'right downto 0 + DataIn'right);
+            RData16(7 downto 0)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData16(15 downto 8) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return std_logic_vector(RData16);
         end if;
     end byteswap;
 
     function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
-        alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
+        alias aDataIn  : std_logic_vector ((DataIn'length - 1) downto 0) is DataIn;
         variable RData : std_logic_vector(aDataIn'range);
     begin
         for i in aDataIn'range loop
@@ -338,11 +338,11 @@ begin
                 lServerIPAddressChanged <= '1';
             end if;
 
-            if (lServerPort = ServerPort) then
-                lServerPortChanged <= '0';
+            if (lServerUDPPort = ServerUDPPort) then
+                lServerUDPPortChanged <= '0';
             else
                 -- Flag the change of port
-                lServerPortChanged <= '1';
+                lServerUDPPortChanged <= '1';
             end if;
 
             if (lClientMACAddress = ClientMACAddress) then
@@ -359,14 +359,14 @@ begin
                 lClientIPAddressChanged <= '1';
             end if;
 
-            if (lClientPort = ClientUDPPort) then
-                lClientPortChanged <= '0';
+            if (lClientUDPPort = ClientUDPPort) then
+                lClientUDPPortChanged <= '0';
             else
                 -- Flag the change of port
-                lClientPortChanged <= '1';
+                lClientUDPPortChanged <= '1';
             end if;
 
-            lAddressingChanged <= lClientPortChanged or lClientIPAddressChanged or lClientMACAddressChanged or lServerPortChanged or lServerIPAddressChanged or lServerMACAddressChanged;
+            lAddressingChanged <= lClientUDPPortChanged or lClientIPAddressChanged or lClientMACAddressChanged or lServerUDPPortChanged or lServerIPAddressChanged or lServerMACAddressChanged;
 
         end if;
     end process AddressingChangeProc;
@@ -482,7 +482,7 @@ begin
                         lSourceIPAddress                <= byteswap(ServerIPAddress);
                         -- Swap the ports
                         lDestinationUDPPort             <= byteswap(ClientUDPPort);
-                        lSourceUDPPort                  <= byteswap(ServerPort);
+                        lSourceUDPPort                  <= byteswap(ServerUDPPort);
                         -- Change the UDP length
                         -- TODO Set the UDP Packet length
                         lUDPDataStreamLength            <= byteswap(C_RESPONSE_UDP_LENGTH);
@@ -506,10 +506,10 @@ begin
                             -- Save the new addressing as it has changed.
                             lServerMACAddress <= byteswap(ServerMACAddress);
                             lServerIPAddress  <= byteswap(ServerIPAddress);
-                            lServerPort       <= byteswap(ServerPort);
+                            lServerUDPPort    <= byteswap(ServerUDPPort);
                             lClientMACAddress <= byteswap(ClientMACAddress);
                             lClientIPAddress  <= byteswap(ClientIPAddress);
-                            lClientPort       <= byteswap(ClientUDPPort);
+                            lClientUDPPort    <= byteswap(ClientUDPPort);
                             StateVariable     <= PrecomputeHeaderCheckSumSt;
                         else
                             StateVariable <= GenerateUDPIPCheckSumSt;
