@@ -133,9 +133,11 @@ architecture rtl of protocolchecksumprconfigsm is
         CacheDecodePacketSt,
         SaveUDPIPDataSt,
         WriteICAPBufferSt,
+        CalculateUDPHeaderCheckSum,
         UpdateCheckOffsetSt,
         UpdateCheckIterationSt,
         ClearSlotSt,
+        CompleteUDPCheckSum,
         CompareChecksumSt,
         SetAndNextICAPBufferSlotSt,
         SendErrorResponseSt
@@ -147,7 +149,6 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lSenderRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
     
 
-    constant C_DWORD_MAX : natural := (16 - 1);
     -- Have 7 iterations for a maximum frame of 98DWORDS on 512 bit AXI-bus with 
     constant C_BUFFER_FRAME_ITERATIONS_MAX : natural := (7 - 1);
     -- Have 100 DWORDS for a maximum frame of 98DWORDS on 32 bit ICAP-bus with 
@@ -156,7 +157,16 @@ architecture rtl of protocolchecksumprconfigsm is
     constant C_COMMAND_DWORD_POINTER_MAX : natural := (3 - 1);
     -- Have 16 DWORDS on the 512-bit buffer     
     constant C_BUFFER_DWORD_POINTER_MAX : natural := (16 - 1);
-    
+    -- Have 6 DWORDS on the 512-bit buffer for DWORD command
+    -- Offset is at 11 th DWORD     
+    constant C_BUFFER_COMMAND_DWORD_POINTER_OFFSET : natural := (11 - 1);
+    -- Have 6 DWORDS on the 512-bit buffer for DWORD command     
+    constant C_BUFFER_COMMAND_DWORD_POINTER_MAX : natural := (6 - 1);    
+    -- Need to iterate 6 times to calculate UDP header checksum     
+    constant C_UDP_HEADER_CHECKSUM_COUNTER_MAX : natural := (6 - 1);    
+    -- Need to iterate 7 times to finalize UDP header checksum     
+    constant C_FINAL_CHECKSUM_COUNTER_MAX : natural := (7 - 1);  
+      
     constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";
     constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
@@ -168,12 +178,14 @@ architecture rtl of protocolchecksumprconfigsm is
 
     -- Tuples registers
     signal lRingBufferData          : std_logic_vector(511 downto 0);
-    type PayLoadArray_t is array (0 to 15) of std_logic_vector(31 downto 0);
+    type PayLoadArray_t is array (0 to C_BUFFER_DWORD_POINTER_MAX) of std_logic_vector(31 downto 0);
     signal lPayloadArray            : PayLoadArray_t;
     signal lBufferDwordPointer      : natural range 0 to C_BUFFER_DWORD_POINTER_MAX;
+    signal lUDPHeaderCheckSumCounter: natural range 0 to C_UDP_HEADER_CHECKSUM_COUNTER_MAX;
+    signal lFinalCheckSumCounter    : natural range 0 to C_FINAL_CHECKSUM_COUNTER_MAX;
 
---    alias lDestinationMACAddress    : std_logic_vector(47 downto 0) is lRingBufferData(47 downto 0);
---    alias lSourceMACAddress         : std_logic_vector(47 downto 0) is lRingBufferData(95 downto 48);
+    alias lDestinationMACAddress    : std_logic_vector(47 downto 0) is lRingBufferData(47 downto 0);
+    alias lSourceMACAddress         : std_logic_vector(47 downto 0) is lRingBufferData(95 downto 48);
 --    alias lEtherType                : std_logic_vector(15 downto 0) is lRingBufferData(111 downto 96);
 --    alias lIPVIHL                   : std_logic_vector(7  downto 0) is lRingBufferData(119 downto 112);
 --    alias lDSCPECN                  : std_logic_vector(7  downto 0) is lRingBufferData(127 downto 120);
@@ -183,44 +195,35 @@ architecture rtl of protocolchecksumprconfigsm is
 --    alias lTimeToLeave              : std_logic_vector(7  downto 0) is lRingBufferData(183 downto 176);
 --    alias lProtocol                 : std_logic_vector(7  downto 0) is lRingBufferData(191 downto 184);
 --    alias lIPHeaderChecksum         : std_logic_vector(15 downto 0) is lRingBufferData(207 downto 192);
---    alias lSourceIPAddress          : std_logic_vector(31 downto 0) is lRingBufferData(239 downto 208);
---    alias lDestinationIPAddress     : std_logic_vector(31 downto 0) is lRingBufferData(271 downto 240);
---    alias lSourceUDPPort            : std_logic_vector(15 downto 0) is lRingBufferData(287 downto 272);
---    alias lDestinationUDPPort       : std_logic_vector(15 downto 0) is lRingBufferData(303 downto 288);
+    alias lSourceIPAddress          : std_logic_vector(31 downto 0) is lRingBufferData(239 downto 208);
+    alias lDestinationIPAddress     : std_logic_vector(31 downto 0) is lRingBufferData(271 downto 240);
+    alias lSourceUDPPort            : std_logic_vector(15 downto 0) is lRingBufferData(287 downto 272);
+    alias lDestinationUDPPort       : std_logic_vector(15 downto 0) is lRingBufferData(303 downto 288);
     alias lUDPDataStreamLength      : std_logic_vector(15 downto 0) is lRingBufferData(319 downto 304);
     alias lUDPCheckSum              : std_logic_vector(15 downto 0) is lRingBufferData(335 downto 320);
     alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
---    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
---    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
---    signal lIPHDRCheckSum           : unsigned(16 downto 0);
---    signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
+    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
+    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
     signal lUDPHDRCheckSum          : unsigned(17 downto 0);
     signal lUDPFinalCheckSum          : std_logic_vector(15 downto 0);
     
---    signal lPreUDPHDRCheckSum       : unsigned(17 downto 0);
---    signal lServerMACAddress        : std_logic_vector(47 downto 0);
---    signal lServerMACAddressChanged : std_logic;
---    signal lServerIPAddress         : std_logic_vector(31 downto 0);
---    signal lServerIPAddressChanged  : std_logic;
---    signal lServerPort              : std_logic_vector(15 downto 0);
---    signal lServerPortChanged       : std_logic;
---    signal lClientMACAddress        : std_logic_vector(47 downto 0);
---    signal lClientMACAddressChanged : std_logic;
---    signal lClientIPAddress         : std_logic_vector(31 downto 0);
---    signal lClientIPAddressChanged  : std_logic;
---    signal lClientPort              : std_logic_vector(15 downto 0);
---    signal lClientPortChanged       : std_logic;
---    signal lAddressingChanged       : std_logic;
---    signal lICAP_PRDONE             : std_logic;
---    signal lICAP_PRERROR            : std_logic;
---    signal lProtocolErrorStatus     : std_logic;
---    signal lIPIdentification        : unsigned(15 downto 0);
---    signal lPacketID                : std_logic_vector(15 downto 0);
---    signal lPacketSequence          : std_logic_vector(31 downto 0);
---    signal lPacketDWORDCommand      : std_logic_vector(31 downto 0);
---    signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;
+    signal lPreUDPHDRCheckSum       : unsigned(17 downto 0);
+    signal lServerMACAddress        : std_logic_vector(47 downto 0);
+    signal lServerMACAddressChanged : std_logic;
+    signal lServerIPAddress         : std_logic_vector(31 downto 0);
+    signal lServerIPAddressChanged  : std_logic;
+    signal lServerPort              : std_logic_vector(15 downto 0);
+    signal lServerPortChanged       : std_logic;
+    signal lClientMACAddress        : std_logic_vector(47 downto 0);
+    signal lClientMACAddressChanged : std_logic;
+    signal lClientIPAddress         : std_logic_vector(31 downto 0);
+    signal lClientIPAddressChanged  : std_logic;
+    signal lClientPort              : std_logic_vector(15 downto 0);
+    signal lClientPortChanged       : std_logic;
+    signal lAddressingChanged       : std_logic;
     signal lBufferFrameIterations   : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
     signal lInvalidPacket           : std_logic;
+    
     
 
     -- The left over is 22 bytes
@@ -265,8 +268,11 @@ begin
     FilterRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
     ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
     ICAPRingBufferAddress   <= std_logic_vector(lSenderRingBufferAddress);
-
-
+    -- Save the client addressing information to be able to respond to it
+    ClientMACAddress        <= lClientMACAddress;
+    ClientIPAddress         <= lClientIPAddress;
+    ClientPort              <= lClientPort;
+        
     SynchStateProc : process(axis_clk)
     begin
         if rising_edge(axis_clk) then
@@ -318,9 +324,9 @@ begin
                         
                         if (lBufferFrameIterations = 0) then
                             -- Save the data on the correct framing order                                                        
-                            lPayloadArray(0) <= lRingBufferData((32*(10+1))-1 downto ((32*10)-16)) & byteswap(lIdentification);                            
-                            for i in 1 to 5 loop
-                                lPayloadArray(i) <= lRingBufferData((32*((i+10)+1))-1 downto (32*(i+10)));
+                            lPayloadArray(0) <= lRingBufferData((32*(C_BUFFER_COMMAND_DWORD_POINTER_OFFSET+1))-1 downto ((32*C_BUFFER_COMMAND_DWORD_POINTER_OFFSET)-16)) & byteswap(lIdentification);                            
+                            for i in 1 to C_BUFFER_COMMAND_DWORD_POINTER_MAX loop
+                                lPayloadArray(i) <= lRingBufferData((32*((i+C_BUFFER_COMMAND_DWORD_POINTER_OFFSET)+1))-1 downto (32*(i+C_BUFFER_COMMAND_DWORD_POINTER_OFFSET)));
                             end loop;
                             if ( ((lPRPacketID(7 downto 0) = X"01") and (lUDPDataStreamLength = X"0012")) or
                                 ((lPRPacketID(7 downto 0) = X"62") and (lUDPDataStreamLength = X"0196"))) then
@@ -336,7 +342,7 @@ begin
                             
                         else
                             -- Save the ring buffer data.
-                            for i in 0 to 15 loop
+                            for i in 0 to C_BUFFER_DWORD_POINTER_MAX loop
                                 lPayloadArray(i) <= lRingBufferData((32*(i+1))-1 downto (32*i));
                             end loop;
                             
@@ -347,7 +353,30 @@ begin
                         if (lInvalidPacket = '1') then
                             StateVariable <= SendErrorResponseSt;
                         else
+                            if (lBufferFrameIterations = 0) then
+                                StateVariable <= CalculateUDPHeaderCheckSum;
+                            else
+                                StateVariable <= WriteICAPBufferSt;
+                            end if;
+                        end if;
+
+                        
+                    when CalculateUDPHeaderCheckSum =>
+                        if (lUDPHeaderCheckSumCounter = C_UDP_HEADER_CHECKSUM_COUNTER_MAX) then
+                            -- Done with UDP Header CheckSum calculation
                             StateVariable <= WriteICAPBufferSt;
+                        else
+                            -- Keep calculating the UDP header checksum untill done
+                            StateVariable <= CalculateUDPHeaderCheckSum;
+                            lUDPHeaderCheckSumCounter <= lUDPHeaderCheckSumCounter + 1;
+                            
+                            case (lUDPHeaderCheckSumCounter) is
+                                when 0 =>
+                                when 1 => 
+                                when 2 => 
+                                when 3=>
+                                when others => null;
+                            end case;
                         end if;
 
                     when WriteICAPBufferSt =>
@@ -434,7 +463,23 @@ begin
                         FilterRingBufferSlotClear <= '0';
                         -- Point to next slot
                         lRecvRingBufferSlotID <= lRecvRingBufferSlotID + '1';                        
-                        StateVariable <= CompareChecksumSt;
+                        StateVariable <= CompleteUDPCheckSum;
+                        
+                    when CompleteUDPCheckSum =>
+                        if (lFinalCheckSumCounter = C_FINAL_CHECKSUM_COUNTER_MAX) then
+                            StateVariable <= CompareChecksumSt;
+                        else
+                            -- Keep calculating the checksum untill done
+                            StateVariable <= CompleteUDPCheckSum;
+                            lFinalCheckSumCounter <= lFinalCheckSumCounter + 1;
+                            
+                            case (lFinalCheckSumCounter) is
+                                when 0 =>
+                                when 1 => 
+                                when 2 =>
+                                when others => null;
+                            end case;
+                        end if;
 
                     -- Response processing    
                     when CompareChecksumSt =>
