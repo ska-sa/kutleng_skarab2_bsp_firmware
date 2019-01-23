@@ -82,7 +82,7 @@ entity protocolresponderprconfigsm is
         -- Response IP Addressing information
         ClientMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
         ClientIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
-        ClientPort                 : in  STD_LOGIC_VECTOR(15 downto 0);
+        ClientUDPPort              : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Readout in addressed bus format
         SenderRingBufferSlotID     : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         SenderRingBufferSlotSet    : out STD_LOGIC;
@@ -224,12 +224,12 @@ architecture rtl of protocolresponderprconfigsm is
             return unsigned(RData24);
         end if;
         if (DataIn'length = RData16'length) then
-            RData16(7 downto 0)  := DataIn(15+DataIn'right downto 8+DataIn'right);
-            RData16(15 downto 8) := DataIn(7+DataIn'right downto 0+DataIn'right);
+            RData16(7 downto 0)  := DataIn(15 + DataIn'right downto 8 + DataIn'right);
+            RData16(15 downto 8) := DataIn(7 + DataIn'right downto 0 + DataIn'right);
             return unsigned(RData16);
         end if;
     end byteswap;
-        
+
     function byteswap(DataIn : in std_logic_vector)
     return std_logic_vector is
         variable RData48 : std_logic_vector(47 downto 0);
@@ -260,8 +260,8 @@ architecture rtl of protocolresponderprconfigsm is
             return std_logic_vector(RData24);
         end if;
         if (DataIn'length = RData16'length) then
-            RData16(7 downto 0)  := DataIn(15+DataIn'right downto 8+DataIn'right);
-            RData16(15 downto 8) := DataIn(7+DataIn'right downto 0+DataIn'right);
+            RData16(7 downto 0)  := DataIn(15 + DataIn'right downto 8 + DataIn'right);
+            RData16(15 downto 8) := DataIn(7 + DataIn'right downto 0 + DataIn'right);
             return std_logic_vector(RData16);
         end if;
     end byteswap;
@@ -359,7 +359,7 @@ begin
                 lClientIPAddressChanged <= '1';
             end if;
 
-            if (lClientPort = ClientPort) then
+            if (lClientPort = ClientUDPPort) then
                 lClientPortChanged <= '0';
             else
                 -- Flag the change of port
@@ -481,7 +481,7 @@ begin
                         lDestinationIPAddress           <= byteswap(ClientIPAddress);
                         lSourceIPAddress                <= byteswap(ServerIPAddress);
                         -- Swap the ports
-                        lDestinationUDPPort             <= byteswap(ClientPort);
+                        lDestinationUDPPort             <= byteswap(ClientUDPPort);
                         lSourceUDPPort                  <= byteswap(ServerPort);
                         -- Change the UDP length
                         -- TODO Set the UDP Packet length
@@ -509,7 +509,7 @@ begin
                             lServerPort       <= byteswap(ServerPort);
                             lClientMACAddress <= byteswap(ClientMACAddress);
                             lClientIPAddress  <= byteswap(ClientIPAddress);
-                            lClientPort       <= byteswap(ClientPort);
+                            lClientPort       <= byteswap(ClientUDPPort);
                             StateVariable     <= PrecomputeHeaderCheckSumSt;
                         else
                             StateVariable <= GenerateUDPIPCheckSumSt;
@@ -530,30 +530,30 @@ begin
                                 lPreIPHDRCheckSum  <= '0' & '0' & unsigned(byteswap(lDestinationIPAddress(15 downto 0)));
 
                             when 1 =>
-                                lPreUDPHDRCheckSum(16 downto 0) <= ('0'&lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
-                                lPreIPHDRCheckSum(16 downto 0)  <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationIPAddress(31 downto 16)))) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0)  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationIPAddress(31 downto 16)))) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 2 =>
-                                lPreUDPHDRCheckSum(16 downto 0) <= ('0'&lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(15 downto 0)))) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0)  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(15 downto 0)))) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 3 =>
-                                lPreUDPHDRCheckSum(16 downto 0) <= ('0'&lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(31 downto 16)))) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0)  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceIPAddress(31 downto 16)))) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 4 =>
-                                lPreUDPHDRCheckSum(16 downto 0) <= ('0'&lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + lPreUDPHDRCheckSum(17 downto 16);
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + (unsigned(C_RESPONSE_TIME_TO_LEAVE) & unsigned(C_RESPONSE_UDP_PROTOCOL)) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + lPreUDPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0)  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + (unsigned(C_RESPONSE_TIME_TO_LEAVE) & unsigned(C_RESPONSE_UDP_PROTOCOL)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 5 =>
-                                lPreUDPHDRCheckSum(16 downto 0) <= ('0'&lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lPreUDPHDRCheckSum(17 downto 16);
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_FLAGS_OFFSET)) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lPreUDPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0)  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_FLAGS_OFFSET)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 6 =>
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_IPV4_LENGTH)) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0) <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_IPV4_LENGTH)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 7 =>
-                                lPreIPHDRCheckSum(16 downto 0)   <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_IPV4IHL) & unsigned(C_RESPONSE_DSCPECN)) + lPreIPHDRCheckSum(17 downto 16);
+                                lPreIPHDRCheckSum(16 downto 0) <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_IPV4IHL) & unsigned(C_RESPONSE_DSCPECN)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when others =>
                                 null;
@@ -572,44 +572,44 @@ begin
 
                         case (lCheckSumCounter) is
                             when 0 =>
-                                lIPHDRCheckSum  <= ('0'&lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lIPIdentification)) + lPreIPHDRCheckSum(17 downto 16);
+                                lIPHDRCheckSum  <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lIPIdentification)) + lPreIPHDRCheckSum(17 downto 16);
                                 lUDPHDRCheckSum <= lPreUDPHDRCheckSum;
 
                             when 1 =>
                                 if (lIPHDRCheckSum(16) = '1') then
                                     lIPHDRCheckSum(15 downto 0) <= lIPHDRCheckSum(15 downto 0) + 1;
                                 end if;
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lUDPHDRCheckSum(17 downto 16);
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lUDPHDRCheckSum(17 downto 16);
                             when 2 =>
                                 if (lIPHDRCheckSum(15 downto 0) /= X"FFFF") then
-                                    lIPHeaderChecksum <= not(byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0))));
+                                    lIPHeaderChecksum <= not (byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0))));
                                 else
                                     lIPHeaderChecksum <= byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0)));
                                 end if;
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketID))+ lUDPHDRCheckSum(17 downto 16);
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketID)) + lUDPHDRCheckSum(17 downto 16);
                             when 3 =>
-                                
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketSequence(31 downto 16)))+ lUDPHDRCheckSum(17 downto 16);
+
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketSequence(31 downto 16))) + lUDPHDRCheckSum(17 downto 16);
                             when 4 =>
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketSequence(15 downto 0)))+ lUDPHDRCheckSum(17 downto 16);
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketSequence(15 downto 0))) + lUDPHDRCheckSum(17 downto 16);
                             when 5 =>
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketDWordCommand(31 downto 16)))+ lUDPHDRCheckSum(17 downto 16);
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketDWordCommand(31 downto 16))) + lUDPHDRCheckSum(17 downto 16);
                             when 6 =>
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketDWordCommand(15 downto 0))) + lUDPHDRCheckSum(17 downto 16);
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lPacketDWordCommand(15 downto 0))) + lUDPHDRCheckSum(17 downto 16);
                             when 7 =>
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0'&unsigned(byteswap(lSourceUDPPort))) + lUDPHDRCheckSum(17 downto 16);                                     
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceUDPPort))) + lUDPHDRCheckSum(17 downto 16);
                             when 8 =>
-                                lUDPHDRCheckSum(16 downto 0) <= ('0'&lUDPHDRCheckSum(15 downto 0)) + ('0'&unsigned(byteswap(lDestinationUDPPort))) + lUDPHDRCheckSum(17 downto 16);                                     
+                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationUDPPort))) + lUDPHDRCheckSum(17 downto 16);
                             when 9 =>
-                                if(lUDPHDRCheckSum(16) = '1') then
+                                if (lUDPHDRCheckSum(16) = '1') then
                                     lUDPHDRCheckSum(15 downto 0) <= lUDPHDRCheckSum(15 downto 0) + 1;
                                 end if;
                             when 10 =>
                                 if (lUDPHDRCheckSum(15 downto 0) /= X"FFFF") then
-                                    lUDPCheckSum <= not(byteswap(std_logic_vector(lUDPHDRCheckSum(15 downto 0))));
+                                    lUDPCheckSum <= not (byteswap(std_logic_vector(lUDPHDRCheckSum(15 downto 0))));
                                 else
                                     lUDPCheckSum <= byteswap(std_logic_vector(lUDPHDRCheckSum(15 downto 0)));
-                                end if;                                
+                                end if;
                             when others =>
                                 null;
                         end case;

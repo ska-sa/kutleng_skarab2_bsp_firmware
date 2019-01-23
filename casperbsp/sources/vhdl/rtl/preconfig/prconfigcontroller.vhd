@@ -223,7 +223,7 @@ architecture rtl of prconfigcontroller is
             -- Response IP Addressing information
             ClientMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
             ClientIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
-            ClientPort                 : in  STD_LOGIC_VECTOR(15 downto 0);
+            ClientUDPPort              : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Readout in addressed bus format
             SenderRingBufferSlotID     : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             SenderRingBufferSlotSet    : out STD_LOGIC;
@@ -270,7 +270,7 @@ architecture rtl of prconfigcontroller is
             -- IP Addressing information
             ClientMACAddress               : out STD_LOGIC_VECTOR(47 downto 0);
             ClientIPAddress                : out STD_LOGIC_VECTOR(31 downto 0);
-            ClientPort                     : out STD_LOGIC_VECTOR(15 downto 0);            
+            ClientUDPPort                  : out STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Write in addressed bus format
             -- Packet Readout in addressed bus format
             FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -390,7 +390,7 @@ architecture rtl of prconfigcontroller is
     signal SenderRingBufferPacketSlotStatus   : std_logic;
     signal ClientMACAddress                   : std_logic_vector(47 downto 0);
     signal ClientIPAddress                    : std_logic_vector(31 downto 0);
-    signal ClientPort                         : std_logic_vector(15 downto 0);
+    signal ClientUDPPort                      : std_logic_vector(15 downto 0);
     signal SenderBusy                         : std_logic;
     signal ProtocolError                      : std_logic;
     signal ProtocolErrorClear                 : std_logic;
@@ -490,7 +490,7 @@ begin
             axis_reset                     => axis_reset,
             ClientMACAddress               => ClientMACAddress,
             ClientIPAddress                => ClientIPAddress,
-            ClientPort                     => ClientPort,            
+            ClientUDPPort                  => ClientUDPPort,
             -- Packet Write in addressed bus format
             -- Packet Readout in addressed bus format
             FilterRingBufferSlotID         => ReceiverRingBufferSlotID,
@@ -714,7 +714,7 @@ begin
             -- Source all addressing data 
             ClientMACAddress           => ClientMACAddress,
             ClientIPAddress            => ClientIPAddress,
-            ClientPort                 => ClientPort,
+            ClientUDPPort              => ClientUDPPort,
             -- Packet Readout in addressed bus format
             SenderRingBufferSlotID     => SenderRingBufferPacketSlotID,
             SenderRingBufferSlotSet    => SenderRingBufferPacketSlotSet,
@@ -728,7 +728,7 @@ begin
             -- Handshaking signals
             -- Status signal to show when the packet sender is busy
             SenderBusy                 => SenderBusy,
-            -- Protocol Error
+            -- Protocol Error 
             ProtocolError              => ProtocolError,
             ProtocolErrorClear         => ProtocolErrorClear,
             ProtocolErrorID            => ProtocolErrorID,
