@@ -219,7 +219,7 @@ architecture rtl of prconfigcontroller is
             -- Source IP Addressing information
             ServerMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
             ServerIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
-            ServerPort                 : in  STD_LOGIC_VECTOR(15 downto 0);
+            ServerUDPPort              : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Response IP Addressing information
             ClientMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
             ClientIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
@@ -708,7 +708,7 @@ begin
             -- Source IP Addressing information
             ServerMACAddress           => ServerMACAddress,
             ServerIPAddress            => ServerIPAddress,
-            ServerPort                 => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
+            ServerUDPPort              => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
             -- Response IP Addressing information
             --TODO--
             -- Source all addressing data 

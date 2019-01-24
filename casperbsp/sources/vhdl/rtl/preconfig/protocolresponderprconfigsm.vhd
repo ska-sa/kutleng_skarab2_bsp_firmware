@@ -634,7 +634,7 @@ begin
                         SenderRingBufferDataOut    <= (others => '0');
                         SenderRingBufferSlotSet    <= '0';
                         SenderRingBufferDataWrite  <= '0';
-                        -- Go to check to see if there has been a ready responce
+                        -- Go to check to see if there has been a ready response
                         -- packet from ICAP or Packet Error
                         StateVariable              <= CheckProtocolICAPSt;
 

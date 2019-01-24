@@ -86,7 +86,7 @@ architecture behavorial of protocolresponderprconfigsm_tb is
             -- Response IP Addressing information
             ClientMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
             ClientIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
-            ClientPort                 : in  STD_LOGIC_VECTOR(15 downto 0);
+            ClientUDPPort              : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Readout in addressed bus format
             SenderRingBufferSlotID     : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             SenderRingBufferSlotSet    : out STD_LOGIC;
@@ -129,7 +129,7 @@ architecture behavorial of protocolresponderprconfigsm_tb is
     constant ServerPort               : STD_LOGIC_VECTOR(15 downto 0) := X"2710";
     constant ClientMACAddress         : STD_LOGIC_VECTOR(47 downto 0) := X"506B4BC3FAEC";
     constant ClientIPAddress          : STD_LOGIC_VECTOR(31 downto 0) := X"C0A86409";
-    constant ClientPort               : STD_LOGIC_VECTOR(15 downto 0) := X"894A";
+    constant ClientUDPPort            : STD_LOGIC_VECTOR(15 downto 0) := X"894A";
     signal SenderRingBufferSlotID     : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal SenderRingBufferSlotSet    : STD_LOGIC;
     signal SenderRingBufferSlotType   : STD_LOGIC;
@@ -194,7 +194,7 @@ begin
             ServerPort                 => ServerPort,
             ClientMACAddress           => ClientMACAddress,
             ClientIPAddress            => ClientIPAddress,
-            ClientPort                 => ClientPort,
+            ClientUDPPort              => ClientUDPPort,
             SenderRingBufferSlotID     => SenderRingBufferSlotID,
             SenderRingBufferSlotSet    => SenderRingBufferSlotSet,
             SenderRingBufferSlotType   => SenderRingBufferSlotType,

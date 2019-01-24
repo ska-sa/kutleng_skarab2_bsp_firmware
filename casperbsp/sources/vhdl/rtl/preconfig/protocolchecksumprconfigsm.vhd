@@ -201,8 +201,8 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lPRPacketSequence         : std_logic_vector(31 downto 0);
     signal lPRDWordCommand           : std_logic_vector(31 downto 0);
     signal lUDPFinalCheckSum         : std_logic_vector(15 downto 0);
-    signal lPreUDPHDRCheckSum     : unsigned(17 downto 0);
-    signal lBufferFrameIterations : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
+    signal lPreUDPHDRCheckSum        : unsigned(17 downto 0);
+    signal lBufferFrameIterations    : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in std_logic_vector)
@@ -250,7 +250,7 @@ begin
     ClientMACAddress        <= lSourceMACAddress;
     ClientIPAddress         <= lSourceIPAddress;
     ClientUDPPort           <= lSourceUDPPort;
-    lRingBufferData         <= FilterRingBufferDataIn; 
+    lRingBufferData         <= FilterRingBufferDataIn;
 
     SynchStateProc : process(axis_clk)
     begin
@@ -320,7 +320,7 @@ begin
                             lPRDWordCommand        <= lRingBufferData(415 downto 384);
 
                             -- Save the data on the correct framing order                                                        
-                            lPayloadArray(0)(31 downto 0) <= lRingBufferData((32 * (C_BUFFER_COMMAND_DWORD_POINTER_OFFSET + 1)) - 1 downto ((32 * C_BUFFER_COMMAND_DWORD_POINTER_OFFSET)+ 16)) & byteswap(lIdentification);
+                            lPayloadArray(0)(31 downto 0) <= lRingBufferData((32 * (C_BUFFER_COMMAND_DWORD_POINTER_OFFSET + 1)) - 1 downto ((32 * C_BUFFER_COMMAND_DWORD_POINTER_OFFSET) + 16)) & byteswap(lIdentification);
                             -- For frame save the last 5 DWORDS remaining
                             -- For Command save 5 DWORDS although 3 bytes used
                             for i in 1 to C_BUFFER_COMMAND_DWORD_POINTER_MAX loop
@@ -376,7 +376,7 @@ begin
                                 when 4 =>
                                     lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 5 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lPreUDPHDRCheckSum(17 downto 16);                                    
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 6 =>
                                     lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceUDPPort))) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 7 =>
