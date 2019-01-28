@@ -114,20 +114,29 @@ architecture rtl of icapwritersm is
         InitialiseSt,                   -- On the reset state
         CheckSlotSt,
         NextSlotSt,
-        ComposeResponsePacketSt,
-        CheckCommandSt,
-        ProcessCommandSt,
-        ProcessFrameSt,
-        GetICAPStatusSt,
-        PrepareResponseHeader,
-        GenerateIPCheckSumSt,
-        WriteUDPResponceSt,
-        ProcessSlotsSt,
-        NextSlotsSt,
-        SendErrorResponseSt
+        ReadHeaderSt,
+        SaveHeaderSt,
+        ReadSequenceSt,
+        SaveSequenceSt,
+        ReadDWORDCommandSt,
+        ICAPWriteDWORDCommandSt,
+        ReadFrameDWORDSt,
+        ICAPWriteFrameDWORDSt,
+        NextFrameDWORDSt,
+        ClearSlotSt,
+        WaitICAPResponse,
+        CreateErrorResponseSt,
+        SendICAPResponseSt
     );
     signal StateVariable        : ConfigurationControllerSM_t   := InitialiseSt;
     constant C_ICAP_NOP_COMMAND : std_logic_vector(31 downto 0) := X"20000000";
+    -- There are 98 DWORDS on the FRAME Sequence
+    constant C_FRAME_DWORD_MAX  : natural := (98-1);
+    signal lFrameDWORDCounter   : natural range 0 to C_FRAME_DWORD_MAX;
+    signal lCommandHeader       : std_logic_Vector(31 downto 0);
+    signal lCommandSequence     : std_logic_vector(31 downto 0);
+    signal lCommandDWORD        : std_logic_vector(31 downto 0);
+    signal lFrameDWORD          : std_logic_vector(31 downto 0);
 
     function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
         alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
@@ -142,20 +151,9 @@ architecture rtl of icapwritersm is
 
     function bitbyteswap(DataIn : in std_logic_vector)
     return std_logic_vector is
-        variable RData48 : std_logic_vector(47 downto 0);
         variable RData32 : std_logic_vector(31 downto 0);
-        variable RData24 : std_logic_vector(23 downto 0);
-        variable RData16 : std_logic_vector(15 downto 0);
     begin
-        if (DataIn'length = RData48'length) then
-            RData48(7 downto 0)   := bitreverse(DataIn(47 downto 40));
-            RData48(15 downto 8)  := bitreverse(DataIn(39 downto 32));
-            RData48(23 downto 16) := bitreverse(DataIn(31 downto 24));
-            RData48(31 downto 24) := bitreverse(DataIn(23 downto 16));
-            RData48(39 downto 32) := bitreverse(DataIn(15 downto 8));
-            RData48(47 downto 40) := bitreverse(DataIn(7 downto 0));
-            return std_logic_vector(RData48);
-        end if;
+
         if (DataIn'length = RData32'length) then
             RData32(7 downto 0)   := bitreverse(DataIn(31 downto 24));
             RData32(15 downto 8)  := bitreverse(DataIn(23 downto 16));
@@ -163,19 +161,7 @@ architecture rtl of icapwritersm is
             RData32(31 downto 24) := bitreverse(DataIn(7 downto 0));
             return std_logic_vector(RData32);
         end if;
-        if (DataIn'length = RData24'length) then
-            RData24(7 downto 0)   := bitreverse(DataIn(23 downto 16));
-            RData24(15 downto 8)  := bitreverse(DataIn(15 downto 8));
-            RData24(23 downto 16) := bitreverse(DataIn(7 downto 0));
-            return std_logic_vector(RData24);
-        end if;
-        if (DataIn'length = RData16'length) then
-            RData16(7 downto 0)  := bitreverse(DataIn(15 downto 8));
-            RData16(15 downto 8) := bitreverse(DataIn(7 downto 0));
-            return std_logic_vector(RData16);
-        else
-            return DataIn;
-        end if;
+
     end function bitbyteswap;
 
 begin
@@ -205,7 +191,7 @@ begin
                             -- The current slot has data 
                             -- Pull the data 
                             RingBufferDataRead <= '1';
-                            StateVariable      <= ComposeResponsePacketSt;
+                            StateVariable      <= ReadHeaderSt;
                         else
                             RingBufferDataRead <= '0';
                             StateVariable      <= CheckSlotSt;
@@ -220,9 +206,20 @@ begin
                         ICAP_CSIB           <= '1';
                         StateVariable       <= CheckSlotSt;
 
-                    when ProcessCommandSt =>
-
-                        if (ICAP_AVAIL = '1') then
+                    when ReadHeaderSt =>
+                        StateVariable <= SaveHeaderSt;
+                        
+                    when SaveHeaderSt =>
+                        StateVariable <= ReadSequenceSt;
+                        
+                    when ReadSequenceSt =>
+                        StateVariable <= SaveSequenceSt;
+                        
+                        
+                    when SaveSequenceSt =>
+                        
+                        if (lCommandHeader(7 downto 0)= X"DA") then
+                            -- This is a DWORD command
                             -- ICAP is ready write the command
                             -- Set ICAP to Write mode
                             ICAP_RDWRB    <= '0';
@@ -231,45 +228,81 @@ begin
                             -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
                             --ICAP_DataIn   <= bitbyteswap(lPRDWordCommand);
                             -- Done with write 
-                            StateVariable <= GetICAPStatusSt;
+                            StateVariable <= ReadDWORDCommandSt;
                         else
-                            -- Stop writing since the ICAP is not ready
-                            ICAP_CSIB     <= '1';
-                            -- Wait for the ICAP to be ready
-                            StateVariable <= ProcessCommandSt;
+                            if (lCommandHeader(7 downto 0)= X"A5") then
+                                -- This is a FRAME
+                                -- Stop writing since the ICAP is not ready
+                                ICAP_CSIB     <= '1';
+                                -- Wait for the ICAP to be ready
+                                StateVariable <= ReadFrameDWORDSt;
+                            else
+                                -- This is an error condition
+                                StateVariable <= CreateErrorResponseSt;
+                            end if;
+                        end if;
+                        
+                    when ReadDWORDCommandSt =>
+                        StateVariable <= ICAPWriteDWORDCommandSt;
+                        
+                        
+                        
+                    when ICAPWriteDWORDCommandSt =>
+                        StateVariable <= WaitICAPResponse;
+                    
+                    when ReadFrameDWORDSt =>
+                        StateVariable <= ICAPWriteFrameDWORDSt;
+                        
+                    when ICAPWriteFrameDWORDSt =>
+                        StateVariable <= NextFrameDWORDSt;
+                        
+                    when NextFrameDWORDSt =>
+                        lFrameDWORDCounter <= lFrameDWORDCounter + 1;
+                        if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
+                            StateVariable <= WaitICAPResponse;
+                        else
+                            StateVariable <= ReadFrameDWORDSt;
                         end if;
 
                     -- Error processing    
-                    when SendErrorResponseSt =>
+                    when CreateErrorResponseSt =>
                         -- Prepare a UDP Error packet
-                        StateVariable <= GetICAPStatusSt;
+                        StateVariable <= SendICAPResponseSt;
 
                     -- Response processing    
-                    when GetICAPStatusSt =>
+                    when WaitICAPResponse =>
                         -- Disselect the ICAP.
                         ICAP_CSIB <= '1';
                         -- Append the ICAP status on the return bytes
                         -- Update the status bits on the Response Header
+                        if (lCommandHeader(7 downto 0)= X"DA") then
+                            -- ICAP is ready write the command
+                            -- Set ICAP to Write mode
+                            ICAP_RDWRB    <= '0';
+                            ICAP_CSIB     <= '0';
+                            -- Do the Xilinx bitswapping on bytes, refer to
+                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
+                            --ICAP_DataIn   <= bitbyteswap(lPRDWordCommand);
+                            -- Done with write 
+                            StateVariable <= SendICAPResponseSt;
+                        else
+                            -- Stop writing since the ICAP is not ready
+                            ICAP_CSIB     <= '1';
+                            -- Wait for the ICAP to be ready
+                            StateVariable <= WaitICAPResponse;
+                        end if;
 
-                        StateVariable <= PrepareResponseHeader;
 
-                    when WriteUDPResponceSt =>
-                        -- Prepare the response packet to the Ringbuffer
-                        StateVariable <= ProcessSlotsSt;
-
-                    when ProcessSlotsSt =>
-                        -- Set the transmitter slot
-                        -- Go to the next slots so that the system
-                        -- can progress on the systems slots
-                        StateVariable <= NextSlotsSt;
-
-                    when NextSlotsSt =>
+                    when SendICAPResponseSt =>
                         -- Transmitter
                         -- Clear the receiver slot
                         RingBufferSlotClear <= '1';
                         -- Go to check the next available receiver slot
-                        StateVariable       <= NextSlotSt;
-
+                        StateVariable       <= ClearSlotSt;
+                        
+                    when ClearSlotSt =>
+                        StateVariable <= NextSlotSt;
+                        
                     when others =>
                         StateVariable <= InitialiseSt;
                 end case;
