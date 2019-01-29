@@ -70,7 +70,7 @@ entity icapwritersm is
         G_SLOT_WIDTH : natural := 4;
         --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
         -- The address width is log2(2048/(512/8))=5 bits wide
-        G_ADDR_WIDTH : natural := 5
+        G_ADDR_WIDTH : natural := 7
     );
     port(
         icap_clk                 : in  STD_LOGIC;
@@ -128,15 +128,17 @@ architecture rtl of icapwritersm is
         CreateErrorResponseSt,
         SendICAPResponseSt
     );
-    signal StateVariable        : ConfigurationControllerSM_t   := InitialiseSt;
-    constant C_ICAP_NOP_COMMAND : std_logic_vector(31 downto 0) := X"20000000";
+    signal StateVariable         : ConfigurationControllerSM_t   := InitialiseSt;
+    constant C_ICAP_NOP_COMMAND  : std_logic_vector(31 downto 0) := X"20000000";
     -- There are 98 DWORDS on the FRAME Sequence
-    constant C_FRAME_DWORD_MAX  : natural := (98-1);
-    signal lFrameDWORDCounter   : natural range 0 to C_FRAME_DWORD_MAX;
-    signal lCommandHeader       : std_logic_Vector(31 downto 0);
-    signal lCommandSequence     : std_logic_vector(31 downto 0);
-    signal lCommandDWORD        : std_logic_vector(31 downto 0);
-    signal lFrameDWORD          : std_logic_vector(31 downto 0);
+    constant C_FRAME_DWORD_MAX   : natural                       := (98 - 1);
+    signal lFrameDWORDCounter    : natural range 0 to C_FRAME_DWORD_MAX;
+    signal lCommandHeader        : std_logic_Vector(31 downto 0);
+    signal lCommandSequence      : std_logic_vector(31 downto 0);
+    signal lCommandDWORD         : std_logic_vector(31 downto 0);
+    signal lFrameDWORD           : std_logic_vector(31 downto 0);
+    signal lRecvRingBufferSlotID : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
 
     function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
         alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
@@ -166,6 +168,9 @@ architecture rtl of icapwritersm is
 
 begin
 
+RingBufferSlotID <= std_logic_vector(lRecvRingBufferSlotID);
+RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
+
     SynchStateProc : process(icap_clk)
     begin
         if rising_edge(icap_clk) then
@@ -185,6 +190,8 @@ begin
                         ICAP_RDWRB    <= '0';
                         -- Tie ICAP Data to NOP Command when being initialized
                         ICAP_DataIn   <= bitbyteswap(C_ICAP_NOP_COMMAND);
+                        lRecvRingBufferSlotID <= (others => '0');
+                        lRecvRingBufferAddress <= (others => '0');
 
                     when CheckSlotSt =>
                         if (RingBufferSlotStatus = '1') then
@@ -199,26 +206,35 @@ begin
 
                     when NextSlotSt =>
                         -- Go to next Slot
-                        --lRecvRingBufferSlotID   <= lRecvRingBufferSlotID + 1;
-                        RingBufferAddress   <= (others => '0');
-                        RingBufferSlotClear <= '0';
-                        RingBufferDataRead  <= '0';
-                        ICAP_CSIB           <= '1';
-                        StateVariable       <= CheckSlotSt;
+                        lRecvRingBufferSlotID <= lRecvRingBufferSlotID + 1;
+                        RingBufferAddress     <= (others => '0');
+                        RingBufferSlotClear   <= '0';
+                        RingBufferDataRead    <= '0';
+                        ICAP_CSIB             <= '1';
+                        StateVariable         <= CheckSlotSt;
 
                     when ReadHeaderSt =>
+                        RingBufferDataRead <= '1';
                         StateVariable <= SaveHeaderSt;
-                        
+
                     when SaveHeaderSt =>
+                        RingBufferDataRead <= '1';
+                                                -- Advance address to read command sequence
+                        lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
+                        lCommandHeader <= RingBufferDataIn;
                         StateVariable <= ReadSequenceSt;
-                        
+
                     when ReadSequenceSt =>
-                        StateVariable <= SaveSequenceSt;
-                        
-                        
+                         RingBufferDataRead <= '1';
+                                                StateVariable <= SaveSequenceSt;
+
                     when SaveSequenceSt =>
-                        
-                        if (lCommandHeader(7 downto 0)= X"DA") then
+                         RingBufferDataRead <= '1';
+                                                -- Advance address to read DOWRD or FRAME
+                        lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
+                        lCommandSequence <= RingBufferDataIn;
+
+                        if (lCommandHeader(7 downto 0) = X"DA") then
                             -- This is a DWORD command
                             -- ICAP is ready write the command
                             -- Set ICAP to Write mode
@@ -230,7 +246,7 @@ begin
                             -- Done with write 
                             StateVariable <= ReadDWORDCommandSt;
                         else
-                            if (lCommandHeader(7 downto 0)= X"A5") then
+                            if (lCommandHeader(7 downto 0) = X"A5") then
                                 -- This is a FRAME
                                 -- Stop writing since the ICAP is not ready
                                 ICAP_CSIB     <= '1';
@@ -241,21 +257,22 @@ begin
                                 StateVariable <= CreateErrorResponseSt;
                             end if;
                         end if;
-                        
+
                     when ReadDWORDCommandSt =>
+                        --Save the DWORD command
+                        lCommandDWORD <= RingBufferDataIn;
+                        -- Go to write the DWORD on ICAP
                         StateVariable <= ICAPWriteDWORDCommandSt;
-                        
-                        
-                        
+
                     when ICAPWriteDWORDCommandSt =>
                         StateVariable <= WaitICAPResponse;
-                    
+
                     when ReadFrameDWORDSt =>
                         StateVariable <= ICAPWriteFrameDWORDSt;
-                        
+
                     when ICAPWriteFrameDWORDSt =>
                         StateVariable <= NextFrameDWORDSt;
-                        
+
                     when NextFrameDWORDSt =>
                         lFrameDWORDCounter <= lFrameDWORDCounter + 1;
                         if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
@@ -275,7 +292,7 @@ begin
                         ICAP_CSIB <= '1';
                         -- Append the ICAP status on the return bytes
                         -- Update the status bits on the Response Header
-                        if (lCommandHeader(7 downto 0)= X"DA") then
+                        if (lCommandHeader(7 downto 0) = X"DA") then
                             -- ICAP is ready write the command
                             -- Set ICAP to Write mode
                             ICAP_RDWRB    <= '0';
@@ -292,17 +309,18 @@ begin
                             StateVariable <= WaitICAPResponse;
                         end if;
 
-
                     when SendICAPResponseSt =>
                         -- Transmitter
                         -- Clear the receiver slot
                         RingBufferSlotClear <= '1';
                         -- Go to check the next available receiver slot
                         StateVariable       <= ClearSlotSt;
-                        
+
                     when ClearSlotSt =>
+                        -- Clear the current slot to indicate done with the data
+                        RingBufferSlotClear <= '1';
                         StateVariable <= NextSlotSt;
-                        
+
                     when others =>
                         StateVariable <= InitialiseSt;
                 end case;
