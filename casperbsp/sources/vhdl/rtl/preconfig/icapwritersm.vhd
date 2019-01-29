@@ -100,11 +100,8 @@ entity icapwritersm is
         --ICAPE3 interface
         ICAP_CSIB                : out STD_LOGIC;
         ICAP_RDWRB               : out STD_LOGIC;
-        ICAP_PRDONE              : in  STD_LOGIC;
-        ICAP_PRERROR             : in  STD_LOGIC;
         ICAP_AVAIL               : in  STD_LOGIC;
-        ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAP_DataOut             : in  STD_LOGIC_VECTOR(31 downto 0)
+        ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0)
     );
 end entity icapwritersm;
 
@@ -120,6 +117,7 @@ architecture rtl of icapwritersm is
         SaveSequenceSt,
         ReadDWORDCommandSt,
         ICAPWriteDWORDCommandSt,
+        ICAPPurgeDWORDCommandSt,
         ReadFrameDWORDSt,
         ICAPWriteFrameDWORDSt,
         NextFrameDWORDSt,
@@ -128,17 +126,17 @@ architecture rtl of icapwritersm is
         CreateErrorResponseSt,
         SendICAPResponseSt
     );
-    signal StateVariable         : ConfigurationControllerSM_t   := InitialiseSt;
-    constant C_ICAP_NOP_COMMAND  : std_logic_vector(31 downto 0) := X"20000000";
+    signal StateVariable          : ConfigurationControllerSM_t   := InitialiseSt;
+    constant C_ICAP_NOP_COMMAND   : std_logic_vector(31 downto 0) := X"20000000";
     -- There are 98 DWORDS on the FRAME Sequence
-    constant C_FRAME_DWORD_MAX   : natural                       := (98 - 1);
-    signal lFrameDWORDCounter    : natural range 0 to C_FRAME_DWORD_MAX;
-    signal lCommandHeader        : std_logic_Vector(31 downto 0);
-    signal lCommandSequence      : std_logic_vector(31 downto 0);
-    signal lCommandDWORD         : std_logic_vector(31 downto 0);
-    signal lFrameDWORD           : std_logic_vector(31 downto 0);
-    signal lRecvRingBufferSlotID : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    constant C_FRAME_DWORD_MAX    : natural                       := (98 - 1);
+    signal lFrameDWORDCounter     : natural range 0 to C_FRAME_DWORD_MAX;
+    signal lCommandHeader         : std_logic_Vector(31 downto 0);
+    signal lCommandSequence       : std_logic_vector(31 downto 0);
+    signal lCommandDWORD          : std_logic_vector(31 downto 0);
+    signal lFrameDWORD            : std_logic_vector(31 downto 0);
+    signal lRecvRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRecvRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
 
     function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
         alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
@@ -168,15 +166,20 @@ architecture rtl of icapwritersm is
 
 begin
 
-RingBufferSlotID <= std_logic_vector(lRecvRingBufferSlotID);
-RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
+    RingBufferSlotID     <= std_logic_vector(lRecvRingBufferSlotID);
+    RingBufferAddress    <= std_logic_vector(lRecvRingBufferAddress);
+    ICAPIPIdentification <= lCommandHeader(15 downto 0);
+    ICAPProtocolID       <= lCommandHeader(31 downto 16);
+    ICAPProtocolSequence <= lCommandSequence;
 
     SynchStateProc : process(icap_clk)
     begin
         if rising_edge(icap_clk) then
             if (icap_reset = '1') then
                 -- Initialize SM on reset
-                ICAP_RDWRB    <= '0';
+                -- Default ICAP to read mode
+                ICAP_RDWRB    <= '1';
+                -- Keep ICAP desselected
                 ICAP_CSIB     <= '1';
                 -- Tie ICAP Data to NOP Command when being initialized
                 ICAP_DataIn   <= bitbyteswap(C_ICAP_NOP_COMMAND);
@@ -185,12 +188,12 @@ RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
                 case (StateVariable) is
                     when InitialiseSt =>
                         -- Wait for packet after initialization
-                        StateVariable <= CheckSlotSt;
-                        ICAP_CSIB     <= '1';
-                        ICAP_RDWRB    <= '0';
+                        StateVariable          <= CheckSlotSt;
+                        ICAP_CSIB              <= '1';
+                        ICAP_RDWRB             <= '0';
                         -- Tie ICAP Data to NOP Command when being initialized
-                        ICAP_DataIn   <= bitbyteswap(C_ICAP_NOP_COMMAND);
-                        lRecvRingBufferSlotID <= (others => '0');
+                        ICAP_DataIn            <= bitbyteswap(C_ICAP_NOP_COMMAND);
+                        lRecvRingBufferSlotID  <= (others => '0');
                         lRecvRingBufferAddress <= (others => '0');
 
                     when CheckSlotSt =>
@@ -215,35 +218,27 @@ RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
 
                     when ReadHeaderSt =>
                         RingBufferDataRead <= '1';
-                        StateVariable <= SaveHeaderSt;
+                        StateVariable      <= SaveHeaderSt;
 
                     when SaveHeaderSt =>
-                        RingBufferDataRead <= '1';
-                                                -- Advance address to read command sequence
+                        RingBufferDataRead     <= '1';
+                        -- Advance address to read command sequence
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
-                        lCommandHeader <= RingBufferDataIn;
-                        StateVariable <= ReadSequenceSt;
+                        lCommandHeader         <= RingBufferDataIn;
+                        StateVariable          <= ReadSequenceSt;
 
                     when ReadSequenceSt =>
-                         RingBufferDataRead <= '1';
-                                                StateVariable <= SaveSequenceSt;
+                        RingBufferDataRead <= '1';
+                        StateVariable      <= SaveSequenceSt;
 
                     when SaveSequenceSt =>
-                         RingBufferDataRead <= '1';
-                                                -- Advance address to read DOWRD or FRAME
+                        RingBufferDataRead     <= '1';
+                        -- Advance address to read DOWRD or FRAME
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
-                        lCommandSequence <= RingBufferDataIn;
+                        lCommandSequence       <= RingBufferDataIn;
 
                         if (lCommandHeader(7 downto 0) = X"DA") then
                             -- This is a DWORD command
-                            -- ICAP is ready write the command
-                            -- Set ICAP to Write mode
-                            ICAP_RDWRB    <= '0';
-                            ICAP_CSIB     <= '0';
-                            -- Do the Xilinx bitswapping on bytes, refer to
-                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
-                            --ICAP_DataIn   <= bitbyteswap(lPRDWordCommand);
-                            -- Done with write 
                             StateVariable <= ReadDWORDCommandSt;
                         else
                             if (lCommandHeader(7 downto 0) = X"A5") then
@@ -259,22 +254,68 @@ RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
                         end if;
 
                     when ReadDWORDCommandSt =>
+                        -- Stop reading the ring buffer
+                        RingBufferDataRead <= '0';
                         --Save the DWORD command
-                        lCommandDWORD <= RingBufferDataIn;
+                        lCommandDWORD      <= RingBufferDataIn;
                         -- Go to write the DWORD on ICAP
-                        StateVariable <= ICAPWriteDWORDCommandSt;
+                        StateVariable      <= ICAPWriteDWORDCommandSt;
 
                     when ICAPWriteDWORDCommandSt =>
+                        if (ICAP_AVAIL = '1') then
+                            -- ICAP is ready write the command
+                            -- Set ICAP to Write mode
+                            ICAP_RDWRB    <= '0';
+                            ICAP_CSIB     <= '0';
+                            -- Do the Xilinx bitswapping on bytes, refer to
+                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
+                            ICAP_DataIn   <= bitbyteswap(lCommandDWORD);
+                            -- Done with write 
+                            StateVariable <= ICAPPurgeDWORDCommandSt;
+
+                        else
+                            -- Wait until ICAP is ready to take data
+                            StateVariable <= ICAPWriteDWORDCommandSt;
+                        end if;
+
+                    when ICAPPurgeDWORDCommandSt =>
+                        -- Disselect the ICAP
+                        ICAP_CSIB     <= '1';
+                        -- Change ICAP to read mode
+                        ICAP_RDWRB    <= '1';
                         StateVariable <= WaitICAPResponse;
 
                     when ReadFrameDWORDSt =>
-                        StateVariable <= ICAPWriteFrameDWORDSt;
+                        -- Read one DWORD
+                        RingBufferDataRead <= '1';
+                        --Save the Frame DWORD
+                        lFrameDWORD        <= RingBufferDataIn;
+                        StateVariable      <= ICAPWriteFrameDWORDSt;
 
                     when ICAPWriteFrameDWORDSt =>
-                        StateVariable <= NextFrameDWORDSt;
+                        if (ICAP_AVAIL = '1') then
+                            -- ICAP is ready
+                            -- Set ICAP to Write mode
+                            ICAP_RDWRB    <= '0';
+                            ICAP_CSIB     <= '0';
+                            -- Do the Xilinx bitswapping on bytes, refer to
+                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
+                            ICAP_DataIn   <= bitbyteswap(lFrameDWORD);
+                            StateVariable <= NextFrameDWORDSt;
+
+                        else
+
+                            -- Wait until ICAP is ready to take data
+                            StateVariable <= ICAPWriteFrameDWORDSt;
+                        end if;
 
                     when NextFrameDWORDSt =>
-                        lFrameDWORDCounter <= lFrameDWORDCounter + 1;
+                        -- Disselect the ICAP
+                        ICAP_CSIB              <= '1';
+                        -- Point to nextframe dword
+                        lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
+                        -- advance frame couunter                      
+                        lFrameDWORDCounter     <= lFrameDWORDCounter + 1;
                         if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
                             StateVariable <= WaitICAPResponse;
                         else
@@ -284,42 +325,35 @@ RingBufferAddress<= std_logic_vector(lRecvRingBufferAddress);
                     -- Error processing    
                     when CreateErrorResponseSt =>
                         -- Prepare a UDP Error packet
-                        StateVariable <= SendICAPResponseSt;
+                        StateVariable <= WaitICAPResponse;
 
                     -- Response processing    
                     when WaitICAPResponse =>
                         -- Disselect the ICAP.
-                        ICAP_CSIB <= '1';
-                        -- Append the ICAP status on the return bytes
-                        -- Update the status bits on the Response Header
-                        if (lCommandHeader(7 downto 0) = X"DA") then
-                            -- ICAP is ready write the command
-                            -- Set ICAP to Write mode
-                            ICAP_RDWRB    <= '0';
-                            ICAP_CSIB     <= '0';
-                            -- Do the Xilinx bitswapping on bytes, refer to
-                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
-                            --ICAP_DataIn   <= bitbyteswap(lPRDWordCommand);
-                            -- Done with write 
-                            StateVariable <= SendICAPResponseSt;
-                        else
-                            -- Stop writing since the ICAP is not ready
-                            ICAP_CSIB     <= '1';
-                            -- Wait for the ICAP to be ready
-                            StateVariable <= WaitICAPResponse;
-                        end if;
+                        ICAP_CSIB     <= '1';
+                        -- Change ICAP to read mode
+                        ICAP_RDWRB    <= '1';
+                        -- Signal protocol responder we are done with write
+                        ICAPWriteDone <= '1';
+                        -- Done with write 
+                        StateVariable <= SendICAPResponseSt;
 
                     when SendICAPResponseSt =>
-                        -- Transmitter
-                        -- Clear the receiver slot
-                        RingBufferSlotClear <= '1';
-                        -- Go to check the next available receiver slot
-                        StateVariable       <= ClearSlotSt;
+                        if (ICAPWriteResponseSent = '1') then
+                            -- Response sent 
+                            -- Clear the receiver slot
+                            RingBufferSlotClear <= '1';
+                            -- Go to check the next available receiver slot
+                            StateVariable       <= ClearSlotSt;
+                        else
+                            -- Wait for protocol responder to send the ICAP response
+                            StateVariable <= SendICAPResponseSt;
+                        end if;
 
                     when ClearSlotSt =>
                         -- Clear the current slot to indicate done with the data
                         RingBufferSlotClear <= '1';
-                        StateVariable <= NextSlotSt;
+                        StateVariable       <= NextSlotSt;
 
                     when others =>
                         StateVariable <= InitialiseSt;
