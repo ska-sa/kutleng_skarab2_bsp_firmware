@@ -341,11 +341,8 @@ architecture rtl of prconfigcontroller is
             --ICAPE3 interface
             ICAP_CSIB                : out STD_LOGIC;
             ICAP_RDWRB               : out STD_LOGIC;
-            ICAP_PRDONE              : in  STD_LOGIC;
-            ICAP_PRERROR             : in  STD_LOGIC;
             ICAP_AVAIL               : in  STD_LOGIC;
-            ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0);
-            ICAP_DataOut             : in  STD_LOGIC_VECTOR(31 downto 0)
+            ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component icapwritersm;
 
@@ -586,11 +583,8 @@ begin
             --ICAPE3 Interface            
             ICAP_CSIB                => ICAP_CSIB,
             ICAP_RDWRB               => ICAP_RDWRB,
-            ICAP_PRDONE              => ICAP_PRDONE,
-            ICAP_PRERROR             => ICAP_PRERROR,
             ICAP_AVAIL               => ICAP_AVAIL,
-            ICAP_DataIn              => ICAP_DataIn,
-            ICAP_DataOut             => ICAP_DataOut
+            ICAP_DataIn              => ICAP_DataIn
         );
 
     ICAPE3_i : ICAPE3
