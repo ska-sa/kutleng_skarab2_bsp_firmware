@@ -209,12 +209,12 @@ begin
 
                     when NextSlotSt =>
                         -- Go to next Slot
-                        lRecvRingBufferSlotID <= lRecvRingBufferSlotID + 1;
-                        RingBufferAddress     <= (others => '0');
-                        RingBufferSlotClear   <= '0';
-                        RingBufferDataRead    <= '0';
-                        ICAP_CSIB             <= '1';
-                        StateVariable         <= CheckSlotSt;
+                        lRecvRingBufferSlotID  <= lRecvRingBufferSlotID + 1;
+                        lRecvRingBufferAddress <= (others => '0');
+                        RingBufferSlotClear    <= '0';
+                        RingBufferDataRead     <= '0';
+                        ICAP_CSIB              <= '1';
+                        StateVariable          <= CheckSlotSt;
 
                     when ReadHeaderSt =>
                         RingBufferDataRead <= '1';
