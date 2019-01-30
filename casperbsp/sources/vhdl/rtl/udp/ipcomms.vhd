@@ -61,6 +61,8 @@
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity ipcomms is
     generic(
@@ -92,6 +94,7 @@ entity ipcomms is
 end entity ipcomms;
 
 architecture rtl of ipcomms is
+
     component macifudpserver is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
@@ -171,7 +174,7 @@ architecture rtl of ipcomms is
             axis_tx_tlast     : out STD_LOGIC
         );
     end component arpmodule;
-    
+
     component prconfigcontroller is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
@@ -197,15 +200,21 @@ architecture rtl of ipcomms is
             axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
             axis_rx_tlast     : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
-            axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH-1 downto 0);
+            axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
             axis_tx_tvalid    : out STD_LOGIC;
             axis_tx_tready    : in  STD_LOGIC;
             axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
-            axis_tx_tlast     : out STD_LOGIC
+            axis_tx_tlast     : out STD_LOGIC;
+            ICAP_PRDONE       : in  std_logic;
+            ICAP_PRERROR      : in  std_logic;
+            ICAP_AVAIL        : in  std_logic;
+            ICAP_CSIB         : out std_logic;
+            ICAP_RDWRB        : out std_logic;
+            ICAP_DataOut      : in  std_logic_vector(31 downto 0);
+            ICAP_DataIn       : out std_logic_vector(31 downto 0)
         );
     end component prconfigcontroller;
-    
 
     component axisthreeportfabricmultiplexer is
         generic(
@@ -250,6 +259,14 @@ architecture rtl of ipcomms is
 
     constant C_MAX_PACKET_BLOCKS_SIZE : natural := 64;
     constant C_PRIORITY_WIDTH         : natural := 4;
+
+    signal ICAP_PRDONE  : std_logic;
+    signal ICAP_PRERROR : std_logic;
+    signal ICAP_AVAIL   : std_logic;
+    signal ICAP_CSIB    : std_logic;
+    signal ICAP_RDWRB   : std_logic;
+    signal ICAP_DataOut : std_logic_vector(31 downto 0);
+    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
 
     signal axis_tx_tpriority_1_arp : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
     signal axis_tx_tdata_1_arp     : STD_LOGIC_VECTOR(511 downto 0);
@@ -367,26 +384,33 @@ begin
             G_ADDR_WIDTH      => 5
         )
         port map(
-            axis_clk                       => axis_clk,
+            axis_clk          => axis_clk,
             -- 95 MHz ICAP Clock 
-            icap_clk                       => icap_clk, 
-            axis_reset                     => axis_reset,
+            icap_clk          => icap_clk,
+            axis_reset        => axis_reset,
             -- Setup information
-            ServerMACAddress               => G_EMAC_ADDR,
-            ServerIPAddress                => G_IP_ADDR,
+            ServerMACAddress  => G_EMAC_ADDR,
+            ServerIPAddress   => G_IP_ADDR,
             --Outputs to AXIS bus MAC side 
-            axis_tx_tpriority              => axis_tx_tpriority_1_pr,
-            axis_tx_tdata                  => axis_tx_tdata_1_pr,
-            axis_tx_tvalid                 => axis_tx_tvalid_1_pr,
-            axis_tx_tready                 => axis_tx_tready_1_pr,
-            axis_tx_tkeep                  => axis_tx_tkeep_1_pr,
-            axis_tx_tlast                  => axis_tx_tlast_1_pr,
+            axis_tx_tpriority => axis_tx_tpriority_1_pr,
+            axis_tx_tdata     => axis_tx_tdata_1_pr,
+            axis_tx_tvalid    => axis_tx_tvalid_1_pr,
+            axis_tx_tready    => axis_tx_tready_1_pr,
+            axis_tx_tkeep     => axis_tx_tkeep_1_pr,
+            axis_tx_tlast     => axis_tx_tlast_1_pr,
             --Inputs from AXIS bus of the MAC side
-            axis_rx_tdata                  => axis_rx_tdata,
-            axis_rx_tvalid                 => axis_rx_tvalid,
-            axis_rx_tuser                  => axis_rx_tuser,
-            axis_rx_tkeep                  => axis_rx_tkeep,
-            axis_rx_tlast                  => axis_rx_tlast
+            axis_rx_tdata     => axis_rx_tdata,
+            axis_rx_tvalid    => axis_rx_tvalid,
+            axis_rx_tuser     => axis_rx_tuser,
+            axis_rx_tkeep     => axis_rx_tkeep,
+            axis_rx_tlast     => axis_rx_tlast,
+            ICAP_PRDONE       => ICAP_PRDONE,
+            ICAP_PRERROR      => ICAP_PRERROR,
+            ICAP_AVAIL        => ICAP_AVAIL,
+            ICAP_CSIB         => ICAP_CSIB,
+            ICAP_RDWRB        => ICAP_RDWRB,
+            ICAP_DataOut      => ICAP_DataOut,
+            ICAP_DataIn       => ICAP_DataIn
         );
 
     AXISMUX_i : axisthreeportfabricmultiplexer
@@ -425,6 +449,23 @@ begin
             axis_rx_tready_3    => axis_tx_tready_1_pr,
             axis_rx_tkeep_3     => axis_tx_tkeep_1_pr,
             axis_rx_tlast_3     => axis_tx_tlast_1_pr
+        );
+
+    ICAPE3_i : ICAPE3
+        generic map(
+            DEVICE_ID         => X"03628093",
+            ICAP_AUTO_SWITCH  => "DISABLE",
+            SIM_CFG_FILE_NAME => "NONE"
+        )
+        port map(
+            AVAIL   => ICAP_AVAIL,
+            O       => ICAP_DataOut,
+            PRDONE  => ICAP_PRDONE,
+            PRERROR => ICAP_PRERROR,
+            CLK     => icap_clk,
+            CSIB    => ICAP_CSIB,
+            I       => ICAP_DataIn,
+            RDWRB   => ICAP_RDWRB
         );
 
 end architecture rtl;

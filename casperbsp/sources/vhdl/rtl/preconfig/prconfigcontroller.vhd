@@ -66,9 +66,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
---Library unisim;
---use unisim.vcomponents.all;
-
 entity prconfigcontroller is
     generic(
         G_SLOT_WIDTH      : natural                          := 4;
@@ -99,7 +96,14 @@ entity prconfigcontroller is
         axis_tx_tvalid    : out STD_LOGIC;
         axis_tx_tready    : in  STD_LOGIC;
         axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
-        axis_tx_tlast     : out STD_LOGIC
+        axis_tx_tlast     : out STD_LOGIC;
+        ICAP_PRDONE       : in  std_logic;
+        ICAP_PRERROR      : in  std_logic;
+        ICAP_AVAIL        : in  std_logic;
+        ICAP_CSIB         : out std_logic;
+        ICAP_RDWRB        : out std_logic;
+        ICAP_DataOut      : in  std_logic_vector(31 downto 0);
+        ICAP_DataIn       : out std_logic_vector(31 downto 0)
     );
 end entity prconfigcontroller;
 
@@ -258,60 +262,60 @@ architecture rtl of prconfigcontroller is
     end component protocolresponderprconfigsm;
 
     component protocolchecksumprconfigsm is
-    generic(
-        G_SLOT_WIDTH         : natural := 4;
-        --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
-        -- ICAP Ring buffer needs 100 DWORDS
-        -- The address is log2(100))=7 bits wide
-        G_ICAP_RB_ADDR_WIDTH : natural := 7;
-        -- The address width is log2(2048/(512/8))=5 bits wide
-        G_ADDR_WIDTH         : natural := 5
-    );
-    port(
-        axis_clk                       : in  STD_LOGIC;
-        axis_reset                     : in  STD_LOGIC;
-        -- IP Addressing information
-        ClientMACAddress               : out STD_LOGIC_VECTOR(47 downto 0);
-        ClientIPAddress                : out STD_LOGIC_VECTOR(31 downto 0);
-        ClientUDPPort                  : out STD_LOGIC_VECTOR(15 downto 0);
-        -- Packet Write in addressed bus format
-        -- Packet Readout in addressed bus format
-        FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        FilterRingBufferSlotClear      : out STD_LOGIC;
-        FilterRingBufferSlotStatus     : in  STD_LOGIC;
-        FilterRingBufferSlotTypeStatus : in  STD_LOGIC;
-        FilterRingBufferDataRead       : out STD_LOGIC;
-        -- Enable[0] is a special bit (we assume always 1 when packet is valid)
-        -- we use it to save TLAST
-        FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-        FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
-        FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-        -- Packet Readout in addressed bus format
-        ICAPRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        ICAPRingBufferSlotSet          : out STD_LOGIC;
-        ICAPRingBufferSlotStatus       : in  STD_LOGIC;
-        ICAPRingBufferSlotType         : out STD_LOGIC;
-        ICAPRingBufferDataWrite        : out STD_LOGIC;
-        -- Enable[0] is a special bit (we assume always 1 when packet is valid)
-        -- we use it to save TLAST
-        ICAPRingBufferByteEnable       : out STD_LOGIC_VECTOR(3 downto 0);
-        ICAPRingBufferDataOut          : out STD_LOGIC_VECTOR(31 downto 0);
-        ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
-        -- Protocol Error
-        -- Back off signal to indicate sender is busy with response                 
-        SenderBusy                     : in  STD_LOGIC;
-        -- Signal to indicate an erroneous packet condition  
-        ProtocolError                  : out STD_LOGIC;
-        -- Clear signal to indicate acknowledgement of transaction
-        ProtocolErrorClear             : in  STD_LOGIC;
-        -- Error type indication
-        ProtocolErrorID                : out STD_LOGIC_VECTOR(31 downto 0);
-        -- IP Identification 
-        ProtocolIPIdentification       : out STD_LOGIC_VECTOR(15 downto 0);
-        -- Protocol ID for framing
-        ProtocolID                     : out STD_LOGIC_VECTOR(15 downto 0);
-        -- Protocol frame sequence
-        ProtocolSequence               : out STD_LOGIC_VECTOR(31 downto 0)
+        generic(
+            G_SLOT_WIDTH         : natural := 4;
+            --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+            -- ICAP Ring buffer needs 100 DWORDS
+            -- The address is log2(100))=7 bits wide
+            G_ICAP_RB_ADDR_WIDTH : natural := 7;
+            -- The address width is log2(2048/(512/8))=5 bits wide
+            G_ADDR_WIDTH         : natural := 5
+        );
+        port(
+            axis_clk                       : in  STD_LOGIC;
+            axis_reset                     : in  STD_LOGIC;
+            -- IP Addressing information
+            ClientMACAddress               : out STD_LOGIC_VECTOR(47 downto 0);
+            ClientIPAddress                : out STD_LOGIC_VECTOR(31 downto 0);
+            ClientUDPPort                  : out STD_LOGIC_VECTOR(15 downto 0);
+            -- Packet Write in addressed bus format
+            -- Packet Readout in addressed bus format
+            FilterRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            FilterRingBufferSlotClear      : out STD_LOGIC;
+            FilterRingBufferSlotStatus     : in  STD_LOGIC;
+            FilterRingBufferSlotTypeStatus : in  STD_LOGIC;
+            FilterRingBufferDataRead       : out STD_LOGIC;
+            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
+            -- we use it to save TLAST
+            FilterRingBufferByteEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
+            FilterRingBufferDataIn         : in  STD_LOGIC_VECTOR(511 downto 0);
+            FilterRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            -- Packet Readout in addressed bus format
+            ICAPRingBufferSlotID           : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            ICAPRingBufferSlotSet          : out STD_LOGIC;
+            ICAPRingBufferSlotStatus       : in  STD_LOGIC;
+            ICAPRingBufferSlotType         : out STD_LOGIC;
+            ICAPRingBufferDataWrite        : out STD_LOGIC;
+            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
+            -- we use it to save TLAST
+            ICAPRingBufferByteEnable       : out STD_LOGIC_VECTOR(3 downto 0);
+            ICAPRingBufferDataOut          : out STD_LOGIC_VECTOR(31 downto 0);
+            ICAPRingBufferAddress          : out STD_LOGIC_VECTOR(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
+            -- Protocol Error
+            -- Back off signal to indicate sender is busy with response                 
+            SenderBusy                     : in  STD_LOGIC;
+            -- Signal to indicate an erroneous packet condition  
+            ProtocolError                  : out STD_LOGIC;
+            -- Clear signal to indicate acknowledgement of transaction
+            ProtocolErrorClear             : in  STD_LOGIC;
+            -- Error type indication
+            ProtocolErrorID                : out STD_LOGIC_VECTOR(31 downto 0);
+            -- IP Identification 
+            ProtocolIPIdentification       : out STD_LOGIC_VECTOR(15 downto 0);
+            -- Protocol ID for framing
+            ProtocolID                     : out STD_LOGIC_VECTOR(15 downto 0);
+            -- Protocol frame sequence
+            ProtocolSequence               : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component protocolchecksumprconfigsm;
 
@@ -355,24 +359,6 @@ architecture rtl of prconfigcontroller is
         );
     end component icapwritersm;
 
-    component ICAPE3 is
-        generic(
-            DEVICE_ID         : STD_LOGIC_VECTOR(31 downto 0);
-            ICAP_AUTO_SWITCH  : STRING;
-            SIM_CFG_FILE_NAME : STRING
-        );
-        port(
-            AVAIL   : out STD_LOGIC;
-            O       : out STD_LOGIC_VECTOR(31 downto 0);
-            PRDONE  : out STD_LOGIC;
-            PRERROR : out STD_LOGIC;
-            CLK     : in  STD_LOGIC;
-            CSIB    : in  STD_LOGIC;
-            I       : in  STD_LOGIC_VECTOR(31 downto 0);
-            RDWRB   : in  STD_LOGIC
-        );
-    end component ICAPE3;
-
     constant C_DATA_WIDTH                     : natural := 512;
     constant G_ICAP_RB_ADDR_WIDTH             : natural := 7;
     signal SenderRingBufferSlotID             : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
@@ -403,13 +389,6 @@ architecture rtl of prconfigcontroller is
     signal ProtocolErrorClear                 : std_logic;
     signal ICAPWriteDone                      : std_logic;
     signal ICAPWriteResponseSent              : std_logic;
-    signal ICAP_PRDONE                        : std_logic;
-    signal ICAP_PRERROR                       : std_logic;
-    signal ICAP_AVAIL                         : std_logic;
-    signal ICAP_CSIB                          : std_logic;
-    signal ICAP_RDWRB                         : std_logic;
-    signal ICAP_DataOut                       : std_logic_vector(31 downto 0);
-    signal ICAP_DataIn                        : std_logic_vector(31 downto 0);
     signal icap_reset                         : std_logic;
     signal licap_reset                        : std_logic;
     signal ReceiverRingBufferSlotClear        : std_logic;
@@ -489,9 +468,9 @@ begin
 
     ProtocolCheck_i : protocolchecksumprconfigsm
         generic map(
-            G_SLOT_WIDTH => G_SLOT_WIDTH,
+            G_SLOT_WIDTH         => G_SLOT_WIDTH,
             G_ICAP_RB_ADDR_WIDTH => G_ICAP_RB_ADDR_WIDTH,
-            G_ADDR_WIDTH => G_ADDR_WIDTH
+            G_ADDR_WIDTH         => G_ADDR_WIDTH
         )
         port map(
             axis_clk                       => axis_clk,
@@ -596,23 +575,6 @@ begin
             ICAP_RDWRB               => ICAP_RDWRB,
             ICAP_AVAIL               => ICAP_AVAIL,
             ICAP_DataIn              => ICAP_DataIn
-        );
-
-    ICAPE3_i : ICAPE3
-        generic map(
-            DEVICE_ID         => X"03628093",
-            ICAP_AUTO_SWITCH  => "DISABLE",
-            SIM_CFG_FILE_NAME => "NONE"
-        )
-        port map(
-            AVAIL   => ICAP_AVAIL,
-            O       => ICAP_DataOut,
-            PRDONE  => ICAP_PRDONE,
-            PRERROR => ICAP_PRERROR,
-            CLK     => icap_clk,
-            CSIB    => ICAP_CSIB,
-            I       => ICAP_DataIn,
-            RDWRB   => ICAP_RDWRB
         );
 
     ----------------------------------------------------------------------------
