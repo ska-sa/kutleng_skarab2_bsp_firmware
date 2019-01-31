@@ -22,9 +22,9 @@ vivado
 
 #on my machine it is as follows
 
-source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/ethmacvcu118.tcl
+source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/ethmacvcu118pr.tcl
 
-#Yours maybe source ethmacvcu118.tcl
+#Yours maybe source ethmacvcu118pr.tcl
 
 #You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/} folder
 
@@ -53,3 +53,9 @@ source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab
 Fixed 100G links on VCU1525 Using IP Address 192.168.100.10/15
 
 Tagging this to V1.1
+
+Updated code on this branch to work with partial reconfiguration.
+
+ICAP based PR still being tested.
+JTAG based PR working on VCU1525 (to be confirmed on VCU118 but it should work).
+
