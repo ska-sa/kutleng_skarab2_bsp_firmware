@@ -248,6 +248,7 @@ architecture rtl of gmactop is
     component clockgen100mhz is
         port(
             clk_out1  : out STD_LOGIC;
+            clk_out2  : out STD_LOGIC;
             locked    : out STD_LOGIC;
             clk_in1_p : in  STD_LOGIC;
             clk_in1_n : in  STD_LOGIC
@@ -337,7 +338,7 @@ architecture rtl of gmactop is
         );
         port(
             axis_clk       : in  STD_LOGIC;
-            icap_clk       : in  STD_LOGIC;                        
+            icap_clk       : in  STD_LOGIC;            
             axis_reset     : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
@@ -442,14 +443,14 @@ begin
     -- Dont select the module
     qsfp1_modsell_ls <= '1';
     -- Keep the module out of reset    
-    qsfp1_resetl_ls  <= '1';
+    qsfp1_resetl_ls  <= (not Reset);
 
     -- Dont set module to low power mode
     qsfp2_lpmode_ls  <= '0';
     -- Dont select the module
     qsfp2_modsell_ls <= '1';
     -- Keep the module out of reset    
-    qsfp2_resetl_ls  <= '1';
+    qsfp2_resetl_ls  <= (not Reset);
 
     -- Make this the partial black box
     PartialBlinker_i : partialblinker
@@ -501,6 +502,7 @@ begin
     ClockGen100MHz_i : clockgen100mhz
         port map(
             clk_out1  => RefClk100MHz,
+            clk_out2  => ICAPClk95MHz,            
             locked    => RefClkLocked,
             clk_in1_p => sysclk1_300_p,
             clk_in1_n => sysclk1_300_n
@@ -577,7 +579,7 @@ begin
         )
         port map(
             axis_clk       => ClkQSFP1,
-            icap_clk       => ICAPClk95MHz,            
+            icap_clk       => ICAPClk95MHz,
             axis_reset     => Reset,
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  => axis_tx_tdata_1,
@@ -713,3 +715,4 @@ begin
         );
 
 end architecture rtl;
+
