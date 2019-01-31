@@ -59,3 +59,5 @@ Updated code on this branch to work with partial reconfiguration.
 ICAP based PR still being tested.
 JTAG based PR working on VCU1525 (to be confirmed on VCU118 but it should work).
 
+Need to add a timing ignore constraint for the 95MHz ICAP clock, at the moment it is causing a lot of timing errors which can be ignored due to CDC.
+
