@@ -133,7 +133,7 @@ architecture rtl of icapwritersm is
     signal lFrameDWORDCounter     : natural range 0 to C_FRAME_DWORD_MAX;
     signal lCommandHeader         : std_logic_Vector(31 downto 0);
     signal lCommandSequence       : std_logic_vector(31 downto 0);
-    signal lCommandDWORD          : std_logic_vector(31 downto 0);
+    alias lCommandDWORD           : std_logic_vector(31 downto 0) is RingBufferDataIn;
     signal lFrameDWORD            : std_logic_vector(31 downto 0);
     signal lRecvRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lRecvRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
@@ -237,11 +237,11 @@ begin
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
                         lCommandSequence       <= RingBufferDataIn;
 
-                        if (lCommandHeader(7 downto 0) = X"DA") then
+                        if (lCommandHeader(23 downto 16) = X"DA") then
                             -- This is a DWORD command
                             StateVariable <= ReadDWORDCommandSt;
                         else
-                            if (lCommandHeader(7 downto 0) = X"A5") then
+                            if (lCommandHeader(23 downto 16) = X"A5") then
                                 -- This is a FRAME
                                 -- Stop writing since the ICAP is not ready
                                 ICAP_CSIB     <= '1';
@@ -254,14 +254,13 @@ begin
                         end if;
 
                     when ReadDWORDCommandSt =>
-                        -- Stop reading the ring buffer
-                        RingBufferDataRead <= '0';
-                        --Save the DWORD command
-                        lCommandDWORD      <= RingBufferDataIn;
+                        RingBufferDataRead <= '1';
                         -- Go to write the DWORD on ICAP
                         StateVariable      <= ICAPWriteDWORDCommandSt;
 
                     when ICAPWriteDWORDCommandSt =>
+                        -- Stop reading the ring buffer
+                        RingBufferDataRead <= '0';
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready write the command
                             -- Set ICAP to Write mode

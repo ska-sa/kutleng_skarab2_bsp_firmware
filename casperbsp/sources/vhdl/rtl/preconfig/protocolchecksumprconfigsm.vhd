@@ -163,8 +163,8 @@ architecture rtl of protocolchecksumprconfigsm is
     constant C_BUFFER_COMMAND_DWORD_POINTER_MAX    : natural := (6 - 1);
     -- Need to iterate 11 times to calculate UDP header checksum     
     constant C_UDP_HEADER_CHECKSUM_COUNTER_MAX     : natural := (11 - 1);
-    -- Need to iterate 7 times to finalize UDP header checksum     
-    constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural := (7 - 1);
+    -- Need to iterate 2 times to finalize UDP header checksum     
+    constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural := (3 - 1);
 
     constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";
     constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";
@@ -244,7 +244,6 @@ architecture rtl of protocolchecksumprconfigsm is
 begin
     FilterRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
     FilterRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
-    ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
     ICAPRingBufferAddress   <= std_logic_vector(lSenderRingBufferAddress);
     -- Save the client addressing information to be able to respond to it
     ClientMACAddress        <= lSourceMACAddress;
@@ -269,8 +268,10 @@ begin
                         lRecvRingBufferAddress    <= (others => '0');
                         lSenderRingBufferSlotID   <= (others => '0');
                         lSenderRingBufferAddress  <= (others => '0');
+                        ICAPRingBufferSlotID      <= (others => '0');
                         ICAPRingBufferDataWrite   <= '0';
                         ICAPRingBufferSlotSet     <= '0';
+                        ICAPRingBufferSlotType    <= '0';
 
                     when CheckSlotSt =>
                         FilterRingBufferSlotClear <= '0';
@@ -306,21 +307,22 @@ begin
                             -- The data is saved in network byte order!!!!
                             -- One cannot use it as is but must first convert it
                             -- to proper magnitude order first!!! 
-                            lDestinationMACAddress <= lRingBufferData(47 downto 0);
-                            lSourceMACAddress      <= lRingBufferData(95 downto 48);
-                            lIdentification        <= lRingBufferData(159 downto 144);
-                            lSourceIPAddress       <= lRingBufferData(239 downto 208);
-                            lDestinationIPAddress  <= lRingBufferData(271 downto 240);
-                            lSourceUDPPort         <= lRingBufferData(287 downto 272);
-                            lDestinationUDPPort    <= lRingBufferData(303 downto 288);
-                            lUDPDataStreamLength   <= lRingBufferData(319 downto 304);
-                            lUDPCheckSum           <= lRingBufferData(335 downto 320);
+                            lDestinationMACAddress <= byteswap(lRingBufferData(47 downto 0));
+                            lSourceMACAddress      <= byteswap(lRingBufferData(95 downto 48));
+                            lIdentification        <= byteswap(lRingBufferData(159 downto 144));
+                            lSourceIPAddress       <= byteswap(lRingBufferData(239 downto 208));
+                            lDestinationIPAddress  <= byteswap(lRingBufferData(271 downto 240));
+                            lSourceUDPPort         <= byteswap(lRingBufferData(287 downto 272));
+                            lDestinationUDPPort    <= byteswap(lRingBufferData(303 downto 288));
+                            lUDPDataStreamLength   <= byteswap(lRingBufferData(319 downto 304));
+                            lUDPCheckSum           <= byteswap(lRingBufferData(335 downto 320));
                             lPRPacketID            <= lRingBufferData(351 downto 336);
                             lPRPacketSequence      <= lRingBufferData(383 downto 352);
                             lPRDWordCommand        <= lRingBufferData(415 downto 384);
 
-                            -- Save the data on the correct framing order                                                        
-                            lPayloadArray(0)(31 downto 0) <= lRingBufferData((32 * (C_BUFFER_COMMAND_DWORD_POINTER_OFFSET + 1)) - 1 downto ((32 * C_BUFFER_COMMAND_DWORD_POINTER_OFFSET) + 16)) & byteswap(lIdentification);
+                            -- Save the data on the correct framing order   
+                            -- PacketID&Identification
+                            lPayloadArray(0)(31 downto 0) <= lRingBufferData((32 * (C_BUFFER_COMMAND_DWORD_POINTER_OFFSET + 1)) - 1 downto ((32 * C_BUFFER_COMMAND_DWORD_POINTER_OFFSET) + 16)) & byteswap(lRingBufferData(159 downto 144));
                             -- For frame save the last 5 DWORDS remaining
                             -- For Command save 5 DWORDS although 3 bytes used
                             for i in 1 to C_BUFFER_COMMAND_DWORD_POINTER_MAX loop
@@ -340,7 +342,7 @@ begin
 
                     when CheckUDPIPFramingSt =>
                         -- Check for frame validity and framing errors
-                        if (((lPRPacketID(7 downto 0) = X"01") and (lUDPDataStreamLength = X"1E00")) or ((lPRPacketID(7 downto 0) = X"62") and (lUDPDataStreamLength = X"9601"))) then
+                        if (((lPRPacketID(15 downto 8) = X"01") and (byteswap(lUDPDataStreamLength) = X"1200")) or ((lPRPacketID(15 downto 8) = X"62") and (byteswap(lUDPDataStreamLength) = X"9601"))) then
                             -- This is a valid packet because it meets the framing requirements                                
                             if (lBufferFrameIterations = 0) then
                                 StateVariable <= CalculateUDPHeaderCheckSum;
@@ -376,7 +378,7 @@ begin
                                 when 4 =>
                                     lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 5 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_UDP_LENGTH)) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lUDPDataStreamLength))) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 6 =>
                                     lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceUDPPort))) + lPreUDPHDRCheckSum(17 downto 16);
                                 when 7 =>
@@ -396,18 +398,22 @@ begin
                         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
                         -- we use it to save TLAST
                         ICAPRingBufferByteEnable(3 downto 1) <= (others => '1');
-                        if (lPRPacketID(7 downto 0) = X"01") then
+                        if (lPRPacketID(15 downto 8) = X"01") then
                             -- Iterate until written all data necessary
                             -- for DWORD command
                             -- Signal the last data packet
                             ICAPRingBufferByteEnable(0) <= '1';
+                            -- Clear the slot type for DWORD
+                            ICAPRingBufferSlotType      <= '0';
                         else
-                            if (lPRPacketID(7 downto 0) = X"62") then
+                            if (lPRPacketID(15 downto 8) = X"62") then
                                 -- Iterate until written all data necessary for
                                 -- FRAME packet  
                                 if (lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) then
                                     -- This is the last frame packet
                                     ICAPRingBufferByteEnable(0) <= '1';
+                                    -- Set the slot type for FRAME
+                                    ICAPRingBufferSlotType      <= '1';
                                 else
                                     ICAPRingBufferByteEnable(0) <= '0';
                                 end if;
@@ -417,23 +423,27 @@ begin
                         end if;
                         -- Output the DWORD at the lBufferDwordPointer index
                         ICAPRingBufferDataOut                <= lPayloadArray(lBufferDwordPointer);
+                        -- Update the checksum lower
+                        lPreUDPHDRCheckSum(16 downto 0)      <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
                         -- Go to next DWORD
                         StateVariable                        <= UpdateCheckOffsetSt;
 
                     when UpdateCheckOffsetSt =>
-                        ICAPRingBufferDataWrite  <= '0';
-                        lSenderRingBufferAddress <= lSenderRingBufferAddress + 1;
-                        -- Point to next DWORD index within the 512-bit buffer
-                        lBufferDwordPointer      <= lBufferDwordPointer + 1;
+                        ICAPRingBufferDataWrite         <= '0';
+                        lSenderRingBufferAddress        <= lSenderRingBufferAddress + 1;
+                        -- Update the checksum upper
+                        lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
 
-                        if (lPRPacketID(7 downto 0) = X"01") then
+                        if (lPRPacketID(15 downto 8) = X"01") then
                             -- This is a command 
                             if (lBufferDwordPointer = C_COMMAND_DWORD_POINTER_MAX) then
                                 -- Done with data
                                 StateVariable <= UpdateCheckIterationSt;
                             else
+                                -- Point to next DWORD index within the 512-bit buffer
+                                lBufferDwordPointer <= lBufferDwordPointer + 1;
                                 -- Keep reading data
-                                StateVariable <= WriteICAPBufferSt;
+                                StateVariable       <= WriteICAPBufferSt;
                             end if;
 
                         else
@@ -443,8 +453,10 @@ begin
                                 -- or 16 DWORDS on 512 - buffer
                                 StateVariable <= UpdateCheckIterationSt;
                             else
+                                -- Point to next DWORD index within the 512-bit buffer
+                                lBufferDwordPointer <= lBufferDwordPointer + 1;
                                 -- Keep reading data
-                                StateVariable <= WriteICAPBufferSt;
+                                StateVariable       <= WriteICAPBufferSt;
                             end if;
                         end if;
 
@@ -452,7 +464,7 @@ begin
                         -- Increment pointer to data source.
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
 
-                        if (lPRPacketID(7 downto 0) = X"01") then
+                        if (lPRPacketID(15 downto 8) = X"01") then
                             -- Done with data since this is just one DWORD
                             StateVariable <= ClearSlotSt;
                         else
@@ -487,8 +499,15 @@ begin
 
                             case (lFinalCheckSumCounter) is
                                 when 0 =>
+                                    if (lPreUDPHDRCheckSum(16) = '1') then
+                                        lPreUDPHDRCheckSum(15 downto 0) <= lPreUDPHDRCheckSum(15 downto 0) + 1;
+                                    end if;
                                 when 1 =>
-                                when 2 =>
+                                    if (lPreUDPHDRCheckSum(15 downto 0) /= X"FFFF") then
+                                        lUDPFinalCheckSum <= not (byteswap(std_logic_vector(lPreUDPHDRCheckSum(15 downto 0))));
+                                    else
+                                        lUDPFinalCheckSum <= byteswap(std_logic_vector(lPreUDPHDRCheckSum(15 downto 0)));
+                                    end if;
                                 when others => null;
                             end case;
                         end if;
@@ -509,6 +528,8 @@ begin
                         -- Data has integrity forward it by setting the active
                         -- ICAP Ring Buffer slot
                         ICAPRingBufferSlotSet   <= '1';
+                        -- Output the current SlotID while pointing to next slot ID.
+                        ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
                         lSenderRingBufferSlotID <= lSenderRingBufferSlotID + 1;
                         -- Go check for data on next receiver ring buffer slot
                         StateVariable           <= CheckSlotSt;
