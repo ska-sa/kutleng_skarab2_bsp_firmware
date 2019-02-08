@@ -340,6 +340,7 @@ begin
                     when SendICAPResponseSt =>
                         if (ICAPWriteResponseSent = '1') then
                             -- Response sent 
+                            ICAPWriteDone       <= '0';
                             -- Clear the receiver slot
                             RingBufferSlotClear <= '1';
                             -- Go to check the next available receiver slot
