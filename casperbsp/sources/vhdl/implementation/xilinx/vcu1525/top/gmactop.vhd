@@ -63,6 +63,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity gmactop is
     port(
@@ -338,7 +340,7 @@ architecture rtl of gmactop is
         );
         port(
             axis_clk       : in  STD_LOGIC;
-            icap_clk       : in  STD_LOGIC;            
+            icap_clk       : in  STD_LOGIC;
             axis_reset     : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
@@ -352,7 +354,14 @@ architecture rtl of gmactop is
             axis_rx_tvalid : in  STD_LOGIC;
             axis_rx_tuser  : in  STD_LOGIC;
             axis_rx_tkeep  : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-            axis_rx_tlast  : in  STD_LOGIC
+            axis_rx_tlast  : in  STD_LOGIC;
+            ICAP_PRDONE    : in  std_logic;
+            ICAP_PRERROR   : in  std_logic;
+            ICAP_AVAIL     : in  std_logic;
+            ICAP_CSIB      : out std_logic;
+            ICAP_RDWRB     : out std_logic;
+            ICAP_DataOut   : in  std_logic_vector(31 downto 0);
+            ICAP_DataIn    : out std_logic_vector(31 downto 0)
         );
     end component ipcomms;
     component axispacketbufferfifo
@@ -428,6 +437,14 @@ architecture rtl of gmactop is
 
     signal Enable : STD_LOGIC;
 
+    signal ICAP_PRDONE  : std_logic;
+    signal ICAP_PRERROR : std_logic;
+    signal ICAP_AVAIL   : std_logic;
+    signal ICAP_CSIB    : std_logic;
+    signal ICAP_RDWRB   : std_logic;
+    signal ICAP_DataOut : std_logic_vector(31 downto 0);
+    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
+
     constant C_EMAC_ADDR_1     : std_logic_vector(47 downto 0) := X"000A_3502_4192";
     constant C_EMAC_ADDR_2     : std_logic_vector(47 downto 0) := X"000A_3502_4194";
     constant C_IP_ADDR_1       : std_logic_vector(31 downto 0) := X"C0A8_640A"; --192.168.100.10
@@ -483,7 +500,7 @@ begin
     ClockGen100MHz_i : clockgen100mhz
         port map(
             clk_out1  => RefClk100MHz,
-            clk_out2  => ICAPClk95MHz,            
+            clk_out2  => ICAPClk95MHz,
             locked    => RefClkLocked,
             clk_in1_p => sysclk1_300_p,
             clk_in1_n => sysclk1_300_n
@@ -574,7 +591,14 @@ begin
             axis_rx_tvalid => axis_rx_tvalid_1,
             axis_rx_tuser  => axis_rx_tuser_1,
             axis_rx_tkeep  => axis_rx_tkeep_1,
-            axis_rx_tlast  => axis_rx_tlast_1
+            axis_rx_tlast  => axis_rx_tlast_1,
+            ICAP_PRDONE    => ICAP_PRDONE,
+            ICAP_PRERROR   => ICAP_PRERROR,
+            ICAP_AVAIL     => ICAP_AVAIL,
+            ICAP_CSIB      => ICAP_CSIB,
+            ICAP_RDWRB     => ICAP_RDWRB,
+            ICAP_DataOut   => ICAP_DataOut,
+            ICAP_DataIn    => ICAP_DataIn
         );
     GMAC2_i : gmacqsfp2top
         port map(
@@ -693,6 +717,23 @@ begin
             probe_out0(0) => lbus_reset,
             probe_out1(0) => lReset,
             probe_out2(0) => Enable
+        );
+
+    ICAPE3_i : ICAPE3
+        generic map(
+            DEVICE_ID         => X"03628093",
+            ICAP_AUTO_SWITCH  => "DISABLE",
+            SIM_CFG_FILE_NAME => "NONE"
+        )
+        port map(
+            AVAIL   => ICAP_AVAIL,
+            O       => ICAP_DataOut,
+            PRDONE  => ICAP_PRDONE,
+            PRERROR => ICAP_PRERROR,
+            CLK     => icap_clk,
+            CSIB    => ICAP_CSIB,
+            I       => ICAP_DataIn,
+            RDWRB   => ICAP_RDWRB
         );
 
 end architecture rtl;

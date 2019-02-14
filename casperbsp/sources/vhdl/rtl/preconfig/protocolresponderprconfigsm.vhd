@@ -202,28 +202,28 @@ architecture rtl of protocolresponderprconfigsm is
         variable RData16 : unsigned(15 downto 0);
     begin
         if (DataIn'length = RData48'length) then
-            RData48(7 downto 0)   := DataIn(47 downto 40);
-            RData48(15 downto 8)  := DataIn(39 downto 32);
-            RData48(23 downto 16) := DataIn(31 downto 24);
-            RData48(31 downto 24) := DataIn(23 downto 16);
-            RData48(39 downto 32) := DataIn(15 downto 8);
-            RData48(47 downto 40) := DataIn(7 downto 0);
+            RData48(7 downto 0)   := DataIn((47 + DataIn'right) downto (40 + DataIn'right));
+            RData48(15 downto 8)  := DataIn((39 + DataIn'right) downto (32 + DataIn'right));
+            RData48(23 downto 16) := DataIn((31 + DataIn'right) downto (24 + DataIn'right));
+            RData48(31 downto 24) := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData48(39 downto 32) := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData48(47 downto 40) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData48);
         end if;
         if (DataIn'length = RData32'length) then
-            RData32(7 downto 0)   := DataIn(31 downto 24);
-            RData32(15 downto 8)  := DataIn(23 downto 16);
-            RData32(23 downto 16) := DataIn(15 downto 8);
-            RData32(31 downto 24) := DataIn(7 downto 0);
+            RData32(7 downto 0)   := DataIn((31 + DataIn'right) downto (24 + DataIn'right));
+            RData32(15 downto 8)  := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData32(23 downto 16) := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData32(31 downto 24) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData32);
         end if;
         if (DataIn'length = RData24'length) then
-            RData24(7 downto 0)   := DataIn(23 downto 16);
-            RData24(15 downto 8)  := DataIn(15 downto 8);
-            RData24(23 downto 16) := DataIn(7 downto 0);
+            RData24(7 downto 0)   := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData24(15 downto 8)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData24(23 downto 16) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData24);
         end if;
-        if (DataIn'length = RData16'length) then
+		if (DataIn'length = RData16'length) then
             RData16(7 downto 0)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
             RData16(15 downto 8) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData16);
@@ -398,6 +398,7 @@ begin
                         SenderBusy           <= '0';
 
                     when CheckProtocolICAPSt =>
+                        SenderBusy           <= '0';
                         lCheckSumCounter <= 0;
                         if (ProtocolError = '1') then
 

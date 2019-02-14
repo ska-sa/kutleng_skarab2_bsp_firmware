@@ -61,8 +61,6 @@
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-library unisim;
-use unisim.vcomponents.all;
 
 entity ipcomms is
     generic(
@@ -89,7 +87,15 @@ entity ipcomms is
         axis_rx_tvalid : in  STD_LOGIC;
         axis_rx_tuser  : in  STD_LOGIC;
         axis_rx_tkeep  : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-        axis_rx_tlast  : in  STD_LOGIC
+        axis_rx_tlast  : in  STD_LOGIC;
+        -- ICAP Interface
+        ICAP_PRDONE    : in  std_logic;
+        ICAP_PRERROR   : in  std_logic;
+        ICAP_AVAIL     : in  std_logic;
+        ICAP_CSIB      : out std_logic;
+        ICAP_RDWRB     : out std_logic;
+        ICAP_DataOut   : in  std_logic_vector(31 downto 0);
+        ICAP_DataIn    : out std_logic_vector(31 downto 0)
     );
 end entity ipcomms;
 
@@ -259,14 +265,6 @@ architecture rtl of ipcomms is
 
     constant C_MAX_PACKET_BLOCKS_SIZE : natural := 64;
     constant C_PRIORITY_WIDTH         : natural := 4;
-
-    signal ICAP_PRDONE  : std_logic;
-    signal ICAP_PRERROR : std_logic;
-    signal ICAP_AVAIL   : std_logic;
-    signal ICAP_CSIB    : std_logic;
-    signal ICAP_RDWRB   : std_logic;
-    signal ICAP_DataOut : std_logic_vector(31 downto 0);
-    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
 
     signal axis_tx_tpriority_1_arp : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
     signal axis_tx_tdata_1_arp     : STD_LOGIC_VECTOR(511 downto 0);
@@ -449,23 +447,6 @@ begin
             axis_rx_tready_3    => axis_tx_tready_1_pr,
             axis_rx_tkeep_3     => axis_tx_tkeep_1_pr,
             axis_rx_tlast_3     => axis_tx_tlast_1_pr
-        );
-
-    ICAPE3_i : ICAPE3
-        generic map(
-            DEVICE_ID         => X"03628093",
-            ICAP_AUTO_SWITCH  => "DISABLE",
-            SIM_CFG_FILE_NAME => "NONE"
-        )
-        port map(
-            AVAIL   => ICAP_AVAIL,
-            O       => ICAP_DataOut,
-            PRDONE  => ICAP_PRDONE,
-            PRERROR => ICAP_PRERROR,
-            CLK     => icap_clk,
-            CSIB    => ICAP_CSIB,
-            I       => ICAP_DataIn,
-            RDWRB   => ICAP_RDWRB
         );
 
 end architecture rtl;

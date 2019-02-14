@@ -419,7 +419,7 @@ begin
                         end if;
                         -- Output the DWORD at the lBufferDwordPointer index
                         ICAPRingBufferDataOut                <= lPayloadArray(lBufferDwordPointer);
-                        if ((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) then
+                        if (((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) or (lBufferFrameIterations > 0)) then
                             -- Update the checksum lower
                             lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
                         end if;
@@ -429,7 +429,7 @@ begin
                     when UpdateCheckOffsetSt =>
                         ICAPRingBufferDataWrite  <= '0';
                         lSenderRingBufferAddress <= lSenderRingBufferAddress + 1;
-                        if ((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) then
+                        if (((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) or (lBufferFrameIterations > 0)) then
                             -- Update the checksum upper
                             lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
                         end if;
@@ -448,7 +448,7 @@ begin
 
                         else
                             -- This is a FRAME 
-                            if ((lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) or (lBufferDwordPointer = C_BUFFER_DWORD_POINTER_MAX)) then
+                            if (((lBufferFrameIterations = 0) and (lBufferDwordPointer = 5)) or ((lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) or (lBufferDwordPointer = C_BUFFER_DWORD_POINTER_MAX))) then
                                 -- Done with data (either at end of 100 DWORDS 
                                 -- or 16 DWORDS on 512 - buffer
                                 StateVariable <= UpdateCheckIterationSt;

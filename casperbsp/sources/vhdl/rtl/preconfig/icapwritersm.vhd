@@ -134,7 +134,7 @@ architecture rtl of icapwritersm is
     signal lCommandHeader         : std_logic_Vector(31 downto 0);
     signal lCommandSequence       : std_logic_vector(31 downto 0);
     alias lCommandDWORD           : std_logic_vector(31 downto 0) is RingBufferDataIn;
-    signal lFrameDWORD            : std_logic_vector(31 downto 0);
+    alias lFrameDWORD             : std_logic_vector(31 downto 0) is RingBufferDataIn;
     signal lRecvRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lRecvRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
 
@@ -155,10 +155,10 @@ architecture rtl of icapwritersm is
     begin
 
         if (DataIn'length = RData32'length) then
-            RData32(7 downto 0)   := bitreverse(DataIn(31 downto 24));
-            RData32(15 downto 8)  := bitreverse(DataIn(23 downto 16));
-            RData32(23 downto 16) := bitreverse(DataIn(15 downto 8));
-            RData32(31 downto 24) := bitreverse(DataIn(7 downto 0));
+            RData32(31 downto 24)   := bitreverse(DataIn(31 downto 24));
+            RData32(23 downto 16)  := bitreverse(DataIn(23 downto 16));
+            RData32(15 downto 8) := bitreverse(DataIn(15 downto 8));
+            RData32(7 downto 0) := bitreverse(DataIn(7 downto 0));
             return std_logic_vector(RData32);
         end if;
 
@@ -237,11 +237,11 @@ begin
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
                         lCommandSequence       <= RingBufferDataIn;
 
-                        if (lCommandHeader(23 downto 16) = X"DA") then
+                        if (lCommandHeader(31 downto 24) = X"DA") then
                             -- This is a DWORD command
                             StateVariable <= ReadDWORDCommandSt;
                         else
-                            if (lCommandHeader(23 downto 16) = X"A5") then
+                            if (lCommandHeader(31 downto 24) = X"A5") then
                                 -- This is a FRAME
                                 -- Stop writing since the ICAP is not ready
                                 ICAP_CSIB     <= '1';
@@ -287,8 +287,6 @@ begin
                     when ReadFrameDWORDSt =>
                         -- Read one DWORD
                         RingBufferDataRead <= '1';
-                        --Save the Frame DWORD
-                        lFrameDWORD        <= RingBufferDataIn;
                         StateVariable      <= ICAPWriteFrameDWORDSt;
 
                     when ICAPWriteFrameDWORDSt =>
@@ -313,11 +311,11 @@ begin
                         ICAP_CSIB              <= '1';
                         -- Point to nextframe dword
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
-                        -- advance frame couunter                      
-                        lFrameDWORDCounter     <= lFrameDWORDCounter + 1;
                         if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
                             StateVariable <= WaitICAPResponse;
                         else
+    	                    -- advance frame couunter                      
+	                        lFrameDWORDCounter     <= lFrameDWORDCounter + 1;
                             StateVariable <= ReadFrameDWORDSt;
                         end if;
 
@@ -334,6 +332,8 @@ begin
                         ICAP_RDWRB    <= '1';
                         -- Signal protocol responder we are done with write
                         ICAPWriteDone <= '1';
+						-- Reset the FRAME DWORD counter
+						lFrameDWORDCounter <= 0;
                         -- Done with write 
                         StateVariable <= SendICAPResponseSt;
 
