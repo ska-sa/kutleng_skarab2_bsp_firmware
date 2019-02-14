@@ -730,7 +730,7 @@ begin
             O       => ICAP_DataOut,
             PRDONE  => ICAP_PRDONE,
             PRERROR => ICAP_PRERROR,
-            CLK     => icap_clk,
+            CLK     => ICAPClk95MHz,
             CSIB    => ICAP_CSIB,
             I       => ICAP_DataIn,
             RDWRB   => ICAP_RDWRB
