@@ -142,7 +142,6 @@ begin
     icap_clk   <= not icap_clk after C_ICAP_CLK_PERIOD / 2;
     axis_clk   <= not axis_clk after C_CLK_PERIOD / 2;
     axis_reset <= '1', '0' after C_ICAP_CLK_PERIOD * 20;
-    --icap_clk <= axis_clk; -- Just for simulation purporses
 
     Stimproc : process
     begin

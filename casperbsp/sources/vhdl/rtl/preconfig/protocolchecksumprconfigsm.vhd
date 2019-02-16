@@ -239,9 +239,9 @@ begin
     FilterRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
     ICAPRingBufferAddress   <= std_logic_vector(lSenderRingBufferAddress);
     -- Save the client addressing information to be able to respond to it
-    ClientMACAddress        <= lSourceMACAddress;
-    ClientIPAddress         <= lSourceIPAddress;
-    ClientUDPPort           <= lSourceUDPPort;
+    ClientMACAddress        <= lDestinationMACAddress;
+    ClientIPAddress         <= lDestinationIPAddress;
+    ClientUDPPort           <= lDestinationUDPPort;
     lRingBufferData         <= FilterRingBufferDataIn;
 
     SynchStateProc : process(axis_clk)

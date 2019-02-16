@@ -618,7 +618,7 @@ begin
                         SenderRingBufferSlotSet    <= '1';
                         SenderRingBufferSlotType   <= '1';
                         -- Save the return packet
-                        SenderRingBufferDataEnable <= (others => '1');
+                        SenderRingBufferDataEnable <= X"0fffffffffffffff";
                         -- Write the response packet to the Ringbuffer                        
                         SenderRingBufferDataWrite  <= '1';
                         -- Go to the next slots so that the system
