@@ -501,7 +501,7 @@ set_property -name "steps.write_bitstream.args.readback_file" -value "0" -object
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
 
 # set the current impl run
-current_run -implementation [get_runs impl_1]
+current_run -implementation [get_runs impl_blinker]
 
 puts "INFO: Project created:${_xil_proj_name_}"
 
