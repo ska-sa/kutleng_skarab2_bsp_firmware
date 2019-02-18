@@ -121,6 +121,8 @@ set_property PACKAGE_PIN   AV36  [get_ports {partial_bit_leds[2]}]
 set_property PACKAGE_PIN   BA37  [get_ports {partial_bit_leds[3]}]
 set_property IOSTANDARD   LVCMOS12  [get_ports {partial_bit_leds[*]}]
 
+set_property BITSTREAM.GENERAL.PERFRAMECRC yes [current_design]
+
 set_false_path -from [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_n}] -to [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_p}]
 set_false_path -from [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_p}] -to [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_n}]
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]

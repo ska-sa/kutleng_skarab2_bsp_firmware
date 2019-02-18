@@ -112,7 +112,7 @@ entity protocolresponderprconfigsm is
         --ICAPE3 interface
         ICAP_PRDONE                : in  STD_LOGIC;
         ICAP_PRERROR               : in  STD_LOGIC;
-        ICAP_DataOut               : in  STD_LOGIC_VECTOR(31 downto 0)
+        ICAP_Readback              : in  STD_LOGIC_VECTOR(31 downto 0)
     );
 end entity protocolresponderprconfigsm;
 
@@ -417,7 +417,7 @@ begin
                                 ICAPWriteResponseSent <= '1';
                                 lICAP_PRDONE          <= ICAP_PRDONE;
                                 lICAP_PRERROR         <= ICAP_PRERROR;
-                                lPacketDWORDCommand   <= ICAP_DataOut;
+                                lPacketDWORDCommand   <= ICAP_Readback;
                                 lPacketSequence       <= ICAPProtocolSequence;
                                 lIPIdentification     <= unsigned(ICAPIPIdentification) + 1;
                                 StateVariable         <= AcknowledgeICAPSt;

@@ -257,7 +257,7 @@ architecture rtl of prconfigcontroller is
             --ICAPE3 interface
             ICAP_PRDONE                : in  STD_LOGIC;
             ICAP_PRERROR               : in  STD_LOGIC;
-            ICAP_DataOut               : in  STD_LOGIC_VECTOR(31 downto 0)
+            ICAP_Readback               : in  STD_LOGIC_VECTOR(31 downto 0)
         );
     end component protocolresponderprconfigsm;
 
@@ -355,7 +355,9 @@ architecture rtl of prconfigcontroller is
             ICAP_CSIB                : out STD_LOGIC;
             ICAP_RDWRB               : out STD_LOGIC;
             ICAP_AVAIL               : in  STD_LOGIC;
-            ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0)
+            ICAP_DataIn              : out STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_DataOut             : in  STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_Readback            : out STD_LOGIC_VECTOR(31 downto 0)           
         );
     end component icapwritersm;
 
@@ -423,6 +425,7 @@ architecture rtl of prconfigcontroller is
     signal ICAPIPIdentification               : std_logic_vector(15 downto 0);
     signal ICAPProtocolID                     : std_logic_vector(15 downto 0);
     signal ICAPProtocolSequence               : std_logic_vector(31 downto 0);
+    signal ICAP_Readback                      : std_logic_vector(31 downto 0);           
 begin
     ----------------------------------------------------------------------------
     --                        Reset Synchronization                            -
@@ -574,7 +577,9 @@ begin
             ICAP_CSIB                => ICAP_CSIB,
             ICAP_RDWRB               => ICAP_RDWRB,
             ICAP_AVAIL               => ICAP_AVAIL,
-            ICAP_DataIn              => ICAP_DataIn
+            ICAP_DataIn              => ICAP_DataIn,
+            ICAP_DataOut             => ICAP_DataOut,
+            ICAP_Readback            => ICAP_ReadBack            
         );
 
     ----------------------------------------------------------------------------
@@ -711,7 +716,7 @@ begin
             --ICAPE3 interface
             ICAP_PRDONE                => ICAP_PRDONE,
             ICAP_PRERROR               => ICAP_PRERROR,
-            ICAP_DataOut               => ICAP_DataOut
+            ICAP_Readback              => ICAP_ReadBack            
         );
 
 end architecture rtl;

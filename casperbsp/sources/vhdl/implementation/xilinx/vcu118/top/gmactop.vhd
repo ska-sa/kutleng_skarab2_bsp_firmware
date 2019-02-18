@@ -740,7 +740,7 @@ begin
 
     ICAPE3_i : ICAPE3
         generic map(
-            DEVICE_ID         => X"03628093",
+            DEVICE_ID         => X"14B31093",
             ICAP_AUTO_SWITCH  => "DISABLE",
             SIM_CFG_FILE_NAME => "NONE"
         )

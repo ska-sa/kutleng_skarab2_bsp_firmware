@@ -384,10 +384,22 @@ architecture rtl of gmactop is
     end component axispacketbufferfifo;
     component partialblinker is
         port(
-            clk_100MHz       : IN  STD_LOGIC;
+            clk_100MHz      : IN  STD_LOGIC;
             partial_bit_led : out STD_LOGIC
         );
     end component partialblinker;
+    component icap_ila is
+        port(
+            clk    : IN STD_LOGIC;
+            probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe1 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe2 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe3 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe4 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe5 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            probe6 : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
+        );
+    end component icap_ila;
 
     signal RefClk100MHz    : std_logic;
     signal ICAPClk95MHz    : std_logic;
@@ -472,7 +484,7 @@ begin
     -- Make this the partial black box
     PartialBlinker_i : partialblinker
         port map(
-            clk_100MHz       => RefClk100MHz,
+            clk_100MHz      => RefClk100MHz,
             partial_bit_led => partial_bit_led
         );
 
@@ -495,7 +507,6 @@ begin
             Clk => ClkQSFP1,
             LED => blink_led(1)
         );
-
 
     ClockGen100MHz_i : clockgen100mhz
         port map(
@@ -721,7 +732,7 @@ begin
 
     ICAPE3_i : ICAPE3
         generic map(
-            DEVICE_ID         => X"03628093",
+            DEVICE_ID         => X"14B31093",
             ICAP_AUTO_SWITCH  => "DISABLE",
             SIM_CFG_FILE_NAME => "NONE"
         )
@@ -734,6 +745,18 @@ begin
             CSIB    => ICAP_CSIB,
             I       => ICAP_DataIn,
             RDWRB   => ICAP_RDWRB
+        );
+
+    ICAPE_ILAi : icap_ila
+        port map(
+            clk       => ICAPClk95MHz,
+            probe0(0) => ICAP_PRDONE,
+            probe1(0) => ICAP_PRERROR,
+            probe2(0) => ICAP_RDWRB,
+            probe3(0) => ICAP_AVAIL,
+            probe4(0) => ICAP_CSIB,
+            probe5    => ICAP_DataOut,
+            probe6    => ICAP_DataIn
         );
 
 end architecture rtl;
