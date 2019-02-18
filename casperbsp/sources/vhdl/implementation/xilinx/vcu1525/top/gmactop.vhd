@@ -129,6 +129,9 @@ entity gmactop is
         qsfp2_lpmode_ls   : out STD_LOGIC;
         --
         partial_bit_led   : out STD_LOGIC;
+        -- UART I/O
+        rs232_uart_rxd    : in  STD_LOGIC;
+        rs232_uart_txd    : out STD_LOGIC;        
         -- LEDs for debug     
         blink_led         : out STD_LOGIC_VECTOR(1 downto 0)
     );
@@ -246,6 +249,17 @@ architecture rtl of gmactop is
             axis_tx_tuser    : out STD_LOGIC
         );
     end component gmacqsfp2top;
+    
+    component microblaze_axi_us_plus_wrapper is
+      port (
+        ClockStable : in STD_LOGIC;
+        PSClock : in STD_LOGIC;
+        PSReset : in STD_LOGIC;
+        rs232_uart_rxd : in STD_LOGIC;
+        rs232_uart_txd : out STD_LOGIC
+      );
+    end component microblaze_axi_us_plus_wrapper;
+
 
     component clockgen100mhz is
         port(
@@ -675,6 +689,15 @@ begin
             axis_rx_tkeep  => axis_rx_tkeep_2,
             axis_rx_tlast  => axis_rx_tlast_2
         );
+
+    MicroblazeSys_i:microblaze_axi_us_plus_wrapper
+      port map(
+        ClockStable => RefClkLocked,
+        PSClock => ICAPClk95MHz,
+        PSReset => Reset,
+        rs232_uart_rxd => rs232_uart_rxd,
+        rs232_uart_txd => rs232_uart_txd
+      );
 
     TXAXIS_i : axisila
         port map(
