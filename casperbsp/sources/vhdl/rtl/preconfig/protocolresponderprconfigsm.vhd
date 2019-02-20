@@ -434,7 +434,7 @@ begin
                         -- Signal the busy status of the packet responder
                         SenderBusy <= '1';
 
-                        lPacketID <= lProtocolErrorStatus & lICAP_PRERROR & lICAP_PRDONE & '0' & ProtocolID(11 downto 0);
+                        lPacketID <= lProtocolErrorStatus & ProtocolID(14 downto 0);
 
                         if (ProtocolError = '1') then
                             StateVariable <= AcknowledgeProtocolSt;

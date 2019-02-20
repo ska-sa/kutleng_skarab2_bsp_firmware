@@ -140,7 +140,8 @@ architecture rtl of protocolchecksumprconfigsm is
         CompleteUDPCheckSum,
         CompareChecksumSt,
         SetAndNextICAPBufferSlotSt,
-        SendErrorResponseSt
+        SendErrorResponseSt,
+        WaitSendErrorResponseSt
     );
     signal StateVariable            : ConfigurationControllerSM_t := InitialiseSt;
     signal lRecvRingBufferSlotID    : unsigned(G_SLOT_WIDTH - 1 downto 0);
@@ -166,7 +167,9 @@ architecture rtl of protocolchecksumprconfigsm is
     -- Need to iterate 2 times to finalize UDP header checksum     
     constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural := (3 - 1);
 
-    constant C_RESPONSE_UDP_PROTOCOL : std_logic_vector(7 downto 0) := X"11";
+    constant C_RESPONSE_UDP_PROTOCOL : std_logic_vector(7 downto 0)  := X"11";
+    constant C_CHECKSUM_ERROR        : std_logic_vector(31 downto 0) := X"E0000001";
+    constant C_FRAMING_ERROR         : std_logic_vector(31 downto 0) := X"E0000002";
 
     -- Read buffer
     signal lRingBufferData           : std_logic_vector(511 downto 0);
@@ -197,6 +200,9 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lPreUDPHDRCheckSum        : unsigned(17 downto 0);
     signal lBufferFrameIterations    : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
 
+    signal lProtocolIPIdentification : unsigned(15 downto 0);
+    signal lProtocolSequence         : unsigned(31 downto 0);
+    signal lProtocolError            : std_logic;
     -- The left over is 22 bytes
     function byteswap(DataIn : in std_logic_vector)
     return std_logic_vector is
@@ -235,14 +241,16 @@ architecture rtl of protocolchecksumprconfigsm is
     end byteswap;
 
 begin
-    FilterRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
-    FilterRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
-    ICAPRingBufferAddress   <= std_logic_vector(lSenderRingBufferAddress);
+    FilterRingBufferSlotID   <= std_logic_vector(lRecvRingBufferSlotID);
+    FilterRingBufferAddress  <= std_logic_vector(lRecvRingBufferAddress);
+    ICAPRingBufferAddress    <= std_logic_vector(lSenderRingBufferAddress);
     -- Save the client addressing information to be able to respond to it
-    ClientMACAddress        <= lDestinationMACAddress;
-    ClientIPAddress         <= lDestinationIPAddress;
-    ClientUDPPort           <= lDestinationUDPPort;
-    lRingBufferData         <= FilterRingBufferDataIn;
+    ClientMACAddress         <= lDestinationMACAddress;
+    ClientIPAddress          <= lDestinationIPAddress;
+    ClientUDPPort            <= lDestinationUDPPort;
+    lRingBufferData          <= FilterRingBufferDataIn;
+    ProtocolIPIdentification <= std_logic_vector(lProtocolIPIdentification);
+    ProtocolSequence         <= std_logic_vector(lProtocolSequence);
 
     SynchStateProc : process(axis_clk)
     begin
@@ -265,6 +273,10 @@ begin
                         ICAPRingBufferDataWrite   <= '0';
                         ICAPRingBufferSlotSet     <= '0';
                         ICAPRingBufferSlotType    <= '0';
+                        lProtocolIPIdentification <= (others => '0');
+                        lProtocolSequence         <= (others => '0');
+                        ProtocolID                <= (others => '0');
+                        ProtocolErrorID           <= (others => '0');
 
                     when CheckSlotSt =>
                         FilterRingBufferSlotClear <= '0';
@@ -273,6 +285,7 @@ begin
                         lSenderRingBufferAddress  <= (others => '0');
                         lUDPHeaderCheckSumCounter <= 0;
                         lFinalCheckSumCounter     <= 0;
+                        lProtocolError            <= '0';
                         if (FilterRingBufferSlotStatus = '1') then
                             -- The current slot has data 
                             StateVariable <= ReadBufferSt;
@@ -336,7 +349,7 @@ begin
 
                     when CheckUDPIPFramingSt =>
                         -- Check for frame validity and framing errors
-                        if (((lPRPacketID(7 downto 0) = X"01") and ((lUDPDataStreamLength) = X"0012")) or ((lPRPacketID(7 downto 0) = X"62") and ((lUDPDataStreamLength) = X"0196"))) then
+                        if ((((lPRPacketID(15 downto 0) = X"de01") or (lPRPacketID(15 downto 0) = X"da01")) and ((lUDPDataStreamLength) = X"0012")) or ((lPRPacketID(15 downto 0) = X"a562") and ((lUDPDataStreamLength) = X"0196"))) then
                             -- This is a valid packet because it meets the framing requirements                                
                             if (lBufferFrameIterations = 0) then
                                 StateVariable <= CalculateUDPHeaderCheckSum;
@@ -346,9 +359,11 @@ begin
                         else
                             -- We have an error condition
                             -- Save the error condition
-
-                            -- Report the error condition
-                            StateVariable <= SendErrorResponseSt;
+                            ProtocolErrorID <= C_FRAMING_ERROR;
+                            -- Set the error state
+                            lProtocolError  <= '1';
+                            -- Clear slot and report the error condition
+                            StateVariable   <= ClearSlotSt;
                         end if;
 
                     when CalculateUDPHeaderCheckSum =>
@@ -488,7 +503,13 @@ begin
                         FilterRingBufferSlotClear <= '0';
                         -- Point to next slot
                         lRecvRingBufferSlotID     <= lRecvRingBufferSlotID + 1;
-                        StateVariable             <= CompleteUDPCheckSum;
+                        if (lProtocolError = '1') then
+                            -- Process the error condition
+                            StateVariable             <= WaitSendErrorResponseSt;
+                        else
+                            -- This is a normal data condition
+                            StateVariable             <= CompleteUDPCheckSum;
+                        end if;
 
                     when CompleteUDPCheckSum =>
                         if (lFinalCheckSumCounter = C_FINAL_CHECKSUM_COUNTER_MAX) then
@@ -520,9 +541,12 @@ begin
                             -- Done with data
                             StateVariable <= SetAndNextICAPBufferSlotSt;
                         else
-                            -- Got checksum error 
+                            -- Got checksum error
+                            ProtocolErrorID <= C_CHECKSUM_ERROR;
+                            -- Set the error condition
+                            lProtocolError <= '1';
                             -- Save error state
-                            StateVariable <= SendErrorResponseSt;
+                            StateVariable   <= WaitSendErrorResponseSt;
                         end if;
 
                     when SetAndNextICAPBufferSlotSt =>
@@ -535,9 +559,26 @@ begin
                         -- Go check for data on next receiver ring buffer slot
                         StateVariable           <= CheckSlotSt;
 
+                    when WaitSendErrorResponseSt =>
+                        -- Alert the responder of the error 
+                        ProtocolError <= lProtocolError;
+                        ProtocolID    <= X"EE01";
+                        -- Send the error
+                        StateVariable <= SendErrorResponseSt;
+
                     when SendErrorResponseSt =>
-                        -- Prepare a UDP Error packet
-                        StateVariable <= CheckSlotSt;
+                        if (ProtocolErrorClear = '1') then
+                            -- Error response sent
+                            ProtocolError             <= '0';
+                            -- Point to next error IP identification
+                            lProtocolIPIdentification <= lProtocolIPIdentification + 1;
+                            lProtocolSequence         <= lProtocolSequence + 1;
+                            -- Get next packet
+                            StateVariable             <= CheckSlotSt;
+                        else
+                            -- Wait for the responder to send the error out
+                            StateVariable <= SendErrorResponseSt;
+                        end if;
 
                     when others =>
                         StateVariable <= InitialiseSt;

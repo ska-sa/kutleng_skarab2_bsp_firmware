@@ -169,7 +169,7 @@ begin
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';		
+        axis_rx_tvalid <= '0';
         wait for C_ICAP_CLK_PERIOD;
         -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
         axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
@@ -180,9 +180,9 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014
+        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
+        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401dF4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
         axis_rx_tkeep  <= X"0fffffffffffffff";
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '1';
@@ -190,9 +190,9 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        -- Send DWORD 2 1122_0044 : Sequence 0000_0011
+        -- Send DWORD 2 1122_0044 : Sequence 0000_0011 - This is an error packet
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"3fe011170000000000000000112200440000001101da3c881200102778b50a64a8c09664a8c018da11400040bd16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tdata  <= X"3fe01117000000000000000011220044FE00001101da3c881200102778b50a64a8c09664a8c018da11400040bd16260000450008acfbc34b6b50924102350a00";
         axis_rx_tkeep  <= X"0fffffffffffffff";
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '1';
@@ -209,7 +209,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-		
+
         -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
         wait for C_CLK_PERIOD;
         axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
