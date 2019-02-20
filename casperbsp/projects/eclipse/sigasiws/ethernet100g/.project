@@ -132,6 +132,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>vhdl/implementation/xilinx/vcu1525</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>vhdl/rtl/arp/arpmodule.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/arp/arpmodule.vhd</locationURI>
@@ -190,11 +195,6 @@
 			<name>vhdl/rtl/ledblinker/partialblinker.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/ledblinker/partialblinker.vhd</locationURI>
-		</link>
-		<link>
-			<name>vhdl/rtl/preconfig/configcontroller.vhd</name>
-			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/configcontroller.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/preconfig/icapwritersm.vhd</name>
@@ -267,6 +267,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>vhdl/implementation/xilinx/vcu1525/top</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>vhdl/rtl/arp/testbench/arpmodule_tb.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/arp/testbench/arpmodule_tb.vhd</locationURI>
@@ -277,9 +282,9 @@
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/arp/testbench/iladata_debug.csv</locationURI>
 		</link>
 		<link>
-			<name>vhdl/rtl/preconfig/testbench/configcontroller_tb.vhd</name>
+			<name>vhdl/rtl/preconfig/testbench/prconfigcontroller_tb.vhd</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/testbench/configcontroller_tb.vhd</locationURI>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/rtl/preconfig/testbench/prconfigcontroller_tb.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/udp/macinterface/axisfabricmultiplexer.vhd</name>
@@ -345,6 +350,21 @@
 			<name>vhdl/implementation/xilinx/vcu118/top/gmactop.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu118/top/gmactop.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/implementation/xilinx/vcu1525/top/gmacqsfp1top.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu1525/top/gmacqsfp1top.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/implementation/xilinx/vcu1525/top/gmacqsfp2top.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu1525/top/gmacqsfp2top.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/implementation/xilinx/vcu1525/top/gmactop.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu1525/top/gmactop.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/udp/macinterface/testbench/macifudpserver_tb.vhd</name>

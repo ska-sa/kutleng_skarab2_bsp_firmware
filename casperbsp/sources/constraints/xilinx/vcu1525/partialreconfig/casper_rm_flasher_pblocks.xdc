@@ -7,5 +7,7 @@ resize_pblock [get_pblocks pblock_partialflasher_rm] -add {RAMB36_X4Y120:RAMB36_
 resize_pblock [get_pblocks pblock_partialflasher_rm] -add {URAM288_X1Y160:URAM288_X1Y175}
 resize_pblock [get_pblocks pblock_partialflasher_rm] -add {DSP48E2_X8Y240:DSP48E2_X9Y263}
 
+set_property SNAPPING_MODE ON [get_pblocks pblock_partialflasher_rm]
+
 set_property HD.RECONFIGURABLE true [get_cells PartialBlinker_i]
 
