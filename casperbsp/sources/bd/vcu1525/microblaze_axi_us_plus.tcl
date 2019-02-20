@@ -20,7 +20,7 @@ set script_folder [_tcl::get_script_folder]
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2018.1
+set scripts_vivado_version 2018.3
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -49,7 +49,7 @@ xilinx.com:ip:axi_timer:2.0\
 xilinx.com:ip:axi_uartlite:2.0\
 sarao.org:sarao:ethernetcore_mm:1.0\
 xilinx.com:ip:mdm:3.2\
-xilinx.com:ip:microblaze:10.0\
+xilinx.com:ip:microblaze:11.0\
 xilinx.com:ip:axi_intc:4.1\
 xilinx.com:ip:xlconcat:2.1\
 xilinx.com:ip:proc_sys_reset:5.0\
@@ -148,7 +148,12 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   # Create instance: lmb_bram, and set properties
   set lmb_bram [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 lmb_bram ]
   set_property -dict [ list \
+   CONFIG.Enable_B {Use_ENB_Pin} \
    CONFIG.Memory_Type {True_Dual_Port_RAM} \
+   CONFIG.Port_B_Clock {100} \
+   CONFIG.Port_B_Enable_Rate {100} \
+   CONFIG.Port_B_Write_Rate {50} \
+   CONFIG.Use_RSTB_Pin {true} \
    CONFIG.use_bram_block {BRAM_Controller} \
  ] $lmb_bram
 
@@ -223,6 +228,7 @@ proc create_root_design { parentCell } {
   # Create instance: axi_uartlite_0, and set properties
   set axi_uartlite_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_uartlite:2.0 axi_uartlite_0 ]
   set_property -dict [ list \
+   CONFIG.C_S_AXI_ACLK_FREQ_HZ {95000000} \
    CONFIG.UARTLITE_BOARD_INTERFACE {rs232_uart} \
    CONFIG.USE_BOARD_FLOW {true} \
  ] $axi_uartlite_0
@@ -240,7 +246,7 @@ proc create_root_design { parentCell } {
  ] $mdm_0
 
   # Create instance: microblaze_0, and set properties
-  set microblaze_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:10.0 microblaze_0 ]
+  set microblaze_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:microblaze:11.0 microblaze_0 ]
   set_property -dict [ list \
    CONFIG.C_ADDR_TAG_BITS {0} \
    CONFIG.C_AREA_OPTIMIZED {1} \
@@ -260,6 +266,7 @@ proc create_root_design { parentCell } {
    CONFIG.C_I_LMB {1} \
    CONFIG.C_MMU_DTLB_SIZE {4} \
    CONFIG.C_MMU_ITLB_SIZE {2} \
+   CONFIG.C_MMU_ZONES {2} \
    CONFIG.C_M_AXI_D_BUS_EXCEPTION {1} \
    CONFIG.C_M_AXI_I_BUS_EXCEPTION {0} \
    CONFIG.C_NUMBER_OF_PC_BRK {2} \
@@ -268,12 +275,15 @@ proc create_root_design { parentCell } {
    CONFIG.C_OPCODE_0x0_ILLEGAL {0} \
    CONFIG.C_PVR {0} \
    CONFIG.C_UNALIGNED_EXCEPTIONS {0} \
+   CONFIG.C_USE_BARREL {1} \
    CONFIG.C_USE_DCACHE {0} \
    CONFIG.C_USE_DIV {0} \
    CONFIG.C_USE_FPU {0} \
    CONFIG.C_USE_HW_MUL {1} \
    CONFIG.C_USE_ICACHE {0} \
    CONFIG.C_USE_MMU {0} \
+   CONFIG.C_USE_MSR_INSTR {1} \
+   CONFIG.C_USE_PCMP_INSTR {1} \
    CONFIG.C_USE_REORDER_INSTR {1} \
    CONFIG.C_USE_STACK_PROTECTION {1} \
    CONFIG.G_TEMPLATE_LIST {6} \

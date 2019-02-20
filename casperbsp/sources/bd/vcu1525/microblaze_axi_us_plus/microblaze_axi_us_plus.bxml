@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Root MajorVersion="0" MinorVersion="35">
+<Root MajorVersion="0" MinorVersion="36">
   <CompositeFile CompositeFileTopName="microblaze_axi_us_plus" CanBeSetAsTop="false" CanDisplayChildGraph="true">
     <Description>Composite Fileset</Description>
-    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1550528191"/>
-    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1550528191"/>
-    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1550528191"/>
-    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1550528191"/>
+    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1550680445"/>
+    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1550680445"/>
+    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1550680445"/>
+    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1550680445"/>
     <FileCollection Name="SOURCES" Type="SOURCES">
       <File Name="microblaze_axi_us_plus_sim_netlist.vhdl" Type="VHDL">
         <Properties IsEditable="true" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="false"/>
@@ -84,6 +84,7 @@
         <UsedIn Val="SIMULATION"/>
       </File>
       <File Name="ip/microblaze_axi_us_plus_microblaze_0_axi_periph_0/microblaze_axi_us_plus_microblaze_0_axi_periph_0.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph"/>
         <Properties IsEditable="false" IsVisible="false" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
@@ -100,14 +101,6 @@
       </File>
       <File Name="ip/microblaze_axi_us_plus_microblaze_0_xlconcat_0/microblaze_axi_us_plus_microblaze_0_xlconcat_0.xci" Type="IP">
         <Instance HierarchyPath="microblaze_0_xlconcat"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip/microblaze_axi_us_plus_xbar_0/microblaze_axi_us_plus_xbar_0.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/xbar"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
@@ -154,16 +147,6 @@
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="synth/microblaze_axi_us_plus.vhd" Type="VHDL">
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-      </File>
-      <File Name="sim/microblaze_axi_us_plus.vhd" Type="VHDL">
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
       <File Name="ip/microblaze_axi_us_plus_ethernetcore_mm_0_1/microblaze_axi_us_plus_ethernetcore_mm_0_1.xci" Type="IP">
         <Instance HierarchyPath="ethernetcore_mm_0"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
@@ -172,48 +155,16 @@
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_6_1/microblaze_axi_us_plus_auto_pc_6.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m07_couplers/auto_pc"/>
+      <File Name="ip/microblaze_axi_us_plus_xbar_0/microblaze_axi_us_plus_xbar_0.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/xbar"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_5_1/microblaze_axi_us_plus_auto_pc_5.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m05_couplers/auto_pc"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_4_1/microblaze_axi_us_plus_auto_pc_4.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m04_couplers/auto_pc"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_3_1/microblaze_axi_us_plus_auto_pc_3.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m03_couplers/auto_pc"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_2_1/microblaze_axi_us_plus_auto_pc_2.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m02_couplers/auto_pc"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_1_1/microblaze_axi_us_plus_auto_pc_1.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/m01_couplers/auto_pc"/>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_7_1/microblaze_axi_us_plus_auto_pc_7.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/s00_couplers/auto_pc"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
@@ -228,12 +179,62 @@
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="ip/microblaze_axi_us_plus_auto_pc_7_1/microblaze_axi_us_plus_auto_pc_7.xci" Type="IP">
-        <Instance HierarchyPath="microblaze_0_axi_periph/s00_couplers/auto_pc"/>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_1_1/microblaze_axi_us_plus_auto_pc_1.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m01_couplers/auto_pc"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
         <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_2_1/microblaze_axi_us_plus_auto_pc_2.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m02_couplers/auto_pc"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_3_1/microblaze_axi_us_plus_auto_pc_3.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m03_couplers/auto_pc"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_4_1/microblaze_axi_us_plus_auto_pc_4.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m04_couplers/auto_pc"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_5_1/microblaze_axi_us_plus_auto_pc_5.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m05_couplers/auto_pc"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/microblaze_axi_us_plus_auto_pc_6_1/microblaze_axi_us_plus_auto_pc_6.xci" Type="IP">
+        <Instance HierarchyPath="microblaze_0_axi_periph/m07_couplers/auto_pc"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="synth/microblaze_axi_us_plus.vhd" Type="VHDL">
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+      </File>
+      <File Name="sim/microblaze_axi_us_plus.vhd" Type="VHDL">
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+        <Library Name="xil_defaultlib"/>
         <UsedIn Val="SIMULATION"/>
       </File>
       <File Name="microblaze_axi_us_plus.bmm" Type="BMM">
@@ -263,6 +264,11 @@
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="HW_HANDOFF"/>
+      </File>
+      <File Name="sim/microblaze_axi_us_plus.protoinst">
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SIMULATION"/>
       </File>
     </FileCollection>
   </CompositeFile>
