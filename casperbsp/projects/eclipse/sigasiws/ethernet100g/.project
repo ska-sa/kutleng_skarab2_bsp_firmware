@@ -72,6 +72,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>vhdl/iprepo</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>vhdl/rtl</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -88,6 +93,11 @@
 		</link>
 		<link>
 			<name>vhdl/implementation/xilinx</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -133,6 +143,11 @@
 		</link>
 		<link>
 			<name>vhdl/implementation/xilinx/vcu1525</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0/hdl</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -270,6 +285,26 @@
 			<name>vhdl/implementation/xilinx/vcu1525/top</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/bd/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S00_AXI.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/bd/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S00_AXI.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S01_AXI.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/bd/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S01_AXI.vhd</locationURI>
+		</link>
+		<link>
+			<name>vhdl/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S_AXI_INTR.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/bd/iprepo/ethernetcore_mm_1.0/hdl/ethernetcore_mm_v1_0_S_AXI_INTR.vhd</locationURI>
 		</link>
 		<link>
 			<name>vhdl/rtl/arp/testbench/arpmodule_tb.vhd</name>

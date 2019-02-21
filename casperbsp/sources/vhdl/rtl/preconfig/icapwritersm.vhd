@@ -119,9 +119,11 @@ architecture rtl of icapwritersm is
         SaveSequenceSt,
         ReadDWORDCommandSt,
         ICAPWriteDWORDCommandSt,
+        ICAPPrepareWriteDWORDCommandSt,
         ICAPPurgeDWORDCommandSt,
         ReadFrameDWORDSt,
         ICAPWriteFrameDWORDSt,
+        ICAPPrepareWriteFrameDWORDSt,
         NextFrameDWORDSt,
         ClearSlotSt,
         WaitICAPResponse,
@@ -157,10 +159,10 @@ architecture rtl of icapwritersm is
     begin
 
         if (DataIn'length = RData32'length) then
-            RData32(31 downto 24)   := bitreverse(DataIn(31 downto 24));
-            RData32(23 downto 16)  := bitreverse(DataIn(23 downto 16));
-            RData32(15 downto 8) := bitreverse(DataIn(15 downto 8));
-            RData32(7 downto 0) := bitreverse(DataIn(7 downto 0));
+            RData32(31 downto 24) := bitreverse(DataIn(31 downto 24));
+            RData32(23 downto 16) := bitreverse(DataIn(23 downto 16));
+            RData32(15 downto 8)  := bitreverse(DataIn(15 downto 8));
+            RData32(7 downto 0)   := bitreverse(DataIn(7 downto 0));
             return std_logic_vector(RData32);
         end if;
 
@@ -258,24 +260,31 @@ begin
                     when ReadDWORDCommandSt =>
                         RingBufferDataRead <= '1';
                         -- Go to write the DWORD on ICAP
-                        StateVariable      <= ICAPWriteDWORDCommandSt;
+                        StateVariable      <= ICAPPrepareWriteDWORDCommandSt;
+
+                    when ICAPPrepareWriteDWORDCommandSt =>
+                        -- Disable ICAP select
+                        ICAP_CSIB <= '1';
+
+                        -- Go to write the DWORD on ICAP
+                        if (lCommandHeader(31 downto 24) = X"DE") then
+                            -- Set ICAP to read mode                            
+                            ICAP_RDWRB <= '1';
+                        else
+                            -- Set ICAP to Write mode                            
+                            ICAP_RDWRB <= '0';
+                        end if;
+                        -- Do the Xilinx bitswapping on bytes, refer to
+                        -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
+                        ICAP_DataIn   <= bitbyteswap(lCommandDWORD);
+                        StateVariable <= ICAPWriteDWORDCommandSt;
 
                     when ICAPWriteDWORDCommandSt =>
                         -- Stop reading the ring buffer
                         RingBufferDataRead <= '0';
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready issue the command
-                            if (lCommandHeader(31 downto 24) = X"DE") then
-                                -- Set ICAP to read mode                            
-                                ICAP_RDWRB    <= '1';
-                            else
-                                -- Set ICAP to Write mode                            
-                                ICAP_RDWRB    <= '0';
-                            end if;
                             ICAP_CSIB     <= '0';
-                            -- Do the Xilinx bitswapping on bytes, refer to
-                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
-                            ICAP_DataIn   <= bitbyteswap(lCommandDWORD);
                             -- Done with write 
                             StateVariable <= ICAPPurgeDWORDCommandSt;
 
@@ -290,23 +299,27 @@ begin
                         -- Disselect the ICAP
                         ICAP_CSIB     <= '1';
                         -- Change ICAP to read mode
-                        ICAP_RDWRB    <= '1';
+                        --ICAP_RDWRB    <= '1';
                         StateVariable <= WaitICAPResponse;
 
                     when ReadFrameDWORDSt =>
                         -- Read one DWORD
                         RingBufferDataRead <= '1';
-                        StateVariable      <= ICAPWriteFrameDWORDSt;
+                        StateVariable      <= ICAPPrepareWriteFrameDWORDSt;
+
+                    when ICAPPrepareWriteFrameDWORDSt =>
+                        -- Set ICAP to Write mode
+                        ICAP_RDWRB    <= '0';
+                        -- Do the Xilinx bitswapping on bytes, refer to
+                        -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
+                        ICAP_DataIn   <= bitbyteswap(lFrameDWORD);
+                        StateVariable <= ICAPWriteFrameDWORDSt;
 
                     when ICAPWriteFrameDWORDSt =>
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready
-                            -- Set ICAP to Write mode
-                            ICAP_RDWRB    <= '0';
+                            -- Do actual write
                             ICAP_CSIB     <= '0';
-                            -- Do the Xilinx bitswapping on bytes, refer to
-                            -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
-                            ICAP_DataIn   <= bitbyteswap(lFrameDWORD);
                             StateVariable <= NextFrameDWORDSt;
 
                         else
@@ -323,9 +336,9 @@ begin
                         if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
                             StateVariable <= WaitICAPResponse;
                         else
-    	                    -- advance frame counter                      
-	                        lFrameDWORDCounter     <= lFrameDWORDCounter + 1;
-                            StateVariable <= ReadFrameDWORDSt;
+                            -- advance frame counter                      
+                            lFrameDWORDCounter <= lFrameDWORDCounter + 1;
+                            StateVariable      <= ReadFrameDWORDSt;
                         end if;
 
                     -- Error processing    
@@ -336,17 +349,17 @@ begin
                     -- Response processing    
                     when WaitICAPResponse =>
                         -- Get the ICAP read result
-                        ICAP_Readback <= ICAP_DataOut;
+                        ICAP_Readback      <= ICAP_DataOut;
                         -- Disselect the ICAP.
-                        ICAP_CSIB     <= '1';
+                        ICAP_CSIB          <= '1';
                         -- Change ICAP to read mode
-                        ICAP_RDWRB    <= '1';
+                        --ICAP_RDWRB         <= '1';
                         -- Signal protocol responder we are done with write
-                        ICAPWriteDone <= '1';
-						-- Reset the FRAME DWORD counter
-						lFrameDWORDCounter <= 0;
+                        ICAPWriteDone      <= '1';
+                        -- Reset the FRAME DWORD counter
+                        lFrameDWORDCounter <= 0;
                         -- Done with write 
-                        StateVariable <= SendICAPResponseSt;
+                        StateVariable      <= SendICAPResponseSt;
 
                     when SendICAPResponseSt =>
                         if (ICAPWriteResponseSent = '1') then
