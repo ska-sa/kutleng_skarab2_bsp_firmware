@@ -127,6 +127,9 @@ architecture rtl of icapwritersm is
         NextFrameDWORDSt,
         ClearSlotSt,
         WaitICAPResponse,
+        WaitICAPReadResponseSt,
+        WaitICAPReadResponseASt,
+        WaitICAPReadResponseBSt,
         CreateErrorResponseSt,
         SendICAPResponseSt
     );
@@ -345,21 +348,36 @@ begin
                     when CreateErrorResponseSt =>
                         -- Prepare a UDP Error packet
                         StateVariable <= WaitICAPResponse;
-
+                        
+                        
                     -- Response processing    
                     when WaitICAPResponse =>
-                        -- Get the ICAP read result
-                        ICAP_Readback      <= ICAP_DataOut;
+                        if (lCommandHeader(31 downto 24) = X"DE") then
+                            StateVariable      <= WaitICAPReadResponseASt;                            
+                        else
+                            -- Signal protocol responder we are done with write
+                            ICAPWriteDone      <= '1';
+                            -- Get the ICAP read result
+                            ICAP_Readback      <= ICAP_DataOut;
+                            -- Done with write 
+                            StateVariable      <= SendICAPResponseSt;
+                        end if;    
                         -- Disselect the ICAP.
                         ICAP_CSIB          <= '1';
                         -- Change ICAP to read mode
                         --ICAP_RDWRB         <= '1';
-                        -- Signal protocol responder we are done with write
-                        ICAPWriteDone      <= '1';
                         -- Reset the FRAME DWORD counter
                         lFrameDWORDCounter <= 0;
-                        -- Done with write 
-                        StateVariable      <= SendICAPResponseSt;
+                    when WaitICAPReadResponseASt =>
+                            StateVariable      <= WaitICAPReadResponseBSt;                            
+                    when WaitICAPReadResponseBSt =>
+                            StateVariable      <= WaitICAPReadResponseSt;                            
+                    when WaitICAPReadResponseSt =>
+                            -- Signal protocol responder we are done with read
+                            ICAPWriteDone      <= '1';
+                            -- Get the ICAP read result
+                            ICAP_Readback      <= ICAP_DataOut;
+                            StateVariable      <= SendICAPResponseSt;                            
 
                     when SendICAPResponseSt =>
                         if (ICAPWriteResponseSent = '1') then
