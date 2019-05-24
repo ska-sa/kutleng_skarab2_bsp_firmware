@@ -127,17 +127,47 @@ entity gmactop is
         qsfp2_modprsl_ls  : in  STD_LOGIC;
         qsfp2_intl_ls     : in  STD_LOGIC;
         qsfp2_lpmode_ls   : out STD_LOGIC;
-        --
+        -- PCIe Clocks        
+        sys_clk_p         : in  STD_LOGIC;
+        sys_clk_n         : in  STD_LOGIC;
+        sys_rst_n         : in  STD_LOGIC;
+        -- PCIe Data signals
+        pci_exp_txp       : out STD_LOGIC_VECTOR(15 downto 0);
+        pci_exp_txn       : out STD_LOGIC_VECTOR(15 downto 0);
+        pci_exp_rxp       : in  STD_LOGIC_VECTOR(15 downto 0);
+        pci_exp_rxn       : in  STD_LOGIC_VECTOR(15 downto 0);
+        --        --
         partial_bit_led   : out STD_LOGIC;
         -- UART I/O
         rs232_uart_rxd    : in  STD_LOGIC;
-        rs232_uart_txd    : out STD_LOGIC;        
+        rs232_uart_txd    : out STD_LOGIC;
         -- LEDs for debug     
         blink_led         : out STD_LOGIC_VECTOR(1 downto 0)
     );
 end entity gmactop;
 
 architecture rtl of gmactop is
+    component pciexdma_refbd_wrapper is
+        port(
+            GPIO2_0_tri_i    : in  STD_LOGIC_VECTOR(31 downto 0);
+            GPIO_0_tri_o     : out STD_LOGIC_VECTOR(31 downto 0);
+            M_AXIS_0_tdata   : out STD_LOGIC_VECTOR(31 downto 0);
+            M_AXIS_0_tkeep   : out STD_LOGIC_VECTOR(3 downto 0);
+            M_AXIS_0_tlast   : out STD_LOGIC;
+            M_AXIS_0_tready  : in  STD_LOGIC;
+            M_AXIS_0_tvalid  : out STD_LOGIC;
+            m_axis_aclk_0    : in  STD_LOGIC;
+            m_axis_aresetn_0 : in  STD_LOGIC;
+            pcie_mgt_0_rxn   : in  STD_LOGIC_VECTOR(15 downto 0);
+            pcie_mgt_0_rxp   : in  STD_LOGIC_VECTOR(15 downto 0);
+            pcie_mgt_0_txn   : out STD_LOGIC_VECTOR(15 downto 0);
+            pcie_mgt_0_txp   : out STD_LOGIC_VECTOR(15 downto 0);
+            sys_clk_0        : in  STD_LOGIC;
+            sys_clk_gt_0     : in  STD_LOGIC;
+            sys_rst_n_0      : in  STD_LOGIC;
+            user_lnk_up_0    : out STD_LOGIC
+        );
+    end component pciexdma_refbd_wrapper;
 
     component gmacqsfp1top is
         port(
@@ -249,17 +279,16 @@ architecture rtl of gmactop is
             axis_tx_tuser    : out STD_LOGIC
         );
     end component gmacqsfp2top;
-    
-    component microblaze_axi_us_plus_wrapper is
-      port (
-        ClockStable : in STD_LOGIC;
-        PSClock : in STD_LOGIC;
-        PSReset : in STD_LOGIC;
-        rs232_uart_rxd : in STD_LOGIC;
-        rs232_uart_txd : out STD_LOGIC
-      );
-    end component microblaze_axi_us_plus_wrapper;
 
+    component microblaze_axi_us_plus_wrapper is
+        port(
+            ClockStable    : in  STD_LOGIC;
+            PSClock        : in  STD_LOGIC;
+            PSReset        : in  STD_LOGIC;
+            rs232_uart_rxd : in  STD_LOGIC;
+            rs232_uart_txd : out STD_LOGIC
+        );
+    end component microblaze_axi_us_plus_wrapper;
 
     component clockgen100mhz is
         port(
@@ -416,7 +445,7 @@ architecture rtl of gmactop is
     end component icap_ila;
 
     signal RefClk100MHz    : std_logic;
-    signal ICAPClk95MHz    : std_logic;
+    signal ICAPClk125MHz   : std_logic;
     signal RefClkLocked    : std_logic;
     signal Reset           : std_logic;
     signal lReset          : std_logic;
@@ -478,7 +507,45 @@ architecture rtl of gmactop is
     constant C_UDP_SERVER_PORT : natural                       := 10000;
     constant C_PR_SERVER_PORT  : natural                       := 20000;
 
+    signal ZERO_30_vector : std_logic_vector(29 downto 0);
+    signal Sig_Vcc        : std_logic;
+    signal Sig_Gnd        : std_logic;
+    signal sys_rst_n_c    : std_logic;
+    signal sys_clk_gt     : std_logic;
+    signal sys_clk        : std_logic;
+    signal ICAP_CSI       : std_logic;
+
+    function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
+        alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
+        variable RData : std_logic_vector(aDataIn'range);
+    begin
+        for i in aDataIn'range loop
+            RData(i) := aDataIn(aDataIn'left - i);
+        end loop;
+
+        return RData;
+    end function bitreverse;
+
+    function bitbyteswap(DataIn : in std_logic_vector)
+    return std_logic_vector is
+        variable RData32 : std_logic_vector(31 downto 0);
+    begin
+
+        if (DataIn'length = RData32'length) then
+            RData32(31 downto 24) := bitreverse(DataIn(31 downto 24));
+            RData32(23 downto 16) := bitreverse(DataIn(23 downto 16));
+            RData32(15 downto 8)  := bitreverse(DataIn(15 downto 8));
+            RData32(7 downto 0)   := bitreverse(DataIn(7 downto 0));
+            return std_logic_vector(RData32);
+        end if;
+
+    end function bitbyteswap;
+
 begin
+    ZERO_30_vector <= (others => '0');
+    Sig_Vcc        <= '1';
+    Sig_Gnd        <= '0';
+    ICAP_CSIB      <= not ICAP_CSI;
 
     Reset            <= (not RefClkLocked) or lReset;
     -- Dont set module to low power mode
@@ -502,15 +569,15 @@ begin
             partial_bit_led => partial_bit_led
         );
 
-    LED1_i : ledflasher
-        generic map(
-            G_CLOCK_FREQUENCY => 322_265_625,
-            G_LED_FLASH_RATE  => 1
-        )
-        port map(
-            Clk => ClkQSFP1,
-            LED => blink_led(0)
-        );
+    --    LED1_i : ledflasher
+    --        generic map(
+    --            G_CLOCK_FREQUENCY => 322_265_625,
+    --            G_LED_FLASH_RATE  => 1
+    --        )
+    --        port map(
+    --            Clk => ClkQSFP1,
+    --            LED => blink_led(0)
+    --        );
 
     LED2_i : ledflasher
         generic map(
@@ -525,7 +592,7 @@ begin
     ClockGen100MHz_i : clockgen100mhz
         port map(
             clk_out1  => RefClk100MHz,
-            clk_out2  => ICAPClk95MHz,
+            clk_out2  => ICAPClk125MHz,
             locked    => RefClkLocked,
             clk_in1_p => sysclk1_300_p,
             clk_in1_n => sysclk1_300_n
@@ -571,7 +638,7 @@ begin
             axis_tx_tvalid   => axis_rx_tvalid_1, --ClkQSFP1
             axis_tx_tkeep    => axis_rx_tkeep_1, --ClkQSFP1
             axis_tx_tlast    => axis_rx_tlast_1, --ClkQSFP1
-            axis_tx_tuser    => axis_rx_tuser_1 --ClkQSFP1
+            axis_tx_tuser    => axis_rx_tuser_1 --ClkQSFP1     
         );
 
     AXISPAcketBufferFIFO_i : axispacketbufferfifo
@@ -602,7 +669,7 @@ begin
         )
         port map(
             axis_clk       => ClkQSFP1,
-            icap_clk       => ICAPClk95MHz,
+            icap_clk       => ICAPClk125MHz,
             axis_reset     => Reset,
             --Outputs to AXIS bus MAC side 
             axis_tx_tdata  => axis_tx_tdata_1,
@@ -620,10 +687,10 @@ begin
             ICAP_PRDONE    => ICAP_PRDONE,
             ICAP_PRERROR   => ICAP_PRERROR,
             ICAP_AVAIL     => ICAP_AVAIL,
-            ICAP_CSIB      => ICAP_CSIB,
+            ICAP_CSIB      => open,     --ICAP_CSIB,
             ICAP_RDWRB     => ICAP_RDWRB,
             ICAP_DataOut   => ICAP_DataOut,
-            ICAP_DataIn    => ICAP_DataIn
+            ICAP_DataIn    => open      --ICAP_DataIn
         );
     GMAC2_i : gmacqsfp2top
         port map(
@@ -690,14 +757,14 @@ begin
             axis_rx_tlast  => axis_rx_tlast_2
         );
 
-    MicroblazeSys_i:microblaze_axi_us_plus_wrapper
-      port map(
-        ClockStable => RefClkLocked,
-        PSClock => ICAPClk95MHz,
-        PSReset => Reset,
-        rs232_uart_rxd => rs232_uart_rxd,
-        rs232_uart_txd => rs232_uart_txd
-      );
+    MicroblazeSys_i : microblaze_axi_us_plus_wrapper
+        port map(
+            ClockStable    => RefClkLocked,
+            PSClock        => ICAPClk125MHz,
+            PSReset        => Reset,
+            rs232_uart_rxd => rs232_uart_rxd,
+            rs232_uart_txd => rs232_uart_txd
+        );
 
     TXAXIS_i : axisila
         port map(
@@ -753,9 +820,65 @@ begin
             probe_out2(0) => Enable
         );
 
+    --    ICAPDECAP_i : icapdecoupler
+    --        port map(
+    --            ICAPClk125MHz => ICAPClk125MHz,
+    --            ICAPRst       => Reset,
+    --            ICAP_AVAIL    => ICAP_AVAIL,
+    --            ICAP_DataOut  => ICAP_DataOut,
+    --            ICAP_PRDONE   => ICAP_PRDONE,
+    --            ICAP_PRERROR  => ICAP_PRERROR,
+    --            ICAP_CSIB     => ICAP_CSIB,
+    --            ICAP_DataIn   => ICAP_DataIn,
+    --            ICAP_RDWRB    => ICAP_RDWRB
+    --        );
+
+    -- Ref clock buffer
+    refclk_ibuf : IBUFDS_GTE4
+        generic map(
+            REFCLK_HROW_CK_SEL => "00"
+        )
+        port map(
+            O     => sys_clk_gt,
+            ODIV2 => sys_clk,
+            CEB   => '0',
+            I     => sys_clk_p,
+            IB    => sys_clk_n
+        );
+
+    -- Reset buffer
+    sys_reset_n_ibuf : IBUF
+        port map(
+            O => sys_rst_n_c,
+            I => sys_rst_n
+        );
+
+    PCIE_i : pciexdma_refbd_wrapper
+        port map(
+            GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
+            GPIO2_0_tri_i(1)           => ICAP_PRERROR,
+            GPIO2_0_tri_i(0)           => ICAP_PRDONE,
+            GPIO_0_tri_o               => open,
+            M_AXIS_0_tdata             => ICAP_DataIn,
+            M_AXIS_0_tkeep             => open,
+            M_AXIS_0_tlast             => open,
+            M_AXIS_0_tready            => ICAP_AVAIL,
+            M_AXIS_0_tvalid            => ICAP_CSI,
+            m_axis_aclk_0              => ICAPClk125MHz,
+            m_axis_aresetn_0           => Sig_Vcc,
+            pcie_mgt_0_rxn             => pci_exp_rxn,
+            pcie_mgt_0_rxp             => pci_exp_rxp,
+            pcie_mgt_0_txn             => pci_exp_txn,
+            pcie_mgt_0_txp             => pci_exp_txp,
+            sys_clk_0                  => sys_clk,
+            sys_clk_gt_0               => sys_clk_gt,
+            sys_rst_n_0                => sys_rst_n_c,
+            user_lnk_up_0              => blink_led(0)
+        );
+
     ICAPE3_i : ICAPE3
         generic map(
-            DEVICE_ID         => X"14B31093",
+            DEVICE_ID         => X"03628093",
             ICAP_AUTO_SWITCH  => "DISABLE",
             SIM_CFG_FILE_NAME => "NONE"
         )
@@ -764,15 +887,15 @@ begin
             O       => ICAP_DataOut,
             PRDONE  => ICAP_PRDONE,
             PRERROR => ICAP_PRERROR,
-            CLK     => ICAPClk95MHz,
+            CLK     => ICAPClk125MHz,
             CSIB    => ICAP_CSIB,
-            I       => ICAP_DataIn,
-            RDWRB   => ICAP_RDWRB
+            I       => bitbyteswap(ICAP_DataIn),
+            RDWRB   => Sig_Gnd          -- Only writing to ICAP
         );
 
     ICAPE_ILAi : icap_ila
         port map(
-            clk       => ICAPClk95MHz,
+            clk       => ICAPClk125MHz,
             probe0(0) => ICAP_PRDONE,
             probe1(0) => ICAP_PRERROR,
             probe2(0) => ICAP_RDWRB,

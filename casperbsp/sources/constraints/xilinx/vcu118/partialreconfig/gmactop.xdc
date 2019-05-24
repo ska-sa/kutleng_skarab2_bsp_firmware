@@ -1,3 +1,20 @@
+#############################################################################################################
+create_clock -period 10.000 -name sys_clk [get_ports sys_clk_p]
+#
+#############################################################################################################
+set_false_path -from [get_ports sys_rst_n]
+set_property PULLUP true [get_ports sys_rst_n]
+set_property IOSTANDARD LVCMOS18 [get_ports sys_rst_n]
+set_property PACKAGE_PIN AM17 [get_ports sys_rst_n]
+#
+set_property CONFIG_VOLTAGE 1.8 [current_design]
+set_property CFGBVS GND [current_design]
+#
+#############################################################################################################
+#
+set_property PACKAGE_PIN AC8 [get_ports sys_clk_n]
+set_property PACKAGE_PIN AC9 [get_ports sys_clk_p]
+
 # Base Reference Clock
 set_property PACKAGE_PIN  G31  [get_ports sysclk1_300_p]
 set_property PACKAGE_PIN  F31  [get_ports sysclk1_300_n]
@@ -30,7 +47,8 @@ set_property PACKAGE_PIN   AV34  [get_ports {blink_led[1]}]
 set_property PACKAGE_PIN   AY30  [get_ports {blink_led[2]}]
 set_property PACKAGE_PIN   BB32  [get_ports {blink_led[3]}]
 set_property IOSTANDARD   LVCMOS12  [get_ports {blink_led[*]}]
-
+set_property DRIVE 8 [get_ports {blink_led[*]}]
+set_false_path -to [get_ports -filter NAME=~blink_led*]
 
 
 #QSFP2
@@ -111,7 +129,7 @@ set_property IOSTANDARD     LVCMOS18  [get_ports "qsfp2_resetl_ls"];
 # Timing exceptions
 
 set_false_path -from [get_cells  {*ClockGen100MHz_i/inst/seq_reg*} -filter {is_sequential}]
- 
+set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
 
 #This is the partial loaded pins
 
@@ -120,8 +138,6 @@ set_property PACKAGE_PIN   AU37  [get_ports {partial_bit_leds[1]}]
 set_property PACKAGE_PIN   AV36  [get_ports {partial_bit_leds[2]}]
 set_property PACKAGE_PIN   BA37  [get_ports {partial_bit_leds[3]}]
 set_property IOSTANDARD   LVCMOS12  [get_ports {partial_bit_leds[*]}]
-
-set_property BITSTREAM.GENERAL.PERFRAMECRC yes [current_design]
 
 set_false_path -from [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_n}] -to [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_p}]
 set_false_path -from [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_p}] -to [get_clocks -of_objects [get_pins ClockGen100MHz_i/inst/mmcme4_adv_inst/CLKOUT0] -filter {IS_GENERATED && MASTER_CLOCK == sysclk1_300_n}]

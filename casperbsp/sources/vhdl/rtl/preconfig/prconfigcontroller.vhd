@@ -266,8 +266,8 @@ architecture rtl of prconfigcontroller is
             G_SLOT_WIDTH         : natural := 4;
             --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
             -- ICAP Ring buffer needs 100 DWORDS
-            -- The address is log2(100))=7 bits wide
-            G_ICAP_RB_ADDR_WIDTH : natural := 7;
+            -- The address is log2(245))=8 bits wide
+            G_ICAP_RB_ADDR_WIDTH : natural := 8;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH         : natural := 5
         );
@@ -362,7 +362,7 @@ architecture rtl of prconfigcontroller is
     end component icapwritersm;
 
     constant C_DATA_WIDTH                     : natural := 512;
-    constant G_ICAP_RB_ADDR_WIDTH             : natural := 7;
+    constant G_ICAP_RB_ADDR_WIDTH             : natural := 8;
     signal SenderRingBufferSlotID             : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal SenderRingBufferSlotClear          : std_logic;
     signal SenderRingBufferSlotStatus         : std_logic;
@@ -551,7 +551,7 @@ begin
     ICAPWRSM_i : icapwritersm
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
-            G_ADDR_WIDTH => 7
+            G_ADDR_WIDTH => G_ICAP_RB_ADDR_WIDTH
         )
         port map(
             icap_clk                 => icap_clk,

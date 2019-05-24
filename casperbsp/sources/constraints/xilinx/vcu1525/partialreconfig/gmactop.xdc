@@ -1,3 +1,21 @@
+#############################################################################################################
+create_clock -period 10.000 -name sys_clk [get_ports sys_clk_p]
+#
+#############################################################################################################
+set_false_path -from [get_ports sys_rst_n]
+set_property PULLUP true [get_ports sys_rst_n]
+set_property IOSTANDARD LVCMOS18 [get_ports sys_rst_n]
+set_property PACKAGE_PIN BD21 [get_ports sys_rst_n]
+#
+set_property CONFIG_VOLTAGE 1.8 [current_design]
+set_property CFGBVS GND [current_design]
+#
+#############################################################################################################
+#
+set_property PACKAGE_PIN AM10 [get_ports sys_clk_n]
+set_property PACKAGE_PIN AM11 [get_ports sys_clk_p]
+
+
 # Base Reference Clock
 
 set_property PACKAGE_PIN AW20 [get_ports sysclk1_300_p]
@@ -19,10 +37,12 @@ set_property LOC CMACE4_X0Y6 [get_cells -hierarchical -filter {NAME =~ *inst/i_E
 set_property PACKAGE_PIN BA20 [get_ports {blink_led[0]}]
 set_property PACKAGE_PIN BB21 [get_ports {blink_led[1]}]
 set_property IOSTANDARD LVCMOS18 [get_ports {blink_led[*]}]
+set_false_path -to [get_ports -filter NAME=~blink_led*]
 
 #This is the partial loaded pins
 set_property PACKAGE_PIN BC21 [get_ports partial_bit_led]
 set_property IOSTANDARD LVCMOS18 [get_ports partial_bit_led]
+set_false_path -to [get_ports -filter NAME=~partial_bit_led*]
 
 # QSFP0 Clock
 set_property PACKAGE_PIN T10 [get_ports mgt_qsfp2_clock_n]
@@ -124,10 +144,8 @@ set_property PACKAGE_PIN BC18 [get_ports qsfp1_resetl_ls]
 set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_resetl_ls]
 
 #USB UART for Microblaze
-set_property PACKAGE_PIN BB20 [get_ports rs232_uart_rxd];
-set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_rxd];
-set_property PACKAGE_PIN BF18 [get_ports rs232_uart_txd];
-set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_txd];
+set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_rxd]
+set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_txd]
 
 
 
@@ -137,23 +155,27 @@ set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_txd];
 
 # Timing exceptions
 
+set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
 
 
-
-set_property BITSTREAM.GENERAL.PERFRAMECRC yes [current_design]
 
 set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[0][1158]}]
 set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[1][1158]}]
 set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[0][1162]}]
 set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[1][1162]}]
+
 create_clock -period 3.333 [get_ports sysclk1_300_p]
+
 set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_p]] 0.010
+
 create_clock -period 6.400 [get_ports mgt_qsfp2_clock_p]
 create_clock -period 6.400 [get_ports mgt_qsfp1_clock_p]
 set_false_path -from [get_cells *ClockGen100MHz_i/inst/seq_reg* -filter is_sequential]
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks clk_out2_clockgen100mhz]
 set_clock_groups -asynchronous -group [get_clocks clk_out2_clockgen100mhz] -group [get_clocks {txoutclk_out[0]}]
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks {txoutclk_out[0]_1}]
+
+set_property CONFIG_MODE S_SELECTMAP32 [current_design]
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]

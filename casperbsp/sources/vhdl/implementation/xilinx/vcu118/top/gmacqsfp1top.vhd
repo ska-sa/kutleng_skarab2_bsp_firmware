@@ -173,6 +173,7 @@ architecture rtl of gmacqsfp1top is
             rx_otn_vlmarker                : OUT STD_LOGIC;
             rx_preambleout                 : OUT STD_LOGIC_VECTOR(55 DOWNTO 0);
             usr_rx_reset                   : OUT STD_LOGIC;
+            gt_rxusrclk2                   : OUT STD_LOGIC;            
             stat_rx_aligned                : OUT STD_LOGIC;
             stat_rx_aligned_err            : OUT STD_LOGIC;
             stat_rx_bad_code               : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
@@ -697,6 +698,7 @@ begin
             rx_otn_vlmarker                => open,
             rx_preambleout                 => open,
             usr_rx_reset                   => open,
+            gt_rxusrclk2                   => open,
             stat_rx_aligned                => open,
             stat_rx_aligned_err            => open,
             stat_rx_bad_code               => open,

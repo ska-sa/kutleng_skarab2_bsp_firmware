@@ -387,6 +387,11 @@
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu118/top/gmactop.vhd</locationURI>
 		</link>
 		<link>
+			<name>vhdl/implementation/xilinx/vcu118/top/icapdecoupler.vhd</name>
+			<type>1</type>
+			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu118/top/icapdecoupler.vhd</locationURI>
+		</link>
+		<link>
 			<name>vhdl/implementation/xilinx/vcu1525/top/gmacqsfp1top.vhd</name>
 			<type>1</type>
 			<locationURI>PARENT-4-PROJECT_LOC/sources/vhdl/implementation/xilinx/vcu1525/top/gmacqsfp1top.vhd</locationURI>

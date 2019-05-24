@@ -64,13 +64,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+
 entity protocolchecksumprconfigsm is
     generic(
         G_SLOT_WIDTH         : natural := 4;
         --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
         -- ICAP Ring buffer needs 100 DWORDS
-        -- The address is log2(100))=7 bits wide
-        G_ICAP_RB_ADDR_WIDTH : natural := 7;
+        -- The address is log2(245))=8 bits wide
+        G_ICAP_RB_ADDR_WIDTH : natural := 8;
         -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH         : natural := 5
     );
@@ -148,11 +149,19 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
     signal lSenderRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lSenderRingBufferAddress : unsigned(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
+    signal lSenderRingBufferAddressDFrameMax : unsigned(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
+    
+    
 
     -- Have 7 iterations for a maximum frame of 98DWORDS on 512 bit AXI-bus with 
     constant C_BUFFER_FRAME_ITERATIONS_MAX         : natural := (7 - 1);
+    -- Have 16 iterations for a maximum frame of 245DWORDS on 512 bit AXI-bus with 
+    constant C_BUFFER_DFRAME_ITERATIONS_MAX         : natural := (16 - 1);
     -- Have 100 DWORDS for a maximum frame of 98DWORDS on 32 bit ICAP-bus with 
     constant C_PACKET_DWORD_POINTER_MAX            : natural := (100 - 1);
+    -- Have 247 DWORDS for a maximum frame of 245DWORDS on 32 bit ICAP-bus with 
+    constant C_DPACKET_DWORD_POINTER_MAX            : natural := (247 - 1);
+    
     -- Have 3 DWORDS for a command of 1DWORDS on 32 bit ICAP-bus with 
     constant C_COMMAND_DWORD_POINTER_MAX           : natural := (3 - 1);
     -- Have 16 DWORDS on the 512-bit buffer     
@@ -166,10 +175,16 @@ architecture rtl of protocolchecksumprconfigsm is
     constant C_UDP_HEADER_CHECKSUM_COUNTER_MAX     : natural := (13 - 1);
     -- Need to iterate 2 times to finalize UDP header checksum     
     constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural := (3 - 1);
-
+    -- Protocol codes, error response codes and commands
     constant C_RESPONSE_UDP_PROTOCOL : std_logic_vector(7 downto 0)  := X"11";
     constant C_CHECKSUM_ERROR        : std_logic_vector(31 downto 0) := X"E0000001";
     constant C_FRAMING_ERROR         : std_logic_vector(31 downto 0) := X"E0000002";
+    constant C_DWORD_WRITE_COMMAND   : std_logic_vector(15 downto 0) := X"da01";
+    constant C_DWORD_READ_COMMAND    : std_logic_vector(15 downto 0) := X"de01";
+    constant C_FRAME_WRITE_COMMAND   : std_logic_vector(15 downto 0) := X"a562";
+    constant C_DFRAME_WRITE_COMMAND  : std_logic_vector(7 downto 0)  := X"ad";
+    -- Maximum length of 
+    constant C_DFRAME_LENGTH_MAX     : std_logic_vector(7 downto 0)  := X"f4";
 
     -- Read buffer
     signal lRingBufferData           : std_logic_vector(511 downto 0);
@@ -198,7 +213,7 @@ architecture rtl of protocolchecksumprconfigsm is
     signal lPRDWordCommand           : std_logic_vector(31 downto 0);
     signal lUDPFinalCheckSum         : std_logic_vector(15 downto 0);
     signal lPreUDPHDRCheckSum        : unsigned(17 downto 0);
-    signal lBufferFrameIterations    : natural range 0 to C_BUFFER_FRAME_ITERATIONS_MAX;
+    signal lBufferFrameIterations    : natural range 0 to C_BUFFER_DFRAME_ITERATIONS_MAX;
 
     signal lProtocolIPIdentification : unsigned(15 downto 0);
     signal lProtocolSequence         : unsigned(31 downto 0);
@@ -349,7 +364,32 @@ begin
 
                     when CheckUDPIPFramingSt =>
                         -- Check for frame validity and framing errors
-                        if ((((lPRPacketID(15 downto 0) = X"de01") or (lPRPacketID(15 downto 0) = X"da01")) and ((lUDPDataStreamLength) = X"0012")) or ((lPRPacketID(15 downto 0) = X"a562") and ((lUDPDataStreamLength) = X"0196"))) then
+                        -- The expression is simplified to be as follows
+                        --(
+                        --
+                        --(
+                        --(lPRPacketID(15 downto 8) = C_DFRAME_WRITE_COMMAND) 
+                        --
+                        --and  
+                        --
+                        --( (lUDPDataStreamLength > X"0012") and (lUDPDataStreamLength < X"03E2") )
+                        --
+                        --) 
+                        --
+                        --or 
+                        --
+                        --
+                        --(
+                        --( ((lPRPacketID(15 downto 0) = C_DWORD_READ_COMMAND) or (lPRPacketID(15 downto 0) = C_DWORD_WRITE_COMMAND))  and (lUDPDataStreamLength = X"0012") ) 
+                        --
+                        --or 
+                        --
+                        --((lPRPacketID(15 downto 0) = C_FRAME_WRITE_COMMAND) and (lUDPDataStreamLength = X"0196"))
+                        --)
+                        --
+                        --
+                        --)                        
+                        if (((lPRPacketID(15 downto 8) = C_DFRAME_WRITE_COMMAND) and (((lUDPDataStreamLength) > X"0012") and ((lUDPDataStreamLength) < X"03E2"))) or ((((lPRPacketID(15 downto 0) = C_DWORD_READ_COMMAND) or (lPRPacketID(15 downto 0) = C_DWORD_WRITE_COMMAND)) and ((lUDPDataStreamLength) = X"0012")) or ((lPRPacketID(15 downto 0) = C_FRAME_WRITE_COMMAND) and ((lUDPDataStreamLength) = X"0196")))) then
                             -- This is a valid packet because it meets the framing requirements                                
                             if (lBufferFrameIterations = 0) then
                                 StateVariable <= CalculateUDPHeaderCheckSum;
@@ -368,6 +408,10 @@ begin
 
                     when CalculateUDPHeaderCheckSum =>
                         if (lUDPHeaderCheckSumCounter = C_UDP_HEADER_CHECKSUM_COUNTER_MAX) then
+                            -- Calculate the maximum DWords for Dframe
+                             
+                            lSenderRingBufferAddressDFrameMax <= unsigned(lPRPacketID(7 downto 0)) + 1;
+                             
                             -- Done with UDP Header CheckSum calculation
                             StateVariable <= WriteICAPBufferSt;
                         else
@@ -379,27 +423,27 @@ begin
                                 when 0 =>
                                     lPreUDPHDRCheckSum <= '0' & '0' & unsigned((lSourceIPAddress(15 downto 0)));
                                 when 1 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lSourceIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lSourceIPAddress(31 downto 16)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 2 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationIPAddress(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationIPAddress(15 downto 0)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 3 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationIPAddress(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationIPAddress(31 downto 16)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 4 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + unsigned(C_RESPONSE_UDP_PROTOCOL) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 5 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lUDPDataStreamLength))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lUDPDataStreamLength))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 6 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lSourceUDPPort))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lSourceUDPPort))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 7 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationUDPPort))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lDestinationUDPPort))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 8 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lPRPacketID))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lPRPacketID))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 9 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPRPacketSequence(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPRPacketSequence(31 downto 16)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 10 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPRPacketSequence(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPRPacketSequence(15 downto 0)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when 11 =>
-                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lUDPDataStreamLength))) + lPreUDPHDRCheckSum(17 downto 16);
+                                    lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned((lUDPDataStreamLength))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                                 when others => null;
                             end case;
                         end if;
@@ -413,13 +457,15 @@ begin
                             -- Iterate until written all data necessary
                             -- for DWORD command
                             -- Signal the last data packet
+                            report "DWORD Write on WriteICAPBufferSt" severity warning;
                             ICAPRingBufferByteEnable(0) <= '1';
                             -- Clear the slot type for DWORD
                             ICAPRingBufferSlotType      <= '0';
                         else
                             if (lPRPacketID(7 downto 0) = X"62") then
                                 -- Iterate until written all data necessary for
-                                -- FRAME packet  
+                                -- This a (D)FRAME_WRITE packet with 0x62 DWORDs  
+                                report "(D)FRAME Write on WriteICAPBufferSt with 0x62 length" severity warning;
                                 if (lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) then
                                     -- This is the last frame packet
                                     ICAPRingBufferByteEnable(0) <= '1';
@@ -429,14 +475,28 @@ begin
                                     ICAPRingBufferByteEnable(0) <= '0';
                                 end if;
                             else
-                                ICAPRingBufferByteEnable(0) <= '0';
+                                -- This is a DFRAME_WRITE
+                                -- Process the DFRAME_WRITE Packet
+                                if ((lSenderRingBufferAddress = C_DPACKET_DWORD_POINTER_MAX) or (lSenderRingBufferAddress = lSenderRingBufferAddressDFrameMax)) then
+                                    -- This is the last frame packet
+                                    ICAPRingBufferByteEnable(0) <= '1';
+                                    -- Set the slot type for FRAME
+                                    ICAPRingBufferSlotType      <= '1';
+                                else
+                                    ICAPRingBufferByteEnable(0) <= '0';
+                                end if;
+                                report "(D)FRAME Write on WriteICAPBufferSt" severity warning;
                             end if;
                         end if;
                         -- Output the DWORD at the lBufferDwordPointer index
                         ICAPRingBufferDataOut                <= lPayloadArray(lBufferDwordPointer);
                         if (((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) or (lBufferFrameIterations > 0)) then
                             -- Update the checksum lower
-                            lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(15 downto 0)))) + lPreUDPHDRCheckSum(17 downto 16);
+                            lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
+                            --report "WriteICAPBufferSt Checksum calculation lPreUDPHDRCheckSum(17 downto 0) = " & to_hstring(lPreUDPHDRCheckSum(17 downto 0)) severity warning;
+                            --report "WriteICAPBufferSt Checksum calculation lPayloadArray(lBufferDwordPointer)(31 downto 16) = " & to_hstring(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16))) severity warning;
+                            report "Checksum Calculation on WriteICAPBufferSt" severity warning;
+                            
                         end if;
                         -- Go to next DWORD
                         StateVariable                        <= UpdateCheckOffsetSt;
@@ -446,11 +506,14 @@ begin
                         lSenderRingBufferAddress <= lSenderRingBufferAddress + 1;
                         if (((lBufferDwordPointer >= 2) and (lBufferFrameIterations = 0)) or (lBufferFrameIterations > 0)) then
                             -- Update the checksum upper
-                            lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16)))) + lPreUDPHDRCheckSum(17 downto 16);
+                            lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(15 downto 0)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
+                            report "Checksum Calculation on UpdateCheckOffsetSt" severity warning;
+                            
                         end if;
 
                         if (lPRPacketID(7 downto 0) = X"01") then
-                            -- This is a command 
+                            -- This is a DWORD command 
+                            report "DWORD Write on UpdateCheckOffsetSt" severity warning;
                             if (lBufferDwordPointer = C_COMMAND_DWORD_POINTER_MAX) then
                                 -- Done with data
                                 StateVariable <= UpdateCheckIterationSt;
@@ -462,16 +525,34 @@ begin
                             end if;
 
                         else
-                            -- This is a FRAME 
-                            if (((lBufferFrameIterations = 0) and (lBufferDwordPointer = 5)) or ((lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) or (lBufferDwordPointer = C_BUFFER_DWORD_POINTER_MAX))) then
-                                -- Done with data (either at end of 100 DWORDS 
-                                -- or 16 DWORDS on 512 - buffer
-                                StateVariable <= UpdateCheckIterationSt;
+                            -- This is a FRAME WRITE Command                            
+                            -- Identify which type of frame write it is
+                            if (lPRPacketID(7 downto 0) = X"62") then
+                                -- this is a (D)FRAME_WRITE with 0x62 DWORDs                             
+                                report "(D)FRAME Write on UpdateCheckOffsetSt with 0x62 length" severity warning;
+                                if (((lBufferFrameIterations = 0) and (lBufferDwordPointer = 5)) or ((lSenderRingBufferAddress = C_PACKET_DWORD_POINTER_MAX) or (lBufferDwordPointer = C_BUFFER_DWORD_POINTER_MAX))) then
+                                    -- Done with data either at end of 100 DWORDS 
+                                    -- or 16 DWORDS on 512 - buffer
+                                    StateVariable <= UpdateCheckIterationSt;
+                                else
+                                    -- Point to next DWORD index within the 512-bit buffer
+                                    lBufferDwordPointer <= lBufferDwordPointer + 1;
+                                    -- Keep reading data
+                                    StateVariable       <= WriteICAPBufferSt;
+                                end if;
                             else
-                                -- Point to next DWORD index within the 512-bit buffer
-                                lBufferDwordPointer <= lBufferDwordPointer + 1;
-                                -- Keep reading data
-                                StateVariable       <= WriteICAPBufferSt;
+                                -- this is a DFRAME_WRITE
+                                report "DFRAME Write on UpdateCheckOffsetSt" severity warning;
+                                if (((lBufferFrameIterations = 0) and (lBufferDwordPointer = 5)) or ((lSenderRingBufferAddress = C_DPACKET_DWORD_POINTER_MAX) or (lBufferDwordPointer = C_BUFFER_DWORD_POINTER_MAX) or (lSenderRingBufferAddress = lSenderRingBufferAddressDFrameMax))) then
+                                    -- Done with data either at end of 245 DWORDS 
+                                    -- or 16 DWORDS on 512 - buffer
+                                    StateVariable <= UpdateCheckIterationSt;
+                                else
+                                    -- Point to next DWORD index within the 512-bit buffer
+                                    lBufferDwordPointer <= lBufferDwordPointer + 1;
+                                    -- Keep reading data
+                                    StateVariable       <= WriteICAPBufferSt;
+                                end if;
                             end if;
                         end if;
 
@@ -483,15 +564,30 @@ begin
                             -- Done with data since this is just one DWORD
                             StateVariable <= ClearSlotSt;
                         else
-                            -- This is a FRAME,iterate till done 
-                            if (lBufferFrameIterations = C_BUFFER_FRAME_ITERATIONS_MAX) then
-                                -- Done with data
-                                StateVariable <= ClearSlotSt;
+                            if (lPRPacketID(7 downto 0) = X"62") then
+                                -- this is a (D)FRAME_WRITE with 0x62 DWORDs                             
+                                -- This is a FRAME,iterate till done 
+                                if (lBufferFrameIterations = C_BUFFER_FRAME_ITERATIONS_MAX) then
+                                    -- Done with data
+                                    StateVariable <= ClearSlotSt;
+                                else
+                                    -- Keep reading data,till whole 98 DWORD frame
+                                    lBufferFrameIterations <= lBufferFrameIterations + 1;
+                                    -- is fully consumed and forwarded
+                                    StateVariable          <= ReadBufferSt;
+                                end if;
                             else
-                                -- Keep reading data,till whole 98 DWORD frame
-                                lBufferFrameIterations <= lBufferFrameIterations + 1;
-                                -- is fully consumed and forwarded
-                                StateVariable          <= ReadBufferSt;
+                                -- this is a DFRAME_WRITE 
+                                if ((lBufferFrameIterations = C_BUFFER_DFRAME_ITERATIONS_MAX) or (lSenderRingBufferAddress >= lSenderRingBufferAddressDFrameMax)) then
+                                    -- Done with data
+                                    StateVariable <= ClearSlotSt;
+                                else
+                                    -- Keep reading data,till whole 98 DWORD frame
+                                    lBufferFrameIterations <= lBufferFrameIterations + 1;
+                                    -- is fully consumed and forwarded
+                                    StateVariable          <= ReadBufferSt;
+                                end if;
+                                                       
                             end if;
                         end if;
 
@@ -505,10 +601,10 @@ begin
                         lRecvRingBufferSlotID     <= lRecvRingBufferSlotID + 1;
                         if (lProtocolError = '1') then
                             -- Process the error condition
-                            StateVariable             <= WaitSendErrorResponseSt;
+                            StateVariable <= WaitSendErrorResponseSt;
                         else
                             -- This is a normal data condition
-                            StateVariable             <= CompleteUDPCheckSum;
+                            StateVariable <= CompleteUDPCheckSum;
                         end if;
 
                     when CompleteUDPCheckSum =>
@@ -544,7 +640,7 @@ begin
                             -- Got checksum error
                             ProtocolErrorID <= C_CHECKSUM_ERROR;
                             -- Set the error condition
-                            lProtocolError <= '1';
+                            lProtocolError  <= '1';
                             -- Save error state
                             StateVariable   <= WaitSendErrorResponseSt;
                         end if;
