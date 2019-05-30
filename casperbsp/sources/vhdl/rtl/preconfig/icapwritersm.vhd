@@ -137,7 +137,8 @@ architecture rtl of icapwritersm is
     constant C_ICAP_NOP_COMMAND   : std_logic_vector(31 downto 0) := X"20000000";
     -- There are 98 DWORDS on the FRAME Sequence
     constant C_FRAME_DWORD_MAX    : natural                       := (98 - 1);
-    signal lFrameDWORDCounter     : natural range 0 to C_FRAME_DWORD_MAX;
+    constant C_DFRAME_DWORD_MAX    : natural                      := (246 - 1);
+    signal lFrameDWORDCounter     : natural range 0 to C_DFRAME_DWORD_MAX;
     signal lCommandHeader         : std_logic_Vector(31 downto 0);
     signal lCommandSequence       : std_logic_vector(31 downto 0);
     alias lCommandDWORD           : std_logic_vector(31 downto 0) is RingBufferDataIn;
@@ -252,11 +253,23 @@ begin
                                 -- This is a FRAME
                                 -- Stop writing since the ICAP is not ready
                                 ICAP_CSIB     <= '1';
+                                -- Set the read length to fixed value
+                                lframedwordcounter <= C_FRAME_DWORD_MAX;
                                 -- Wait for the ICAP to be ready
                                 StateVariable <= ReadFrameDWORDSt;
                             else
-                                -- This is an error condition
-                                StateVariable <= CreateErrorResponseSt;
+                                if (lCommandHeader(31 downto 24) = X"AD") then
+                                    -- This is a DFRAME
+                                    -- Stop writing since the ICAP is not ready
+                                    ICAP_CSIB     <= '1';
+                                    -- Set the read length to dynamic value
+                                    lframedwordcounter <= to_integer(unsigned(lCommandHeader(23 downto  16)))-1; 
+                                    -- Wait for the ICAP to be ready                                    
+                                    StateVariable <= ReadFrameDWORDSt;
+                                else                                    
+                                    -- This is an error condition
+                                    StateVariable <= CreateErrorResponseSt;
+                                end if;
                             end if;
                         end if;
 
@@ -336,11 +349,11 @@ begin
                         ICAP_CSIB              <= '1';
                         -- Point to next frame dword
                         lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
-                        if (lFrameDWORDCounter = C_FRAME_DWORD_MAX) then
+                        if (lFrameDWORDCounter = 0) then
                             StateVariable <= WaitICAPResponse;
                         else
                             -- advance frame counter                      
-                            lFrameDWORDCounter <= lFrameDWORDCounter + 1;
+                            lFrameDWORDCounter <= lFrameDWORDCounter - 1;
                             StateVariable      <= ReadFrameDWORDSt;
                         end if;
 
