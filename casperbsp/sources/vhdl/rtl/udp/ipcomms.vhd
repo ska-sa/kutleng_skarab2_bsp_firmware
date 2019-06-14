@@ -72,30 +72,33 @@ entity ipcomms is
 
     );
     port(
-        axis_clk       : in  STD_LOGIC;
-        icap_clk       : in  STD_LOGIC;
-        axis_reset     : in  STD_LOGIC;
+        axis_clk        : in  STD_LOGIC;
+        icap_clk        : in  STD_LOGIC;
+        axis_reset      : in  STD_LOGIC;
         --Outputs to AXIS bus MAC side 
-        axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        axis_tx_tvalid : out STD_LOGIC;
-        axis_tx_tready : in  STD_LOGIC;
-        axis_tx_tkeep  : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-        axis_tx_tlast  : out STD_LOGIC;
-        axis_tx_tuser  : out STD_LOGIC;
+        axis_tx_tdata   : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+        axis_tx_tvalid  : out STD_LOGIC;
+        axis_tx_tready  : in  STD_LOGIC;
+        axis_tx_tkeep   : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        axis_tx_tlast   : out STD_LOGIC;
+        axis_tx_tuser   : out STD_LOGIC;
         --Inputs from AXIS bus of the MAC side
-        axis_rx_tdata  : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        axis_rx_tvalid : in  STD_LOGIC;
-        axis_rx_tuser  : in  STD_LOGIC;
-        axis_rx_tkeep  : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-        axis_rx_tlast  : in  STD_LOGIC;
+        axis_rx_tdata   : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+        axis_rx_tvalid  : in  STD_LOGIC;
+        axis_rx_tuser   : in  STD_LOGIC;
+        axis_rx_tkeep   : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        axis_rx_tlast   : in  STD_LOGIC;
         -- ICAP Interface
-        ICAP_PRDONE    : in  std_logic;
-        ICAP_PRERROR   : in  std_logic;
-        ICAP_AVAIL     : in  std_logic;
-        ICAP_CSIB      : out std_logic;
-        ICAP_RDWRB     : out std_logic;
-        ICAP_DataOut   : in  std_logic_vector(31 downto 0);
-        ICAP_DataIn    : out std_logic_vector(31 downto 0)
+        axis_prog_full  : in  STD_LOGIC;
+        axis_prog_empty : in  STD_LOGIC;
+        axis_data_count : in  STD_LOGIC_VECTOR(13 downto 0);        
+        ICAP_PRDONE     : in  std_logic;
+        ICAP_PRERROR    : in  std_logic;
+        ICAP_AVAIL      : in  std_logic;
+        ICAP_CSIB       : out std_logic;
+        ICAP_RDWRB      : out std_logic;
+        ICAP_DataOut    : in  std_logic_vector(31 downto 0);
+        ICAP_DataIn     : out std_logic_vector(31 downto 0)
     );
 end entity ipcomms;
 
@@ -212,6 +215,9 @@ architecture rtl of ipcomms is
             axis_tx_tready    : in  STD_LOGIC;
             axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
             axis_tx_tlast     : out STD_LOGIC;
+            axis_prog_full    : in  STD_LOGIC;
+            axis_prog_empty   : in  STD_LOGIC;
+            axis_data_count   : in  STD_LOGIC_VECTOR(13 downto 0);                    
             ICAP_PRDONE       : in  std_logic;
             ICAP_PRERROR      : in  std_logic;
             ICAP_AVAIL        : in  std_logic;
@@ -402,6 +408,9 @@ begin
             axis_rx_tuser     => axis_rx_tuser,
             axis_rx_tkeep     => axis_rx_tkeep,
             axis_rx_tlast     => axis_rx_tlast,
+            axis_prog_full    => axis_prog_full,
+            axis_prog_empty   => axis_prog_empty,
+            axis_data_count   => axis_data_count,
             ICAP_PRDONE       => ICAP_PRDONE,
             ICAP_PRERROR      => ICAP_PRERROR,
             ICAP_AVAIL        => ICAP_AVAIL,

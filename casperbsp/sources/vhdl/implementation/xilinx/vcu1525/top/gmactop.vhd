@@ -382,29 +382,32 @@ architecture rtl of gmactop is
             G_IP_ADDR         : std_logic_vector(31 downto 0)    := X"C0A8_0A0A" --192.168.10.10
         );
         port(
-            axis_clk       : in  STD_LOGIC;
-            icap_clk       : in  STD_LOGIC;
-            axis_reset     : in  STD_LOGIC;
+            axis_clk        : in  STD_LOGIC;
+            icap_clk        : in  STD_LOGIC;
+            axis_reset      : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
-            axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-            axis_tx_tvalid : out STD_LOGIC;
-            axis_tx_tready : in  STD_LOGIC;
-            axis_tx_tkeep  : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-            axis_tx_tlast  : out STD_LOGIC;
-            axis_tx_tuser  : out STD_LOGIC;
+            axis_tx_tdata   : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_tx_tvalid  : out STD_LOGIC;
+            axis_tx_tready  : in  STD_LOGIC;
+            axis_tx_tkeep   : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_tx_tlast   : out STD_LOGIC;
+            axis_tx_tuser   : out STD_LOGIC;
             --Inputs from AXIS bus of the MAC side
-            axis_rx_tdata  : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-            axis_rx_tvalid : in  STD_LOGIC;
-            axis_rx_tuser  : in  STD_LOGIC;
-            axis_rx_tkeep  : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-            axis_rx_tlast  : in  STD_LOGIC;
-            ICAP_PRDONE    : in  std_logic;
-            ICAP_PRERROR   : in  std_logic;
-            ICAP_AVAIL     : in  std_logic;
-            ICAP_CSIB      : out std_logic;
-            ICAP_RDWRB     : out std_logic;
-            ICAP_DataOut   : in  std_logic_vector(31 downto 0);
-            ICAP_DataIn    : out std_logic_vector(31 downto 0)
+            axis_rx_tdata   : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_rx_tvalid  : in  STD_LOGIC;
+            axis_rx_tuser   : in  STD_LOGIC;
+            axis_rx_tkeep   : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_rx_tlast   : in  STD_LOGIC;
+            axis_prog_full  : in  STD_LOGIC;
+            axis_prog_empty : in  STD_LOGIC;
+            axis_data_count : in  STD_LOGIC_VECTOR(13 downto 0);
+            ICAP_PRDONE     : in  STD_LOGIC;
+            ICAP_PRERROR    : in  STD_LOGIC;
+            ICAP_AVAIL      : in  STD_LOGIC;
+            ICAP_CSIB       : out STD_LOGIC;
+            ICAP_RDWRB      : out STD_LOGIC;
+            ICAP_DataOut    : in  STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_DataIn     : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component ipcomms;
     component axispacketbufferfifo
@@ -444,6 +447,26 @@ architecture rtl of gmactop is
         );
     end component icap_ila;
 
+    component icapdecoupler is
+        port(
+            axis_clk        : in  STD_LOGIC;
+            axis_reset      : in  STD_LOGIC;
+            axis_prog_full  : out STD_LOGIC;
+            axis_prog_empty : out STD_LOGIC;
+            axis_data_count : out std_logic_vector(13 downto 0);            
+            ICAPClk125MHz   : in  STD_LOGIC;
+            ICAP_AVAIL      : out STD_LOGIC;
+            ICAP_DataOut    : out STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_PRDONE     : out STD_LOGIC;
+            ICAP_PRERROR    : out STD_LOGIC;
+            ICAP_CSIB       : in  STD_LOGIC;
+            ICAP_DataIn     : in  STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_RDWRB      : in  STD_LOGIC
+        );
+    end component icapdecoupler;
+    signal axis_prog_full  : std_logic;
+    signal axis_prog_empty : std_logic;
+    signal axis_data_count : STD_LOGIC_VECTOR(13 downto 0);
     signal RefClk100MHz    : std_logic;
     signal ICAPClk125MHz   : std_logic;
     signal RefClkLocked    : std_logic;
@@ -507,13 +530,14 @@ architecture rtl of gmactop is
     constant C_UDP_SERVER_PORT : natural                       := 10000;
     constant C_PR_SERVER_PORT  : natural                       := 20000;
 
-    signal ZERO_30_vector : std_logic_vector(29 downto 0);
-    signal Sig_Vcc        : std_logic;
-    signal Sig_Gnd        : std_logic;
-    signal sys_rst_n_c    : std_logic;
-    signal sys_clk_gt     : std_logic;
-    signal sys_clk        : std_logic;
-    signal ICAP_CSI       : std_logic;
+    --    signal ZERO_30_vector : std_logic_vector(29 downto 0);
+    signal Sig_Vcc           : std_logic;
+    signal Sig_Gnd           : std_logic;
+    signal sys_rst_n_c       : std_logic;
+    signal sys_clk_gt        : std_logic;
+    signal sys_clk           : std_logic;
+    signal ICAP_CSI          : std_logic;
+    signal ICAP_DataIn_Dummy : std_logic_vector(31 downto 0);
 
     function bitreverse(DataIn : std_logic_vector) return std_logic_vector is
         alias aDataIn  : std_logic_vector (DataIn'length - 1 downto 0) is DataIn;
@@ -542,10 +566,11 @@ architecture rtl of gmactop is
     end function bitbyteswap;
 
 begin
-    ZERO_30_vector <= (others => '0');
-    Sig_Vcc        <= '1';
-    Sig_Gnd        <= '0';
-    ICAP_CSIB      <= not ICAP_CSI;
+    --    ZERO_30_vector <= (others => '0');
+    Sig_Vcc <= '1';
+    Sig_Gnd <= '0';
+
+    --    ICAP_CSIB      <= not ICAP_CSI;
 
     Reset            <= (not RefClkLocked) or lReset;
     -- Dont set module to low power mode
@@ -684,13 +709,18 @@ begin
             axis_rx_tuser  => axis_rx_tuser_1,
             axis_rx_tkeep  => axis_rx_tkeep_1,
             axis_rx_tlast  => axis_rx_tlast_1,
+            axis_prog_full  => axis_prog_full,
+            axis_prog_empty => axis_prog_empty,
+            axis_data_count => axis_data_count,            
             ICAP_PRDONE    => ICAP_PRDONE,
             ICAP_PRERROR   => ICAP_PRERROR,
             ICAP_AVAIL     => ICAP_AVAIL,
-            ICAP_CSIB      => open,     --ICAP_CSIB,
+            --            ICAP_CSIB      => open,     --ICAP_CSIB,
+            ICAP_CSIB      => ICAP_CSIB,
             ICAP_RDWRB     => ICAP_RDWRB,
             ICAP_DataOut   => ICAP_DataOut,
-            ICAP_DataIn    => open      --ICAP_DataIn
+            --            ICAP_DataIn    => open      --ICAP_DataIn
+            ICAP_DataIn    => ICAP_DataIn
         );
     GMAC2_i : gmacqsfp2top
         port map(
@@ -820,18 +850,22 @@ begin
             probe_out2(0) => Enable
         );
 
-    --    ICAPDECAP_i : icapdecoupler
-    --        port map(
-    --            ICAPClk125MHz => ICAPClk125MHz,
-    --            ICAPRst       => Reset,
-    --            ICAP_AVAIL    => ICAP_AVAIL,
-    --            ICAP_DataOut  => ICAP_DataOut,
-    --            ICAP_PRDONE   => ICAP_PRDONE,
-    --            ICAP_PRERROR  => ICAP_PRERROR,
-    --            ICAP_CSIB     => ICAP_CSIB,
-    --            ICAP_DataIn   => ICAP_DataIn,
-    --            ICAP_RDWRB    => ICAP_RDWRB
-    --        );
+    ICAPDECAP_i : icapdecoupler
+        port map(
+            axis_clk        => ClkQSFP1,
+            axis_reset      => Reset,
+            axis_prog_full  => axis_prog_full,
+            axis_prog_empty => axis_prog_empty,
+            axis_data_count => axis_data_count,
+            ICAPClk125MHz   => ICAPClk125MHz,
+            ICAP_AVAIL      => ICAP_AVAIL,
+            ICAP_DataOut    => ICAP_DataOut,
+            ICAP_PRDONE     => ICAP_PRDONE,
+            ICAP_PRERROR    => ICAP_PRERROR,
+            ICAP_CSIB       => ICAP_CSIB,
+            ICAP_DataIn     => ICAP_DataIn,
+            ICAP_RDWRB      => ICAP_RDWRB
+        );
 
     -- Ref clock buffer
     refclk_ibuf : IBUFDS_GTE4
@@ -855,15 +889,18 @@ begin
 
     PCIE_i : pciexdma_refbd_wrapper
         port map(
-            GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
+            --            GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
+            GPIO2_0_tri_i(31 downto 2) => ICAP_DataIn_Dummy(31 downto 2),
             GPIO2_0_tri_i(1)           => ICAP_PRERROR,
             GPIO2_0_tri_i(0)           => ICAP_PRDONE,
             GPIO_0_tri_o               => open,
-            M_AXIS_0_tdata             => ICAP_DataIn,
+            --            M_AXIS_0_tdata             => ICAP_DataIn,
+            M_AXIS_0_tdata             => ICAP_DataIn_Dummy,
             M_AXIS_0_tkeep             => open,
             M_AXIS_0_tlast             => open,
             M_AXIS_0_tready            => ICAP_AVAIL,
-            M_AXIS_0_tvalid            => ICAP_CSI,
+            --            M_AXIS_0_tvalid            => ICAP_CSI,
+            M_AXIS_0_tvalid            => open,
             m_axis_aclk_0              => ICAPClk125MHz,
             m_axis_aresetn_0           => Sig_Vcc,
             pcie_mgt_0_rxn             => pci_exp_rxn,
@@ -876,34 +913,25 @@ begin
             user_lnk_up_0              => blink_led(0)
         );
 
-    ICAPE3_i : ICAPE3
-        generic map(
-            DEVICE_ID         => X"03628093",
-            ICAP_AUTO_SWITCH  => "DISABLE",
-            SIM_CFG_FILE_NAME => "NONE"
-        )
-        port map(
-            AVAIL   => ICAP_AVAIL,
-            O       => ICAP_DataOut,
-            PRDONE  => ICAP_PRDONE,
-            PRERROR => ICAP_PRERROR,
-            CLK     => ICAPClk125MHz,
-            CSIB    => ICAP_CSIB,
-            I       => bitbyteswap(ICAP_DataIn),
-            RDWRB   => Sig_Gnd          -- Only writing to ICAP
-        );
+    --    ICAPE3_i : ICAPE3
+    --        generic map(
+    --            DEVICE_ID         => X"03628093",
+    --            ICAP_AUTO_SWITCH  => "DISABLE",
+    --            SIM_CFG_FILE_NAME => "NONE"
+    --        )
+    --        port map(
+    --            AVAIL   => ICAP_AVAIL,
+    --            O       => ICAP_DataOut,
+    --            PRDONE  => ICAP_PRDONE,
+    --            PRERROR => ICAP_PRERROR,
+    --            CLK     => ICAPClk125MHz,
+    --            CSIB    => ICAP_CSIB,
+    ----            I       => bitbyteswap(ICAP_DataIn),
+    --            I       => ICAP_DataIn,
+    --            RDWRB   => Sig_Gnd          -- Only writing to ICAP
+    --        );
 
-    ICAPE_ILAi : icap_ila
-        port map(
-            clk       => ICAPClk125MHz,
-            probe0(0) => ICAP_PRDONE,
-            probe1(0) => ICAP_PRERROR,
-            probe2(0) => ICAP_RDWRB,
-            probe3(0) => ICAP_AVAIL,
-            probe4(0) => ICAP_CSIB,
-            probe5    => ICAP_DataOut,
-            probe6    => ICAP_DataIn
-        );
+
 
 end architecture rtl;
 

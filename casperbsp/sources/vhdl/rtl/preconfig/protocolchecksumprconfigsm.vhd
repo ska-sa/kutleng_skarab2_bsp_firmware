@@ -64,7 +64,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 entity protocolchecksumprconfigsm is
     generic(
         G_SLOT_WIDTH         : natural := 4;
@@ -140,51 +139,50 @@ architecture rtl of protocolchecksumprconfigsm is
         ClearSlotSt,
         CompleteUDPCheckSum,
         CompareChecksumSt,
-        SetAndNextICAPBufferSlotSt,
+        SetICAPBufferSlotSt,
+        NextICAPBufferSlotSt,
         SendErrorResponseSt,
         WaitSendErrorResponseSt
     );
-    signal StateVariable            : ConfigurationControllerSM_t := InitialiseSt;
-    signal lRecvRingBufferSlotID    : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lRecvRingBufferAddress   : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    signal lSenderRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lSenderRingBufferAddress : unsigned(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
+    signal StateVariable                     : ConfigurationControllerSM_t := InitialiseSt;
+    signal lRecvRingBufferSlotID             : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRecvRingBufferAddress            : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    signal lSenderRingBufferSlotID           : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lSenderRingBufferAddress          : unsigned(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
     signal lSenderRingBufferAddressDFrameMax : unsigned(G_ICAP_RB_ADDR_WIDTH - 1 downto 0);
-    
-    
 
     -- Have 7 iterations for a maximum frame of 98DWORDS on 512 bit AXI-bus with 
-    constant C_BUFFER_FRAME_ITERATIONS_MAX         : natural := (7 - 1);
+    constant C_BUFFER_FRAME_ITERATIONS_MAX  : natural := (7 - 1);
     -- Have 16 iterations for a maximum frame of 245DWORDS on 512 bit AXI-bus with 
-    constant C_BUFFER_DFRAME_ITERATIONS_MAX         : natural := (16 - 1);
+    constant C_BUFFER_DFRAME_ITERATIONS_MAX : natural := (16 - 1);
     -- Have 100 DWORDS for a maximum frame of 98DWORDS on 32 bit ICAP-bus with 
-    constant C_PACKET_DWORD_POINTER_MAX            : natural := (100 - 1);
+    constant C_PACKET_DWORD_POINTER_MAX     : natural := (100 - 1);
     -- Have 247 DWORDS for a maximum frame of 245DWORDS on 32 bit ICAP-bus with 
-    constant C_DPACKET_DWORD_POINTER_MAX            : natural := (247 - 1);
-    
+    constant C_DPACKET_DWORD_POINTER_MAX    : natural := (247 - 1);
+
     -- Have 3 DWORDS for a command of 1DWORDS on 32 bit ICAP-bus with 
-    constant C_COMMAND_DWORD_POINTER_MAX           : natural := (3 - 1);
+    constant C_COMMAND_DWORD_POINTER_MAX           : natural                       := (3 - 1);
     -- Have 16 DWORDS on the 512-bit buffer     
-    constant C_BUFFER_DWORD_POINTER_MAX            : natural := (16 - 1);
+    constant C_BUFFER_DWORD_POINTER_MAX            : natural                       := (16 - 1);
     -- Have 6 DWORDS on the 512-bit buffer for DWORD command
     -- Offset is at 11 th DWORD     
-    constant C_BUFFER_COMMAND_DWORD_POINTER_OFFSET : natural := (11 - 1);
+    constant C_BUFFER_COMMAND_DWORD_POINTER_OFFSET : natural                       := (11 - 1);
     -- Have 6 DWORDS on the 512-bit buffer for DWORD command     
-    constant C_BUFFER_COMMAND_DWORD_POINTER_MAX    : natural := (6 - 1);
+    constant C_BUFFER_COMMAND_DWORD_POINTER_MAX    : natural                       := (6 - 1);
     -- Need to iterate 12 times to calculate UDP header checksum     
-    constant C_UDP_HEADER_CHECKSUM_COUNTER_MAX     : natural := (13 - 1);
+    constant C_UDP_HEADER_CHECKSUM_COUNTER_MAX     : natural                       := (13 - 1);
     -- Need to iterate 2 times to finalize UDP header checksum     
-    constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural := (3 - 1);
+    constant C_FINAL_CHECKSUM_COUNTER_MAX          : natural                       := (3 - 1);
     -- Protocol codes, error response codes and commands
-    constant C_RESPONSE_UDP_PROTOCOL : std_logic_vector(7 downto 0)  := X"11";
-    constant C_CHECKSUM_ERROR        : std_logic_vector(31 downto 0) := X"E0000001";
-    constant C_FRAMING_ERROR         : std_logic_vector(31 downto 0) := X"E0000002";
-    constant C_DWORD_WRITE_COMMAND   : std_logic_vector(15 downto 0) := X"da01";
-    constant C_DWORD_READ_COMMAND    : std_logic_vector(15 downto 0) := X"de01";
-    constant C_FRAME_WRITE_COMMAND   : std_logic_vector(15 downto 0) := X"a562";
-    constant C_DFRAME_WRITE_COMMAND  : std_logic_vector(7 downto 0)  := X"ad";
+    constant C_RESPONSE_UDP_PROTOCOL               : std_logic_vector(7 downto 0)  := X"11";
+    constant C_CHECKSUM_ERROR                      : std_logic_vector(31 downto 0) := X"E0000001";
+    constant C_FRAMING_ERROR                       : std_logic_vector(31 downto 0) := X"E0000002";
+    constant C_DWORD_WRITE_COMMAND                 : std_logic_vector(15 downto 0) := X"da01";
+    constant C_DWORD_READ_COMMAND                  : std_logic_vector(15 downto 0) := X"de01";
+    constant C_FRAME_WRITE_COMMAND                 : std_logic_vector(15 downto 0) := X"a562";
+    constant C_DFRAME_WRITE_COMMAND                : std_logic_vector(7 downto 0)  := X"ad";
     -- Maximum length of 
-    constant C_DFRAME_LENGTH_MAX     : std_logic_vector(7 downto 0)  := X"f4";
+    constant C_DFRAME_LENGTH_MAX                   : std_logic_vector(7 downto 0)  := X"f4";
 
     -- Read buffer
     signal lRingBufferData           : std_logic_vector(511 downto 0);
@@ -409,9 +407,9 @@ begin
                     when CalculateUDPHeaderCheckSum =>
                         if (lUDPHeaderCheckSumCounter = C_UDP_HEADER_CHECKSUM_COUNTER_MAX) then
                             -- Calculate the maximum DWords for Dframe
-                             
+
                             lSenderRingBufferAddressDFrameMax <= unsigned(lPRPacketID(7 downto 0)) + 1;
-                             
+
                             -- Done with UDP Header CheckSum calculation
                             StateVariable <= WriteICAPBufferSt;
                         else
@@ -496,7 +494,7 @@ begin
                             --report "WriteICAPBufferSt Checksum calculation lPreUDPHDRCheckSum(17 downto 0) = " & to_hstring(lPreUDPHDRCheckSum(17 downto 0)) severity warning;
                             --report "WriteICAPBufferSt Checksum calculation lPayloadArray(lBufferDwordPointer)(31 downto 16) = " & to_hstring(byteswap(lPayloadArray(lBufferDwordPointer)(31 downto 16))) severity warning;
                             report "Checksum Calculation on WriteICAPBufferSt" severity warning;
-                            
+
                         end if;
                         -- Go to next DWORD
                         StateVariable                        <= UpdateCheckOffsetSt;
@@ -508,7 +506,7 @@ begin
                             -- Update the checksum upper
                             lPreUDPHDRCheckSum(16 downto 0) <= ('0' & lPreUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lPayloadArray(lBufferDwordPointer)(15 downto 0)))) + (lPreUDPHDRCheckSum(17 downto 16) and "01");
                             report "Checksum Calculation on UpdateCheckOffsetSt" severity warning;
-                            
+
                         end if;
 
                         if (lPRPacketID(7 downto 0) = X"01") then
@@ -578,7 +576,7 @@ begin
                                 end if;
                             else
                                 -- this is a DFRAME_WRITE 
-                                if ((lBufferFrameIterations = C_BUFFER_DFRAME_ITERATIONS_MAX) or (lSenderRingBufferAddress >= lSenderRingBufferAddressDFrameMax)) then
+                                if ((lBufferFrameIterations = C_BUFFER_DFRAME_ITERATIONS_MAX) or (lSenderRingBufferAddress > lSenderRingBufferAddressDFrameMax)) then
                                     -- Done with data
                                     StateVariable <= ClearSlotSt;
                                 else
@@ -587,12 +585,15 @@ begin
                                     -- is fully consumed and forwarded
                                     StateVariable          <= ReadBufferSt;
                                 end if;
-                                                       
+
                             end if;
                         end if;
 
                     when ClearSlotSt =>
+                        -- Clear the current processing slot
                         FilterRingBufferSlotClear <= '1';
+                        -- Restart the Frame Iterations
+                        lBufferFrameIterations <= 0;
                         StateVariable             <= NextSlotSt;
 
                     when NextSlotSt =>
@@ -635,7 +636,7 @@ begin
                         lFinalCheckSumCounter <= 0;
                         if (lUDPFinalCheckSum = lUDPCheckSum) then
                             -- Done with data
-                            StateVariable <= SetAndNextICAPBufferSlotSt;
+                            StateVariable <= SetICAPBufferSlotSt;
                         else
                             -- Got checksum error
                             ProtocolErrorID <= C_CHECKSUM_ERROR;
@@ -645,15 +646,24 @@ begin
                             StateVariable   <= WaitSendErrorResponseSt;
                         end if;
 
-                    when SetAndNextICAPBufferSlotSt =>
+                    when SetICAPBufferSlotSt =>
                         -- Data has integrity forward it by setting the active
                         -- ICAP Ring Buffer slot
                         ICAPRingBufferSlotSet   <= '1';
-                        -- Output the current SlotID while pointing to next slot ID.
-                        ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
+                        -- Point to next slot ID
                         lSenderRingBufferSlotID <= lSenderRingBufferSlotID + 1;
                         -- Go check for data on next receiver ring buffer slot
+                        StateVariable           <= NextICAPBufferSlotSt;
+
+                    when NextICAPBufferSlotSt =>
+                        -- Data has integrity forward it by setting the active
+                        -- ICAP Ring Buffer slot
+                        ICAPRingBufferSlotSet   <= '0';
+                        -- Output the current SlotID
+                        ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
+                        -- Go check for data on next receiver ring buffer slot
                         StateVariable           <= CheckSlotSt;
+
 
                     when WaitSendErrorResponseSt =>
                         -- Alert the responder of the error 

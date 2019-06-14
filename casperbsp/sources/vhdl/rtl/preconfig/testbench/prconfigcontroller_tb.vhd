@@ -98,6 +98,9 @@ architecture rtl of prconfigcontroller_tb is
             axis_tx_tready    : in  STD_LOGIC;
             axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
             axis_tx_tlast     : out STD_LOGIC;
+        	axis_prog_full    : in  STD_LOGIC;
+        	axis_prog_empty   : in  STD_LOGIC;	
+            axis_data_count   : in  STD_LOGIC_VECTOR(13 downto 0);                        			
             ICAP_PRDONE       : in  std_logic;
             ICAP_PRERROR      : in  std_logic;
             ICAP_AVAIL        : in  std_logic;
@@ -115,7 +118,7 @@ architecture rtl of prconfigcontroller_tb is
     signal axis_clk           : std_logic                        := '1';
     signal icap_clk           : std_logic                        := '1';
     signal axis_reset         : std_logic                        := '1';
-    signal ICAP_PRDONE        : std_logic                        := '0';
+    signal ICAP_PRDONE        : std_logic                        := '1';
     signal ICAP_PRERROR       : std_logic                        := '0';
     signal ICAP_AVAIL         : std_logic                        := '1';
     signal ICAP_CSIB          : std_logic;
@@ -128,6 +131,11 @@ architecture rtl of prconfigcontroller_tb is
     signal axis_rx_tkeep  : STD_LOGIC_VECTOR(63 downto 0);
     signal axis_rx_tlast  : STD_LOGIC;
     signal axis_rx_tuser  : STD_LOGIC;
+	
+	signal axis_prog_full         : STD_LOGIC := '0';
+    signal axis_prog_empty        : STD_LOGIC := '1';
+    signal axis_data_count        : STD_LOGIC_VECTOR(13 downto 0) := (others => '0');                
+    
 
     signal axis_tx_tpriority_1_pr : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal axis_tx_tdata_1_pr     : STD_LOGIC_VECTOR(511 downto 0);
@@ -151,147 +159,1013 @@ begin
         axis_rx_tkeep  <= (others => '0');
         axis_rx_tlast  <= '0';
         wait for C_ICAP_CLK_PERIOD * 30;
+        
+        axis_data_count <= "00" & X"100";
+        
+        -- 1
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
 		
-        -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000007ff500000000000000000000c0e800000000031500000000000000000000000000000000c120000000001ff9000000007ff5000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000000007ffd00000000000000000000080000000000006000000000000000000000000000000000c1200000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"0000000000000000000002f4000000007ffd0000000000000000000064100000000000000000000000000000000000000000000000010000000002f300000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000002f2f000000002f2f00000000000000000000000000000000000000000000ff00000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000e54dbd23000000000000000000000000000000000000000010bd00000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"00ffffffffffffff";
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+		
+        
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
 
-        -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
+
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
         wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000007ff500000000000000000000c0e800000000031500000000000000000000000000000000c120000000001ff9000000007ff5000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000000007ffd00000000000000000000080000000000006000000000000000000000000000000000c1200000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"0000000000000000000002f4000000007ffd0000000000000000000064100000000000000000000000000000000000000000000000010000000002f300000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000002f2f000000002f2f00000000000000000000000000000000000000000000ff00000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"00000000e54dbd23000000000000000000000000000000000000000010bd00000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"00ffffffffffffff";
         axis_rx_tlast  <= '1';
         axis_rx_tvalid <= '1';
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-		
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+        
+        
+        
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
 
-       -- Send DFRAME: DFRAME_LENGTH = 0xF4
+
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+        
+        
+        
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+
+
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+                        
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x17
         wait for C_CLK_PERIOD;
         axis_rx_tvalid <= '1';
-        -- 1 
-        axis_rx_tdata  <= X"2000000000002000000040002000000001000000f4adef94de03102749ba0a64a8c09664a8c0f768114000401284f20300450008acfbc34b6b50924102350a00";
+        axis_rx_tdata  <= X"200000000000200000000000200000001600000017ad64086a001027a6d60a64a8c09664a8c0cf0d11400040aee27e0000450008acfbc34b6b50924102350a00";
         axis_rx_tkeep  <= X"ffffffffffffffff";
         wait for C_CLK_PERIOD;
-        -- 2
-        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000004000200000000000200000004000200000000000200000004000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 3 
-        axis_rx_tdata  <= X"00002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 4 
-        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 5 
         axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
         axis_rx_tkeep  <= X"ffffffffffffffff";
         wait for C_CLK_PERIOD;
-        -- 6
-        axis_rx_tdata  <= X"04002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 7
-        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000003020000000010020000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 8 
-        axis_rx_tdata  <= X"c001000000000000000030008001000004b220930000300180010000200000000000200000000000000000070000300080010000200000000000200000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 9
-        axis_rx_tdata  <= X"00003003000100000020000000003000c00100000002000000003003000100000002000000003000c00100000000040000003000a00100000000050000003000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 10
-        axis_rx_tdata  <= X"0040000000000000004000000000000000000040000000003000405d00000004580d000030002001000020000000000000000001000030008001000000200000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 11
-        axis_rx_tdata  <= X"00400000000000000000000000200000002000400000000100000000adf400000000000000400000000000000000004000000000000000400000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 12
-        axis_rx_tdata  <= X"00000000002000000020000000000000000000000000002000000020004000000000000000000000002000000020004000000000000000000000002000000020";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 13
-        axis_rx_tdata  <= X"00200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 14
-        axis_rx_tdata  <= X"00000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 15
-        axis_rx_tdata  <= X"00000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 16
-        axis_rx_tdata  <= X"00000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tdata  <= X"00000000000000000000000000000000cacd6be500000000200000000000200000000000200000000000200000000000cacd6be5000000002000000000002000";
+        axis_rx_tkeep  <= X"0000000000000fff";
         axis_rx_tlast  <= '1';
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 20;		
+		
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 20;      
+		
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x17
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000001600000017ad64086a001027a6d60a64a8c09664a8c0cf0d11400040aee27e0000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000cacd6be500000000200000000000200000000000200000000000200000000000cacd6be5000000002000000000002000";
+        axis_rx_tkeep  <= X"0000000000000fff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 20;      
+        
+		
+
+		
+		
+        
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 20;      
+        
+        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 30;      
+
+
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
+        
+        
+
 
 
 
@@ -311,6 +1185,27 @@ begin
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
         wait for C_CLK_PERIOD*4;		
+        wait for C_ICAP_CLK_PERIOD * 10;
+		
+
+        
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x17
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000001600000017ad64086a001027a6d60a64a8c09664a8c0cf0d11400040aee27e0000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000cacd6be500000000200000000000200000000000200000000000200000000000cacd6be5000000002000000000002000";
+        axis_rx_tkeep  <= X"0000000000000fff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
 		
         --  Send DFRAME: DFRAME_LENGTH = 0x09
         wait for C_CLK_PERIOD;
@@ -324,7 +1219,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
         
 
 
@@ -344,7 +1239,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 100;
 
 
         --  Send DFRAME: DFRAME_LENGTH = 0x16
@@ -362,7 +1257,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
 
@@ -382,7 +1277,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
         --  Send DFRAME: DFRAME_LENGTH = 0x18
@@ -400,84 +1295,8 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
 		
-
-		-- Send DFRAME: DFRAME_LENGTH = 0xF5
-        wait for C_CLK_PERIOD;
-        axis_rx_tvalid <= '1';
-        -- 1 
-        axis_rx_tdata  <= X"0000000000000000000000000000000002000000f5adbbd2e203102749ba0a64a8c09664a8c0f268114000401384f60300450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 2
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 3 
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 4 
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000aa0200000000003000000000012000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 5 
-        axis_rx_tdata  <= X"eaae00003000000100000004580d0000300020010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 6
-        axis_rx_tdata  <= X"00000040000000000000004000000000000000000040000000003000405d000000045a0d000030002001000020000000000000000001000030008001000078ce";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 7
-        axis_rx_tdata  <= X"00000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 8 
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000004000000000000000400000000000000000004000000000000000400000000000000000004000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 9
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 10
-        axis_rx_tdata  <= X"000044040000000004040000000000000000000000000000000000000000000000000d5a00000000003000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 11
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000200000000adf500000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 12
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 13
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 14
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 15
-        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000002aa00003000000000000000000000000000200100000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 16
-        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        axis_rx_tkeep  <= X"ffffffffffffffff";
-        wait for C_CLK_PERIOD;
-        -- 17
-        axis_rx_tdata  <= X"000000000000000000000000000000008912726300000000000000000000000000000000000000000000000000000000000000000000000089127263bb1122aa";
-        axis_rx_tkeep  <= X"000000000000000f";
-        axis_rx_tlast  <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
 
 
 
@@ -490,7 +1309,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 100;
 
 
         --  Send DFRAME: DFRAME_LENGTH = 0x02
@@ -502,7 +1321,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
         
 
 
@@ -515,7 +1334,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
         
 
         --  Send DFRAME: DFRAME_LENGTH = 0x04
@@ -527,7 +1346,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;        
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
         
@@ -543,7 +1362,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
         
 
 
@@ -559,7 +1378,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
         --  Send DFRAME: DFRAME_LENGTH = 0x07
@@ -574,7 +1393,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
         --  Send DFRAME: DFRAME_LENGTH = 0x08
@@ -589,11 +1408,175 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 40;
         
 
+        --  Send DFRAME: DFRAME_LENGTH = 0x24
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000000300000024ad354a9e00102753930a64a8c09664a8c0b6d9114000409316b20000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x25
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000000400000025ad10ffa200102753930a64a8c09664a8c0b1d9114000409416b60000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"0000ffffffff0000ffffffff0000ffffffff000050000a3f00003003c00000002000000000002000000000000000000700003000800100002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"000000000000000000000000000000000000000000000000eac42f69ffffffff0000ffffffff0000ffffffff0000ffffffff000050000a3feac42f69ffffffff";
+        axis_rx_tkeep  <= X"000000000000000f";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x26
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"ffffffff0000112200440000000000bb0500000026ad8f29a600102753930a64a8c09664a8c0acd9114000409516ba0000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000aa9955660000ffffffff0000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"00002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000001e000000000000001e000000000000001e000000000000001e000000004d2a179d0000000020000000";
+        axis_rx_tkeep  <= X"00000000000000ff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
+        -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000007ff500000000000000000000c0e800000000031500000000000000000000000000000000c120000000001ff9000000007ff5000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000000007ffd00000000000000000000080000000000006000000000000000000000000000000000c1200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000002f4000000007ffd0000000000000000000064100000000000000000000000000000000000000000000000010000000002f300000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000002f2f000000002f2f00000000000000000000000000000000000000000000ff00000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000e54dbd23000000000000000000000000000000000000000010bd00000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"00ffffffffffffff";
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
+
+
+
+        --  Send DFRAME: DFRAME_LENGTH = 0x09
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000000800000009ad100a32001027a6d60a64a8c09664a8c0150e11400040a0e2460000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000001e000000000000001e000000000000000093a06e360000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"00000000000fffff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
+        
+        --  Send DFRAME: DFRAME_LENGTH = 0x17
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        axis_rx_tdata  <= X"200000000000200000000000200000001600000017ad64086a001027a6d60a64a8c09664a8c0cf0d11400040aee27e0000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000cacd6be500000000200000000000200000000000200000000000200000000000cacd6be5000000002000000000002000";
+        axis_rx_tkeep  <= X"0000000000000fff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
+        
+        
+        -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000007ff500000000000000000000c0e800000000031500000000000000000000000000000000c120000000001ff9000000007ff5000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000000007ffd00000000000000000000080000000000006000000000000000000000000000000000c1200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000002f4000000007ffd0000000000000000000064100000000000000000000000000000000000000000000000010000000002f300000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000002f2f000000002f2f00000000000000000000000000000000000000000000ff00000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000e54dbd23000000000000000000000000000000000000000010bd00000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"00ffffffffffffff";
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 40;
 
 
         -- Send DFRAME: DFRAME_LENGTH = 0xF4
@@ -666,7 +1649,7 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
-        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 400;
 
 
 		
@@ -743,6 +1726,7 @@ begin
         wait for C_CLK_PERIOD*4;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 400;
 		
 		
 		
@@ -779,52 +1763,9 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 500;
 		
 		
-        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
-        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"0fffffffffffffff";
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '1';
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';
-        wait for C_ICAP_CLK_PERIOD;
-        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
-        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"0fffffffffffffff";
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '1';
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';
-        wait for C_ICAP_CLK_PERIOD;
-        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
-        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"0fffffffffffffff";
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '1';
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';
-        -- Send DWORD 3 AA99_5566 : Sequence 0000_0014 - This is an error packet
-        wait for C_CLK_PERIOD;
-        axis_rx_tdata  <= X"2ac843fa0000000000000000aa9955660000001401da4deb1200102778b50a64a8c09664a8c015da11400040c016260000450008acfbc34b6b50924102350a00";
-        axis_rx_tkeep  <= X"0fffffffffffffff";
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '1';
-        axis_rx_tvalid <= '1';
-        wait for C_CLK_PERIOD;
-        axis_rx_tlast  <= '0';
-        axis_rx_tvalid <= '0';
-        
-
-
-        
-
 
 		-- Send DFRAME: DFRAME_LENGTH = 0xF5
         wait for C_CLK_PERIOD;
@@ -901,9 +1842,11 @@ begin
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
         wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 400;
 
 
-        -- Send DFRAME: DFRAME_LENGTH = 0xF4
+
+       -- Send DFRAME: DFRAME_LENGTH = 0xF4
         wait for C_CLK_PERIOD;
         axis_rx_tvalid <= '1';
         -- 1 
@@ -974,7 +1917,283 @@ begin
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
         wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 400;
 
+        
+       -- Send DFRAME: DFRAME_LENGTH = 0xF4
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        -- 1 
+        axis_rx_tdata  <= X"2000000000002000000040002000000001000000f4adef94de03102749ba0a64a8c09664a8c0f768114000401284f20300450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 2
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000004000200000000000200000004000200000000000200000004000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 3 
+        axis_rx_tdata  <= X"00002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 4 
+        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 5 
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 6
+        axis_rx_tdata  <= X"04002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 7
+        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000003020000000010020000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 8 
+        axis_rx_tdata  <= X"c001000000000000000030008001000004b220930000300180010000200000000000200000000000000000070000300080010000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 9
+        axis_rx_tdata  <= X"00003003000100000020000000003000c00100000002000000003003000100000002000000003000c00100000000040000003000a00100000000050000003000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 10
+        axis_rx_tdata  <= X"0040000000000000004000000000000000000040000000003000405d00000004580d000030002001000020000000000000000001000030008001000000200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 11
+        axis_rx_tdata  <= X"00400000000000000000000000200000002000400000000100000000adf400000000000000400000000000000000004000000000000000400000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 12
+        axis_rx_tdata  <= X"00000000002000000020000000000000000000000000002000000020004000000000000000000000002000000020004000000000000000000000002000000020";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 13
+        axis_rx_tdata  <= X"00200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 14
+        axis_rx_tdata  <= X"00000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 15
+        axis_rx_tdata  <= X"00000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 16
+        axis_rx_tdata  <= X"00000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_CLK_PERIOD*4;
+        wait for C_ICAP_CLK_PERIOD * 400;
+
+        
+        
+        
+
+       -- Send DFRAME: DFRAME_LENGTH = 0xF4
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        -- 1 
+        axis_rx_tdata  <= X"2000000000002000000040002000000001000000f4adef94de03102749ba0a64a8c09664a8c0f768114000401284f20300450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 2
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000004000200000000000200000004000200000000000200000004000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 3 
+        axis_rx_tdata  <= X"00002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 4 
+        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 5 
+        axis_rx_tdata  <= X"00000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 6
+        axis_rx_tdata  <= X"04002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000000040002000000000002000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 7
+        axis_rx_tdata  <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000003020000000010020000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 8 
+        axis_rx_tdata  <= X"c001000000000000000030008001000004b220930000300180010000200000000000200000000000000000070000300080010000200000000000200000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 9
+        axis_rx_tdata  <= X"00003003000100000020000000003000c00100000002000000003003000100000002000000003000c00100000000040000003000a00100000000050000003000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 10
+        axis_rx_tdata  <= X"0040000000000000004000000000000000000040000000003000405d00000004580d000030002001000020000000000000000001000030008001000000200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 11
+        axis_rx_tdata  <= X"00400000000000000000000000200000002000400000000100000000adf400000000000000400000000000000000004000000000000000400000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 12
+        axis_rx_tdata  <= X"00000000002000000020000000000000000000000000002000000020004000000000000000000000002000000020004000000000000000000000002000000020";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 13
+        axis_rx_tdata  <= X"00200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 14
+        axis_rx_tdata  <= X"00000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000002000000000000000000000000000200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 15
+        axis_rx_tdata  <= X"00000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000000000000000002000000020000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 16
+        axis_rx_tdata  <= X"00000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020000000200000000000000000000000000020";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 400;
+
+
+
+        -- Send DFRAME: DFRAME_LENGTH = 0xF5
+        wait for C_CLK_PERIOD;
+        axis_rx_tvalid <= '1';
+        -- 1 
+        axis_rx_tdata  <= X"0000000000000000000000000000000002000000f5adbbd2e203102749ba0a64a8c09664a8c0f268114000401384f60300450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 2
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 3 
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 4 
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000aa0200000000003000000000012000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 5 
+        axis_rx_tdata  <= X"eaae00003000000100000004580d0000300020010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 6
+        axis_rx_tdata  <= X"00000040000000000000004000000000000000000040000000003000405d000000045a0d000030002001000020000000000000000001000030008001000078ce";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 7
+        axis_rx_tdata  <= X"00000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 8 
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000004000000000000000400000000000000000004000000000000000400000000000000000004000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 9
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 10
+        axis_rx_tdata  <= X"000044040000000004040000000000000000000000000000000000000000000000000d5a00000000003000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 11
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000200000000adf500000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 12
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 13
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 14
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 15
+        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000002aa00003000000000000000000000000000200100000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 16
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        wait for C_CLK_PERIOD;
+        -- 17
+        axis_rx_tdata  <= X"000000000000000000000000000000008912726300000000000000000000000000000000000000000000000000000000000000000000000089127263bb1122aa";
+        axis_rx_tkeep  <= X"000000000000000f";
+        axis_rx_tlast  <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 300;
+
+
+        -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000c0900000000003133000405d0000015262a56d7c9601102774830a64a8c09664a8c0ca281140004087c6aa0100450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000007ff500000000000000000000c0e800000000031500000000000000000000000000000000c120000000001ff9000000007ff5000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000000000000000000000000000000007ffd00000000000000000000080000000000006000000000000000000000000000000000c1200000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"0000000000000000000002f4000000007ffd0000000000000000000064100000000000000000000000000000000000000000000000010000000002f300000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000002f2f000000002f2f00000000000000000000000000000000000000000000ff00000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"ffffffffffffffff";
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tdata  <= X"00000000e54dbd23000000000000000000000000000000000000000010bd00000000000000000000000000000000000000000000000000000000000000000000";
+        axis_rx_tkeep  <= X"00ffffffffffffff";
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 300;
+		
+	    axis_prog_full <= '1';
+        -- Send DWORD 1 FFFF_FFFF : Sequence 0000_0001
+        axis_rx_tdata  <= X"f0a90c0f0000000000000000ffffffff0000000101da4dfe1200102778b50a64a8c09664a8c028da11400040ad16260000450008acfbc34b6b50924102350a00";
+        axis_rx_tkeep  <= X"0fffffffffffffff";
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '1';
+        axis_rx_tvalid <= '1';
+        wait for C_CLK_PERIOD;
+        axis_rx_tlast  <= '0';
+        axis_rx_tvalid <= '0';
+        wait for C_ICAP_CLK_PERIOD * 10;
 
                         
         -- Send FRAME 3 FFFF_FFFF : Sequence 0000_00152
@@ -1010,6 +2229,9 @@ begin
         wait for C_CLK_PERIOD;
         axis_rx_tlast  <= '0';
         axis_rx_tvalid <= '0';
+        axis_prog_full <= '0';
+        wait for C_ICAP_CLK_PERIOD * 1000;
+        
         wait;
     end process stimproc;
     UUT_i : prconfigcontroller
@@ -1039,6 +2261,9 @@ begin
             axis_rx_tuser     => axis_rx_tuser,
             axis_rx_tkeep     => axis_rx_tkeep,
             axis_rx_tlast     => axis_rx_tlast,
+			axis_prog_full    => axis_prog_full,
+			axis_prog_empty   => axis_prog_empty,
+			axis_data_count   => axis_data_count,
             ICAP_PRDONE       => ICAP_PRDONE,
             ICAP_PRERROR      => ICAP_PRERROR,
             ICAP_AVAIL        => ICAP_AVAIL,

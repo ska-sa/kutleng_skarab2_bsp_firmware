@@ -73,8 +73,8 @@ entity protocolresponderprconfigsm is
         G_ADDR_WIDTH : natural := 5
     );
     port(
-        icap_clk                   : in  STD_LOGIC;
-        icap_reset                 : in  STD_LOGIC;
+        axis_clk                   : in  STD_LOGIC;
+        axis_reset                 : in  STD_LOGIC;
         -- Source IP Addressing information
         ServerMACAddress           : in  STD_LOGIC_VECTOR(47 downto 0);
         ServerIPAddress            : in  STD_LOGIC_VECTOR(31 downto 0);
@@ -110,6 +110,10 @@ entity protocolresponderprconfigsm is
         ICAPProtocolID             : in  STD_LOGIC_VECTOR(15 downto 0);
         ICAPProtocolSequence       : in  STD_LOGIC_VECTOR(31 downto 0);
         --ICAPE3 interface
+        axis_prog_full             : in  STD_LOGIC;
+        axis_prog_empty            : in  STD_LOGIC;
+        axis_data_count            : in  STD_LOGIC_VECTOR(13 downto 0);                                                
+        ICAP_FilledSlots           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         ICAP_PRDONE                : in  STD_LOGIC;
         ICAP_PRERROR               : in  STD_LOGIC;
         ICAP_Readback              : in  STD_LOGIC_VECTOR(31 downto 0)
@@ -133,8 +137,8 @@ architecture rtl of protocolresponderprconfigsm is
     signal StateVariable : ConfigurationControllerSM_t := InitialiseSt;
     constant C_DWORD_MAX : natural                     := (16 - 1);
 
-    constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";
-    constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";
+    constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";--was 12
+    constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";--was 26
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
     constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)  := X"45";
     constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)  := X"00";
@@ -167,6 +171,9 @@ architecture rtl of protocolresponderprconfigsm is
     alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
     alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
     alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
+--    alias lPRFIFOState              : std_logic_vector(15 downto 0) is lRingBufferData(367 downto 352);
+--    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(399 downto 368);
+--    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(431 downto 400);
     signal lIPHDRCheckSum           : unsigned(16 downto 0);
     signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
     signal lUDPHDRCheckSum          : unsigned(17 downto 0);
@@ -186,9 +193,12 @@ architecture rtl of protocolresponderprconfigsm is
     signal lAddressingChanged       : std_logic;
     signal lICAP_PRDONE             : std_logic;
     signal lICAP_PRERROR            : std_logic;
+    signal laxis_prog_full          : std_logic;
+    signal laxis_prog_empty         : std_logic;
     signal lProtocolErrorStatus     : std_logic;
     signal lIPIdentification        : unsigned(15 downto 0);
     signal lPacketID                : std_logic_vector(15 downto 0);
+    signal lFIFOState               : std_logic_vector(15 downto 0);
     signal lPacketSequence          : std_logic_vector(31 downto 0);
     signal lPacketDWORDCommand      : std_logic_vector(31 downto 0);
     signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;
@@ -223,7 +233,7 @@ architecture rtl of protocolresponderprconfigsm is
             RData24(23 downto 16) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData24);
         end if;
-		if (DataIn'length = RData16'length) then
+        if (DataIn'length = RData16'length) then
             RData16(7 downto 0)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
             RData16(15 downto 8) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
             return unsigned(RData16);
@@ -318,9 +328,9 @@ begin
     SenderRingBufferSlotID  <= std_logic_vector(lSenderRingBufferSlotID);
     SenderRingBufferAddress <= std_logic_vector(lSenderRingBufferAddress);
 
-    AddressingChangeProc : process(icap_clk)
+    AddressingChangeProc : process(axis_clk)
     begin
-        if (rising_edge(icap_clk)) then
+        if (rising_edge(axis_clk)) then
 
             if (lServerMACAddress = ServerMACAddress) then
                 lServerMACAddressChanged <= '0';
@@ -369,11 +379,11 @@ begin
         end if;
     end process AddressingChangeProc;
 
-    SynchStateProc : process(icap_clk)
+    SynchStateProc : process(axis_clk)
     begin
-        if rising_edge(icap_clk) then
+        if rising_edge(axis_clk) then
 
-            if (icap_reset = '1') then
+            if (axis_reset = '1') then
 
                 StateVariable <= InitialiseSt;
             else
@@ -398,7 +408,7 @@ begin
                         SenderBusy           <= '0';
 
                     when CheckProtocolICAPSt =>
-                        SenderBusy           <= '0';
+                        SenderBusy       <= '0';
                         lCheckSumCounter <= 0;
                         if (ProtocolError = '1') then
 
@@ -407,7 +417,7 @@ begin
                             lProtocolErrorStatus <= '1';
                             lPacketSequence      <= ProtocolSequence;
                             lPacketDWORDCommand  <= ProtocolErrorID;
-                            lIPIdentification    <= unsigned(ProtocolIPIdentification) + 1;
+                            lIPIdentification    <= unsigned(ProtocolIPIdentification);-- Dont increment identification + 1;
                             StateVariable        <= AcknowledgeProtocolSt;
 
                         else
@@ -418,8 +428,10 @@ begin
                                 lICAP_PRDONE          <= ICAP_PRDONE;
                                 lICAP_PRERROR         <= ICAP_PRERROR;
                                 lPacketDWORDCommand   <= ICAP_Readback;
+                                laxis_prog_full       <= axis_prog_full;
+                                laxis_prog_empty      <= axis_prog_empty;
                                 lPacketSequence       <= ICAPProtocolSequence;
-                                lIPIdentification     <= unsigned(ICAPIPIdentification) + 1;
+                                lIPIdentification     <= unsigned(ICAPIPIdentification);-- Dont increment identification  + 1;
                                 StateVariable         <= AcknowledgeICAPSt;
 
                             else
@@ -446,9 +458,9 @@ begin
                     when AcknowledgeICAPSt =>
                         -- Signal the busy status of the packet responder
                         SenderBusy <= '1';
-
-                        lPacketID <= lProtocolErrorStatus & lICAP_PRERROR & lICAP_PRDONE & '0' & ICAPProtocolID(11 downto 0);
-
+                        -- Send the fifo status
+                        lPacketID  <=  ICAP_FilledSlots & lICAP_PRERROR & lICAP_PRDONE & laxis_prog_full & laxis_prog_empty & ICAPProtocolID(13 - G_SLOT_WIDTH-2 downto 0);
+                        lFIFOState <= laxis_prog_full & laxis_prog_empty & axis_data_count(13 downto 0);
                         if (ICAPWriteDone = '1') then
                             StateVariable <= AcknowledgeICAPSt;
                         else
@@ -490,6 +502,7 @@ begin
                         -- These three will be overwritten later
                         -- The response PacketID
                         lPRPacketID                     <= byteswap(lPacketID);
+--                        lPRFIFOState                    <= byteswap(lFIFOState);
                         -- The response Packet Sequence
                         lPRPacketSequence               <= byteswap(lPacketSequence);
                         -- The response Configuration Status
@@ -599,6 +612,8 @@ begin
                                 lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceUDPPort))) + lUDPHDRCheckSum(17 downto 16);
                             when 8 =>
                                 lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationUDPPort))) + lUDPHDRCheckSum(17 downto 16);
+--                            when 9 =>
+--                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lFIFOState)) + lUDPHDRCheckSum(17 downto 16);
                             when 9 =>
                                 if (lUDPHDRCheckSum(16) = '1') then
                                     lUDPHDRCheckSum(15 downto 0) <= lUDPHDRCheckSum(15 downto 0) + 1;
