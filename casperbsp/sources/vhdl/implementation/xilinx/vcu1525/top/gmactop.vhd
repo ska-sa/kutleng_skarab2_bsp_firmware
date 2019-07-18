@@ -78,24 +78,12 @@ entity gmactop is
         -- QSFP+ 2
         mgt_qsfp2_clock_p : in  STD_LOGIC;
         mgt_qsfp2_clock_n : in  STD_LOGIC;
-        --RX     
-        qsfp1_mgt_rx0_p   : in  STD_LOGIC;
-        qsfp1_mgt_rx0_n   : in  STD_LOGIC;
-        qsfp1_mgt_rx1_p   : in  STD_LOGIC;
-        qsfp1_mgt_rx1_n   : in  STD_LOGIC;
-        qsfp1_mgt_rx2_p   : in  STD_LOGIC;
-        qsfp1_mgt_rx2_n   : in  STD_LOGIC;
-        qsfp1_mgt_rx3_p   : in  STD_LOGIC;
-        qsfp1_mgt_rx3_n   : in  STD_LOGIC;
-        -- TX
-        qsfp1_mgt_tx0_p   : out STD_LOGIC;
-        qsfp1_mgt_tx0_n   : out STD_LOGIC;
-        qsfp1_mgt_tx1_p   : out STD_LOGIC;
-        qsfp1_mgt_tx1_n   : out STD_LOGIC;
-        qsfp1_mgt_tx2_p   : out STD_LOGIC;
-        qsfp1_mgt_tx2_n   : out STD_LOGIC;
-        qsfp1_mgt_tx3_p   : out STD_LOGIC;
-        qsfp1_mgt_tx3_n   : out STD_LOGIC;
+		--RX     
+		qsfp1_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+		qsfp1_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+		-- TX
+		qsfp1_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+		qsfp1_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Settings
         qsfp1_modsell_ls  : out STD_LOGIC;
         qsfp1_resetl_ls   : out STD_LOGIC;
@@ -103,24 +91,12 @@ entity gmactop is
         qsfp1_intl_ls     : in  STD_LOGIC;
         qsfp1_lpmode_ls   : out STD_LOGIC;
         -- QSFP+ 2
-        --RX
-        qsfp2_mgt_rx0_p   : in  STD_LOGIC;
-        qsfp2_mgt_rx0_n   : in  STD_LOGIC;
-        qsfp2_mgt_rx1_p   : in  STD_LOGIC;
-        qsfp2_mgt_rx1_n   : in  STD_LOGIC;
-        qsfp2_mgt_rx2_p   : in  STD_LOGIC;
-        qsfp2_mgt_rx2_n   : in  STD_LOGIC;
-        qsfp2_mgt_rx3_p   : in  STD_LOGIC;
-        qsfp2_mgt_rx3_n   : in  STD_LOGIC;
-        -- TX
-        qsfp2_mgt_tx0_p   : out STD_LOGIC;
-        qsfp2_mgt_tx0_n   : out STD_LOGIC;
-        qsfp2_mgt_tx1_p   : out STD_LOGIC;
-        qsfp2_mgt_tx1_n   : out STD_LOGIC;
-        qsfp2_mgt_tx2_p   : out STD_LOGIC;
-        qsfp2_mgt_tx2_n   : out STD_LOGIC;
-        qsfp2_mgt_tx3_p   : out STD_LOGIC;
-        qsfp2_mgt_tx3_n   : out STD_LOGIC;
+		--RX     
+		qsfp2_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+		qsfp2_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+		-- TX
+		qsfp2_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+		qsfp2_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Settings
         qsfp2_modsell_ls  : out STD_LOGIC;
         qsfp2_resetl_ls   : out STD_LOGIC;
@@ -169,63 +145,11 @@ architecture rtl of gmactop is
         );
     end component pciexdma_refbd_wrapper;
 
-    component gmacqsfp1top is
-        port(
-            -- Reference clock to generate 100MHz from
-            Clk100MHz        : in  STD_LOGIC;
-            -- Global System Enable
-            Enable           : in  STD_LOGIC;
-            Reset            : in  STD_LOGIC;
-            -- Ethernet reference clock for 156.25MHz
-            -- QSFP+ 
-            mgt_qsfp_clock_p : in  STD_LOGIC;
-            mgt_qsfp_clock_n : in  STD_LOGIC;
-            --RX     
-            qsfp_mgt_rx0_p   : in  STD_LOGIC;
-            qsfp_mgt_rx0_n   : in  STD_LOGIC;
-            qsfp_mgt_rx1_p   : in  STD_LOGIC;
-            qsfp_mgt_rx1_n   : in  STD_LOGIC;
-            qsfp_mgt_rx2_p   : in  STD_LOGIC;
-            qsfp_mgt_rx2_n   : in  STD_LOGIC;
-            qsfp_mgt_rx3_p   : in  STD_LOGIC;
-            qsfp_mgt_rx3_n   : in  STD_LOGIC;
-            -- TX
-            qsfp_mgt_tx0_p   : out STD_LOGIC;
-            qsfp_mgt_tx0_n   : out STD_LOGIC;
-            qsfp_mgt_tx1_p   : out STD_LOGIC;
-            qsfp_mgt_tx1_n   : out STD_LOGIC;
-            qsfp_mgt_tx2_p   : out STD_LOGIC;
-            qsfp_mgt_tx2_n   : out STD_LOGIC;
-            qsfp_mgt_tx3_p   : out STD_LOGIC;
-            qsfp_mgt_tx3_n   : out STD_LOGIC;
-            -- Lbus and AXIS
-            -- This bus runs at 322.265625MHz
-            lbus_reset       : in  STD_LOGIC;
-            -- Overflow signal
-            lbus_tx_ovfout   : out STD_LOGIC;
-            -- Underflow signal
-            lbus_tx_unfout   : out STD_LOGIC;
-            -- AXIS Bus
-            -- RX Bus
-            axis_rx_clkin    : in  STD_LOGIC;
-            axis_rx_tdata    : in  STD_LOGIC_VECTOR(511 downto 0);
-            axis_rx_tvalid   : in  STD_LOGIC;
-            axis_rx_tready   : out STD_LOGIC;
-            axis_rx_tkeep    : in  STD_LOGIC_VECTOR(63 downto 0);
-            axis_rx_tlast    : in  STD_LOGIC;
-            axis_rx_tuser    : in  STD_LOGIC;
-            -- TX Bus
-            axis_tx_clkout   : out STD_LOGIC;
-            axis_tx_tdata    : out STD_LOGIC_VECTOR(511 downto 0);
-            axis_tx_tvalid   : out STD_LOGIC;
-            axis_tx_tkeep    : out STD_LOGIC_VECTOR(63 downto 0);
-            axis_tx_tlast    : out STD_LOGIC;
-            -- User signal for errors and dropping of packets
-            axis_tx_tuser    : out STD_LOGIC
-        );
-    end component gmacqsfp1top;
 
-    component gmacqsfp2top is
+    component mac100gphy is
+		generic(
+			C_MAC_INSTANCE  : natural range 0 to 1 := 0
+		);
         port(
             -- Reference clock to generate 100MHz from
             Clk100MHz        : in  STD_LOGIC;
@@ -236,24 +160,12 @@ architecture rtl of gmactop is
             -- QSFP+ 
             mgt_qsfp_clock_p : in  STD_LOGIC;
             mgt_qsfp_clock_n : in  STD_LOGIC;
-            --RX     
-            qsfp_mgt_rx0_p   : in  STD_LOGIC;
-            qsfp_mgt_rx0_n   : in  STD_LOGIC;
-            qsfp_mgt_rx1_p   : in  STD_LOGIC;
-            qsfp_mgt_rx1_n   : in  STD_LOGIC;
-            qsfp_mgt_rx2_p   : in  STD_LOGIC;
-            qsfp_mgt_rx2_n   : in  STD_LOGIC;
-            qsfp_mgt_rx3_p   : in  STD_LOGIC;
-            qsfp_mgt_rx3_n   : in  STD_LOGIC;
-            -- TX
-            qsfp_mgt_tx0_p   : out STD_LOGIC;
-            qsfp_mgt_tx0_n   : out STD_LOGIC;
-            qsfp_mgt_tx1_p   : out STD_LOGIC;
-            qsfp_mgt_tx1_n   : out STD_LOGIC;
-            qsfp_mgt_tx2_p   : out STD_LOGIC;
-            qsfp_mgt_tx2_n   : out STD_LOGIC;
-            qsfp_mgt_tx3_p   : out STD_LOGIC;
-            qsfp_mgt_tx3_n   : out STD_LOGIC;
+			--RX     
+			qsfp_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+			qsfp_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+			-- TX
+			qsfp_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+			qsfp_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
             -- Lbus and AXIS
             -- This bus runs at 322.265625MHz
             lbus_reset       : in  STD_LOGIC;
@@ -278,7 +190,7 @@ architecture rtl of gmactop is
             -- User signal for errors and dropping of packets
             axis_tx_tuser    : out STD_LOGIC
         );
-    end component gmacqsfp2top;
+    end component mac100gphy;
 
     component microblaze_axi_us_plus_wrapper is
         port(
@@ -623,29 +535,20 @@ begin
             clk_in1_n => sysclk1_300_n
         );
 
-    GMAC1_i : gmacqsfp1top
+    GMAC1_i : mac100gphy
+		generic map(
+			C_MAC_INSTANCE = 0 -- Instantiate CMAC0 QSFP1
+		)
         port map(
             Clk100MHz        => RefClk100MHz,
             Enable           => Enable,
             Reset            => Reset,
             mgt_qsfp_clock_p => mgt_qsfp1_clock_p,
             mgt_qsfp_clock_n => mgt_qsfp1_clock_n,
-            qsfp_mgt_rx0_p   => qsfp1_mgt_rx0_p,
-            qsfp_mgt_rx0_n   => qsfp1_mgt_rx0_n,
-            qsfp_mgt_rx1_p   => qsfp1_mgt_rx1_p,
-            qsfp_mgt_rx1_n   => qsfp1_mgt_rx1_n,
-            qsfp_mgt_rx2_p   => qsfp1_mgt_rx2_p,
-            qsfp_mgt_rx2_n   => qsfp1_mgt_rx2_n,
-            qsfp_mgt_rx3_p   => qsfp1_mgt_rx3_p,
-            qsfp_mgt_rx3_n   => qsfp1_mgt_rx3_n,
-            qsfp_mgt_tx0_p   => qsfp1_mgt_tx0_p,
-            qsfp_mgt_tx0_n   => qsfp1_mgt_tx0_n,
-            qsfp_mgt_tx1_p   => qsfp1_mgt_tx1_p,
-            qsfp_mgt_tx1_n   => qsfp1_mgt_tx1_n,
-            qsfp_mgt_tx2_p   => qsfp1_mgt_tx2_p,
-            qsfp_mgt_tx2_n   => qsfp1_mgt_tx2_n,
-            qsfp_mgt_tx3_p   => qsfp1_mgt_tx3_p,
-            qsfp_mgt_tx3_n   => qsfp1_mgt_tx3_n,
+            qsfp_mgt_rx_p    => qsfp1_mgt_rx_p,
+            qsfp_mgt_rx_n    => qsfp1_mgt_rx_n,
+            qsfp_mgt_tx_p    => qsfp1_mgt_tx_p,
+            qsfp_mgt_tx_n    => qsfp1_mgt_tx_n,
             axis_tx_clkout   => ClkQSFP1,
             axis_rx_clkin    => ClkQSFP1,
             lbus_tx_ovfout   => lbus1_tx_ovfout,
@@ -722,29 +625,21 @@ begin
             --            ICAP_DataIn    => open      --ICAP_DataIn
             ICAP_DataIn    => ICAP_DataIn
         );
-    GMAC2_i : gmacqsfp2top
+
+    GMAC2_i : mac100gphy
+		generic map(
+			C_MAC_INSTANCE = 1 -- Instantiate CMAC0 QSFP1
+		)
         port map(
             Clk100MHz        => RefClk100MHz,
             Enable           => Enable,
             Reset            => Reset,
             mgt_qsfp_clock_p => mgt_qsfp2_clock_p,
             mgt_qsfp_clock_n => mgt_qsfp2_clock_n,
-            qsfp_mgt_rx0_p   => qsfp2_mgt_rx0_p,
-            qsfp_mgt_rx0_n   => qsfp2_mgt_rx0_n,
-            qsfp_mgt_rx1_p   => qsfp2_mgt_rx1_p,
-            qsfp_mgt_rx1_n   => qsfp2_mgt_rx1_n,
-            qsfp_mgt_rx2_p   => qsfp2_mgt_rx2_p,
-            qsfp_mgt_rx2_n   => qsfp2_mgt_rx2_n,
-            qsfp_mgt_rx3_p   => qsfp2_mgt_rx3_p,
-            qsfp_mgt_rx3_n   => qsfp2_mgt_rx3_n,
-            qsfp_mgt_tx0_p   => qsfp2_mgt_tx0_p,
-            qsfp_mgt_tx0_n   => qsfp2_mgt_tx0_n,
-            qsfp_mgt_tx1_p   => qsfp2_mgt_tx1_p,
-            qsfp_mgt_tx1_n   => qsfp2_mgt_tx1_n,
-            qsfp_mgt_tx2_p   => qsfp2_mgt_tx2_p,
-            qsfp_mgt_tx2_n   => qsfp2_mgt_tx2_n,
-            qsfp_mgt_tx3_p   => qsfp2_mgt_tx3_p,
-            qsfp_mgt_tx3_n   => qsfp2_mgt_tx3_n,
+            qsfp2_mgt_rx_p   => qsfp2_mgt_rx_p,
+            qsfp2_mgt_rx_n   => qsfp2_mgt_rx_n,
+            qsfp2_mgt_tx_p   => qsfp2_mgt_tx_p,
+            qsfp2_mgt_tx_n   => qsfp2_mgt_tx_n,
             axis_tx_clkout   => ClkQSFP2,
             axis_rx_clkin    => ClkQSFP2,
             lbus_tx_ovfout   => lbus2_tx_ovfout,

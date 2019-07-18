@@ -51,33 +51,34 @@ set_property PACKAGE_PIN T11 [get_ports mgt_qsfp2_clock_p]
 
 
 #QSFP0 MGT Signals
+
 #RX0
 #TX0
-set_property PACKAGE_PIN U4 [get_ports qsfp2_mgt_rx0_p]
-set_property PACKAGE_PIN U3 [get_ports qsfp2_mgt_rx0_n]
-set_property PACKAGE_PIN U9 [get_ports qsfp2_mgt_tx0_p]
-set_property PACKAGE_PIN U8 [get_ports qsfp2_mgt_tx0_n]
+set_property PACKAGE_PIN U4 [get_ports {qsfp2_mgt_rx_p[0]}]
+set_property PACKAGE_PIN U3 [get_ports {qsfp2_mgt_rx_n[0]}]
+set_property PACKAGE_PIN U9 [get_ports {qsfp2_mgt_tx_p[0]}]
+set_property PACKAGE_PIN U8 [get_ports {qsfp2_mgt_tx_n[0]}]
 
 #RX1
 #TX1
-set_property PACKAGE_PIN T2 [get_ports qsfp2_mgt_rx1_p]
-set_property PACKAGE_PIN T1 [get_ports qsfp2_mgt_rx1_n]
-set_property PACKAGE_PIN T7 [get_ports qsfp2_mgt_tx1_p]
-set_property PACKAGE_PIN T6 [get_ports qsfp2_mgt_tx1_n]
+set_property PACKAGE_PIN T2 [get_ports {qsfp2_mgt_rx_p[1]}]
+set_property PACKAGE_PIN T1 [get_ports {qsfp2_mgt_rx_n[1]}]
+set_property PACKAGE_PIN T7 [get_ports {qsfp2_mgt_tx_p[1]}]
+set_property PACKAGE_PIN T6 [get_ports {qsfp2_mgt_tx_n[1]}]
 
 #RX2
 #TX2
-set_property PACKAGE_PIN R4 [get_ports qsfp2_mgt_rx2_p]
-set_property PACKAGE_PIN R3 [get_ports qsfp2_mgt_rx2_n]
-set_property PACKAGE_PIN R9 [get_ports qsfp2_mgt_tx2_p]
-set_property PACKAGE_PIN R8 [get_ports qsfp2_mgt_tx2_n]
+set_property PACKAGE_PIN R4 [get_ports {qsfp2_mgt_rx_p[2]}]
+set_property PACKAGE_PIN R3 [get_ports {qsfp2_mgt_rx_n[2]}]
+set_property PACKAGE_PIN R9 [get_ports {qsfp2_mgt_tx_p[2]}]
+set_property PACKAGE_PIN R8 [get_ports {qsfp2_mgt_tx_n[2]}]
 
 #RX3
 #TX3
-set_property PACKAGE_PIN P2 [get_ports qsfp2_mgt_rx3_p]
-set_property PACKAGE_PIN P1 [get_ports qsfp2_mgt_rx3_n]
-set_property PACKAGE_PIN P7 [get_ports qsfp2_mgt_tx3_p]
-set_property PACKAGE_PIN P6 [get_ports qsfp2_mgt_tx3_n]
+set_property PACKAGE_PIN P2 [get_ports {qsfp2_mgt_rx_p[3]}]
+set_property PACKAGE_PIN P1 [get_ports {qsfp2_mgt_rx_n[3]}]
+set_property PACKAGE_PIN P7 [get_ports {qsfp2_mgt_tx_p[3]}]
+set_property PACKAGE_PIN P6 [get_ports {qsfp2_mgt_tx_n[3]}]
 
 # QSFP0 Settings
 set_property PACKAGE_PIN BE21 [get_ports qsfp2_intl_ls]
@@ -104,31 +105,32 @@ set_property PACKAGE_PIN M11 [get_ports mgt_qsfp1_clock_p]
 
 #RX0
 #TX0
-set_property PACKAGE_PIN N4 [get_ports qsfp1_mgt_rx0_p]
-set_property PACKAGE_PIN N3 [get_ports qsfp1_mgt_rx0_n]
-set_property PACKAGE_PIN N9 [get_ports qsfp1_mgt_tx0_p]
-set_property PACKAGE_PIN N8 [get_ports qsfp1_mgt_tx0_n]
+set_property PACKAGE_PIN N4 [get_ports {qsfp1_mgt_rx_p[0]}]
+set_property PACKAGE_PIN N3 [get_ports {qsfp1_mgt_rx_n[0]}]
+set_property PACKAGE_PIN N9 [get_ports {qsfp1_mgt_tx_p[0]}]
+set_property PACKAGE_PIN N8 [get_ports {qsfp1_mgt_tx_n[0]}]
 
 #RX1
 #TX1
-set_property PACKAGE_PIN M2 [get_ports qsfp1_mgt_rx1_p]
-set_property PACKAGE_PIN M1 [get_ports qsfp1_mgt_rx1_n]
-set_property PACKAGE_PIN M7 [get_ports qsfp1_mgt_tx1_p]
-set_property PACKAGE_PIN M6 [get_ports qsfp1_mgt_tx1_n]
+set_property PACKAGE_PIN M2 [get_ports {qsfp1_mgt_rx_p[1]}]
+set_property PACKAGE_PIN M1 [get_ports {qsfp1_mgt_rx_n[1]}]
+set_property PACKAGE_PIN M7 [get_ports {qsfp1_mgt_tx_p[1]}]
+set_property PACKAGE_PIN M6 [get_ports {qsfp1_mgt_tx_n[1]}]
 
 #RX2
 #TX2
-set_property PACKAGE_PIN L4 [get_ports qsfp1_mgt_rx2_p]
-set_property PACKAGE_PIN L3 [get_ports qsfp1_mgt_rx2_n]
-set_property PACKAGE_PIN L9 [get_ports qsfp1_mgt_tx2_p]
-set_property PACKAGE_PIN L8 [get_ports qsfp1_mgt_tx2_n]
+set_property PACKAGE_PIN L4 [get_ports {qsfp1_mgt_rx_p[2]}]
+set_property PACKAGE_PIN L3 [get_ports {qsfp1_mgt_rx_n[2]}]
+set_property PACKAGE_PIN L9 [get_ports {qsfp1_mgt_tx_p[2]}]
+set_property PACKAGE_PIN L8 [get_ports {qsfp1_mgt_tx_n[2]}]
 
 #RX3
 #TX3
-set_property PACKAGE_PIN K2 [get_ports qsfp1_mgt_rx3_p]
-set_property PACKAGE_PIN K1 [get_ports qsfp1_mgt_rx3_n]
-set_property PACKAGE_PIN K7 [get_ports qsfp1_mgt_tx3_p]
-set_property PACKAGE_PIN K6 [get_ports qsfp1_mgt_tx3_n]
+set_property PACKAGE_PIN K2 [get_ports {qsfp1_mgt_rx_p[3]}]
+set_property PACKAGE_PIN K1 [get_ports {qsfp1_mgt_rx_n[3]}]
+set_property PACKAGE_PIN K7 [get_ports {qsfp1_mgt_tx_p[3]}]
+set_property PACKAGE_PIN K6 [get_ports {qsfp1_mgt_tx_n[3]}]
+
 
 # QSFP1 Settings
 
