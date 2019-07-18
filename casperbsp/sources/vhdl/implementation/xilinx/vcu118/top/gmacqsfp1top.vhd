@@ -71,24 +71,12 @@ entity gmacqsfp1top is
         -- QSFP+ 
         mgt_qsfp_clock_p : in  STD_LOGIC;
         mgt_qsfp_clock_n : in  STD_LOGIC;
-        --RX     
-        qsfp_mgt_rx0_p   : in  STD_LOGIC;
-        qsfp_mgt_rx0_n   : in  STD_LOGIC;
-        qsfp_mgt_rx1_p   : in  STD_LOGIC;
-        qsfp_mgt_rx1_n   : in  STD_LOGIC;
-        qsfp_mgt_rx2_p   : in  STD_LOGIC;
-        qsfp_mgt_rx2_n   : in  STD_LOGIC;
-        qsfp_mgt_rx3_p   : in  STD_LOGIC;
-        qsfp_mgt_rx3_n   : in  STD_LOGIC;
-        -- TX
-        qsfp_mgt_tx0_p   : out STD_LOGIC;
-        qsfp_mgt_tx0_n   : out STD_LOGIC;
-        qsfp_mgt_tx1_p   : out STD_LOGIC;
-        qsfp_mgt_tx1_n   : out STD_LOGIC;
-        qsfp_mgt_tx2_p   : out STD_LOGIC;
-        qsfp_mgt_tx2_n   : out STD_LOGIC;
-        qsfp_mgt_tx3_p   : out STD_LOGIC;
-        qsfp_mgt_tx3_n   : out STD_LOGIC;
+	    --RX     
+	    qsfp_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+	    qsfp_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+	    -- TX
+	    qsfp_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+	    qsfp_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Lbus and AXIS
         -- This bus runs at 322.265625MHz
         lbus_reset       : in  STD_LOGIC;
@@ -632,22 +620,10 @@ begin
 
     MACPHY_QSFP1_i : EthMACPHY100GQSFP14x
         port map(
-            gt_txp_out(0)                  => qsfp_mgt_tx0_p,
-            gt_txp_out(1)                  => qsfp_mgt_tx1_p,
-            gt_txp_out(2)                  => qsfp_mgt_tx2_p,
-            gt_txp_out(3)                  => qsfp_mgt_tx3_p,
-            gt_txn_out(0)                  => qsfp_mgt_tx0_n,
-            gt_txn_out(1)                  => qsfp_mgt_tx1_n,
-            gt_txn_out(2)                  => qsfp_mgt_tx2_n,
-            gt_txn_out(3)                  => qsfp_mgt_tx3_n,
-            gt_rxp_in(0)                   => qsfp_mgt_rx0_p,
-            gt_rxp_in(1)                   => qsfp_mgt_rx1_p,
-            gt_rxp_in(2)                   => qsfp_mgt_rx2_p,
-            gt_rxp_in(3)                   => qsfp_mgt_rx3_p,
-            gt_rxn_in(0)                   => qsfp_mgt_rx0_n,
-            gt_rxn_in(1)                   => qsfp_mgt_rx1_n,
-            gt_rxn_in(2)                   => qsfp_mgt_rx2_n,
-            gt_rxn_in(3)                   => qsfp_mgt_rx3_n,
+            gt_txp_out                     => qsfp_mgt_tx_p,
+            gt_txn_out                     => qsfp_mgt_tx_n,
+            gt_rxp_in                      => qsfp_mgt_rx_p,
+            gt_rxn_in                      => qsfp_mgt_rx_n,
             gt_txusrclk2                   => lbus_tx_clk,
             gt_loopback_in                 => gt_loopback_in,
             gt_ref_clk_out                 => open,
