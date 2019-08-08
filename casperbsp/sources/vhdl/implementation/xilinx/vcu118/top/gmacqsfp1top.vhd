@@ -59,48 +59,65 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity gmacqsfp1top is
     port(
         -- Reference clock to generate 100MHz from
-        Clk100MHz        : in  STD_LOGIC;
+        Clk100MHz                    : in  STD_LOGIC;
         -- Global System Enable
-        Enable           : in  STD_LOGIC;
-        Reset            : in  STD_LOGIC;
+        Enable                       : in  STD_LOGIC;
+        Reset                        : in  STD_LOGIC;
         -- Ethernet reference clock for 156.25MHz
         -- QSFP+ 
-        mgt_qsfp_clock_p : in  STD_LOGIC;
-        mgt_qsfp_clock_n : in  STD_LOGIC;
-	    --RX     
-	    qsfp_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
-	    qsfp_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
-	    -- TX
-	    qsfp_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
-	    qsfp_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
+        mgt_qsfp_clock_p             : in  STD_LOGIC;
+        mgt_qsfp_clock_n             : in  STD_LOGIC;
+        --RX     
+        qsfp_mgt_rx_p                : in  STD_LOGIC_VECTOR(3 downto 0);
+        qsfp_mgt_rx_n                : in  STD_LOGIC_VECTOR(3 downto 0);
+        -- TX
+        qsfp_mgt_tx_p                : out STD_LOGIC_VECTOR(3 downto 0);
+        qsfp_mgt_tx_n                : out STD_LOGIC_VECTOR(3 downto 0);
+        -- Statistics interface            
+        gmac_reg_core_type           : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_h        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_l        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_control_h       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_control_l       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_rate      : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_count     : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_rate       : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_count      : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_rate      : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_count     : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_rate       : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_count      : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_bad_packet_count : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_counters_reset      : in  STD_LOGIC;
         -- Lbus and AXIS
         -- This bus runs at 322.265625MHz
-        lbus_reset       : in  STD_LOGIC;
+        lbus_reset                   : in  STD_LOGIC;
         -- Overflow signal
-        lbus_tx_ovfout   : out STD_LOGIC;
+        lbus_tx_ovfout               : out STD_LOGIC;
         -- Underflow signal
-        lbus_tx_unfout   : out STD_LOGIC;
+        lbus_tx_unfout               : out STD_LOGIC;
         -- AXIS Bus
         -- RX Bus
-        axis_rx_clkin    : in  STD_LOGIC;
-        axis_rx_tdata    : in  STD_LOGIC_VECTOR(511 downto 0);
-        axis_rx_tvalid   : in  STD_LOGIC;
-        axis_rx_tready   : out STD_LOGIC;
-        axis_rx_tkeep    : in  STD_LOGIC_VECTOR(63 downto 0);
-        axis_rx_tlast    : in  STD_LOGIC;
-        axis_rx_tuser    : in  STD_LOGIC;
+        axis_rx_clkin                : in  STD_LOGIC;
+        axis_rx_tdata                : in  STD_LOGIC_VECTOR(511 downto 0);
+        axis_rx_tvalid               : in  STD_LOGIC;
+        axis_rx_tready               : out STD_LOGIC;
+        axis_rx_tkeep                : in  STD_LOGIC_VECTOR(63 downto 0);
+        axis_rx_tlast                : in  STD_LOGIC;
+        axis_rx_tuser                : in  STD_LOGIC;
         -- TX Bus
-        axis_tx_clkout   : out STD_LOGIC;
-        axis_tx_tdata    : out STD_LOGIC_VECTOR(511 downto 0);
-        axis_tx_tvalid   : out STD_LOGIC;
-        axis_tx_tkeep    : out STD_LOGIC_VECTOR(63 downto 0);
-        axis_tx_tlast    : out STD_LOGIC;
+        axis_tx_clkout               : out STD_LOGIC;
+        axis_tx_tdata                : out STD_LOGIC_VECTOR(511 downto 0);
+        axis_tx_tvalid               : out STD_LOGIC;
+        axis_tx_tkeep                : out STD_LOGIC_VECTOR(63 downto 0);
+        axis_tx_tlast                : out STD_LOGIC;
         -- User signal for errors and dropping of packets
-        axis_tx_tuser    : out STD_LOGIC
+        axis_tx_tuser                : out STD_LOGIC
     );
 end entity gmacqsfp1top;
 
@@ -161,7 +178,7 @@ architecture rtl of gmacqsfp1top is
             rx_otn_vlmarker                : OUT STD_LOGIC;
             rx_preambleout                 : OUT STD_LOGIC_VECTOR(55 DOWNTO 0);
             usr_rx_reset                   : OUT STD_LOGIC;
-            gt_rxusrclk2                   : OUT STD_LOGIC;            
+            gt_rxusrclk2                   : OUT STD_LOGIC;
             stat_rx_aligned                : OUT STD_LOGIC;
             stat_rx_aligned_err            : OUT STD_LOGIC;
             stat_rx_bad_code               : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
@@ -513,40 +530,208 @@ architecture rtl of gmacqsfp1top is
     signal ctl_rx_test_pattern : STD_LOGIC;
     signal gt_loopback_in      : STD_LOGIC_VECTOR(11 DOWNTO 0);
     signal tx_preamblein       : STD_LOGIC_VECTOR(55 DOWNTO 0);
-    signal drp_clk             : STD_LOGIC;
-    signal drp_addr            : STD_LOGIC_VECTOR(9 DOWNTO 0);
-    signal drp_di              : STD_LOGIC_VECTOR(15 DOWNTO 0);
-    signal drp_en              : STD_LOGIC;
-    signal drp_we              : STD_LOGIC;
 
+    signal ctl_tx_send_idle_unsync    : STD_LOGIC;
+    signal ctl_tx_send_rfi_unsync     : STD_LOGIC;
+    signal ctl_tx_send_lfi_unsync     : STD_LOGIC;
+    signal ctl_tx_test_pattern_unsync : STD_LOGIC;
+    signal ctl_rx_force_resync_unsync : STD_LOGIC;
+    signal ctl_rx_test_pattern_unsync : STD_LOGIC;
+    signal gt_loopback_in_unsync      : STD_LOGIC_VECTOR(11 DOWNTO 0);
+
+    signal drp_clk                      : STD_LOGIC;
+    signal drp_addr                     : STD_LOGIC_VECTOR(9 DOWNTO 0);
+    signal drp_di                       : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    signal drp_en                       : STD_LOGIC;
+    signal drp_we                       : STD_LOGIC;
+    constant C_COUNTERS_CLOCK_FREQUENCY : NATURAL                       := 322_265_625;
+    signal lRxOneSecondCounter          : NATURAL range 0 to C_COUNTERS_CLOCK_FREQUENCY - 1;
+    signal lTxOneSecondCounter          : NATURAL range 0 to C_COUNTERS_CLOCK_FREQUENCY - 1;
+    signal tx_packet_rate_counter       : NATURAL;
+    signal tx_packet_counter            : NATURAL;
+    signal tx_valid_rate_counter        : NATURAL;
+    signal tx_valid_counter             : NATURAL;
+    signal rx_packet_rate_counter       : NATURAL;
+    signal rx_packet_counter            : NATURAL;
+    signal rx_valid_rate_counter        : NATURAL;
+    signal rx_valid_counter             : NATURAL;
+    signal rx_bad_packet_counter        : NATURAL;
+    signal tx_sync_reg_counters_reset   : std_logic;
+    signal tx_unsync_reg_counters_reset : std_logic;
+    signal rx_sync_reg_counters_reset   : std_logic;
+    signal rx_unsync_reg_counters_reset : std_logic;
+    signal laxis_tx_tlast               : std_logic;
+    signal laxis_tx_tvalid              : std_logic;
+    signal laxis_tx_tuser               : std_logic;
+    -- Set core type to CPU_TX/RX_Enable := Enable
+    -- Core Revision := 1.0
+    -- Core Type :=5 := 100GbE   
+    constant C_CORE_TYPE                : std_logic_vector(15 downto 0) := X"1005";
 begin
     axis_tx_clkout <= lbus_tx_clk;
     lbus_rx_clk    <= axis_rx_clkin;
     lbus_rx_reset  <= Reset or lbus_reset;
     lbus_tx_reset  <= Reset or lbus_reset;
+    axis_tx_tlast  <= laxis_tx_tlast;
+    axis_tx_tvalid <= laxis_tx_tvalid;
+    axis_tx_tuser  <= laxis_tx_tuser;
 
-    -- Don't send idle frames 
-    ctl_tx_send_idle    <= '0';
-    -- Don't send remote fault indicators 
-    ctl_tx_send_rfi     <= '0';
-    -- Don't send local fault indicators 	   
-    ctl_tx_send_lfi     <= '0';
-    -- Don't set transmitter to send test patterns 
-    ctl_tx_test_pattern <= '0';
-    -- Don't force resynchronizations 	
-    ctl_rx_force_resync <= '0';
-    -- Don't set receiver to test patterns
-    ctl_rx_test_pattern <= '0';
-    -- Set loop back to normal operation for all 4 MGTs
-    gt_loopback_in      <= X"000";
     -- We are not using the custom preamble
-    tx_preamblein       <= (others => '0');
+    tx_preamblein <= (others => '0');
     -- Tie down DRP as it is not used
-    drp_clk             <= '0';
-    drp_addr            <= (others => '0');
-    drp_di              <= (others => '0');
-    drp_en              <= '0';
-    drp_we              <= '0';
+    drp_clk       <= '0';
+    drp_addr      <= (others => '0');
+    drp_di        <= (others => '0');
+    drp_en        <= '0';
+    drp_we        <= '0';
+
+    --Register MAP interface settings
+    gmac_reg_core_type    <= "0000000" & Enable & "0000000" & Enable & C_CORE_TYPE;
+    gmac_reg_phy_status_h <= (others => '0');
+    gmac_reg_phy_status_l <= (others => '0');
+
+    gmac_reg_tx_packet_count <= std_logic_vector(to_unsigned(tx_packet_counter, gmac_reg_tx_packet_count'length));
+    gmac_reg_tx_valid_count  <= std_logic_vector(to_unsigned(tx_valid_counter, gmac_reg_tx_valid_count'length));
+
+    gmac_reg_rx_packet_count     <= std_logic_vector(to_unsigned(rx_packet_counter, gmac_reg_rx_packet_count'length));
+    gmac_reg_rx_valid_count      <= std_logic_vector(to_unsigned(rx_valid_counter, gmac_reg_rx_valid_count'length));
+    gmac_reg_rx_bad_packet_count <= std_logic_vector(to_unsigned(rx_bad_packet_counter, gmac_reg_rx_bad_packet_count'length));
+
+    PhySettingsProc : process(lbus_tx_clk)
+    begin
+        if rising_edge(lbus_tx_clk) then
+            if ((tx_sync_reg_counters_reset = '1') or (lbus_reset = '1') or (Reset = '1')) then
+                -- Don't send idle frames 
+                ctl_tx_send_idle    <= '0';
+                -- Don't send remote fault indicators 
+                ctl_tx_send_rfi     <= '0';
+                -- Don't send local fault indicators       
+                ctl_tx_send_lfi     <= '0';
+                -- Don't set transmitter to send test patterns 
+                ctl_tx_test_pattern <= '0';
+                -- Don't force resynchronizations   
+                ctl_rx_force_resync <= '0';
+                -- Don't set receiver to test patterns
+                ctl_rx_test_pattern <= '0';
+                -- Set loop back to normal operation for all 4 MGTs
+                gt_loopback_in      <= X"000";
+            else
+                -- Don't send idle frames 
+                ctl_tx_send_idle_unsync    <= gmac_reg_phy_control_h(0);
+                ctl_tx_send_idle           <= ctl_tx_send_idle_unsync;
+                -- Don't send remote fault indicators 
+                ctl_tx_send_rfi            <= ctl_tx_send_rfi_unsync;
+                ctl_tx_send_rfi_unsync     <= gmac_reg_phy_control_h(1);
+                -- Don't send local fault indicators       
+                ctl_tx_send_lfi            <= ctl_tx_send_lfi_unsync;
+                ctl_tx_send_lfi_unsync     <= gmac_reg_phy_control_h(2);
+                -- Don't set transmitter to send test patterns 
+                ctl_tx_test_pattern        <= ctl_tx_test_pattern_unsync;
+                ctl_tx_test_pattern_unsync <= gmac_reg_phy_control_h(3);
+                -- Don't force resynchronizations   
+                ctl_rx_force_resync        <= ctl_rx_force_resync_unsync;
+                ctl_rx_force_resync_unsync <= gmac_reg_phy_control_h(4);
+                -- Don't set receiver to test patterns
+                ctl_rx_test_pattern        <= ctl_rx_test_pattern_unsync;
+                ctl_rx_test_pattern_unsync <= gmac_reg_phy_control_h(5);
+                -- Set loop back to normal operation for all 4 MGTs
+                gt_loopback_in             <= gt_loopback_in_unsync;
+                gt_loopback_in_unsync      <= gmac_reg_phy_control_l(11 downto 0);
+            end if;
+        end if;
+    end process PhySettingsProc;
+
+    RxCountersProc : process(lbus_tx_clk)
+    begin
+        if rising_edge(lbus_tx_clk) then
+            -- Safely cross the clock domain from the AXILite interface to LBUS
+            tx_unsync_reg_counters_reset <= gmac_reg_counters_reset;
+            tx_sync_reg_counters_reset   <= tx_unsync_reg_counters_reset;
+            if ((tx_sync_reg_counters_reset = '1') or (lbus_reset = '1') or (Reset = '1')) then
+                -- Reset all registers to zero
+                gmac_reg_rx_packet_rate <= (others => '0');
+                gmac_reg_rx_valid_rate  <= (others => '0');
+                rx_packet_rate_counter  <= 0;
+                rx_packet_counter       <= 0;
+                rx_valid_rate_counter   <= 0;
+                rx_valid_counter        <= 0;
+                rx_bad_packet_counter   <= 0;
+                lRxOneSecondCounter     <= 0;
+            else
+                -- One Second Timer clock
+                if (lRxOneSecondCounter = C_COUNTERS_CLOCK_FREQUENCY - 1) then
+                    -- This timer is used to generate a tick every one second
+                    gmac_reg_rx_packet_rate <= std_logic_vector(to_unsigned(rx_packet_rate_counter, gmac_reg_rx_packet_rate'length));
+                    gmac_reg_rx_valid_rate  <= std_logic_vector(to_unsigned(rx_valid_rate_counter, gmac_reg_rx_valid_rate'length));
+                    rx_packet_rate_counter  <= 0;
+                    rx_valid_rate_counter   <= 0;
+                    lRxOneSecondCounter     <= 0;
+                else
+                    if ((laxis_tx_tlast = '1') and (laxis_tx_tvalid = '1')) then
+                        -- Increment the packet counters
+                        rx_packet_rate_counter <= rx_packet_rate_counter + 1;
+                        rx_packet_counter      <= rx_packet_counter + 1;
+                    end if;
+
+                    if ((laxis_tx_tlast = '1') and (laxis_tx_tvalid = '1') and (laxis_tx_tuser = '0')) then
+                        -- Increment the valid counters
+                        rx_valid_rate_counter <= rx_valid_rate_counter + 1;
+                        rx_valid_counter      <= rx_valid_counter + 1;
+                    end if;
+                    if ((laxis_tx_tlast = '1') and (laxis_tx_tvalid = '1') and (laxis_tx_tuser = '1')) then
+                        -- Increment the bad packet counters
+                        rx_bad_packet_counter <= rx_bad_packet_counter + 1;
+                    end if;
+                    lRxOneSecondCounter <= lRxOneSecondCounter + 1;
+                end if;
+
+            end if;
+        end if;
+    end process RxCountersProc;
+
+    TxCountersProc : process(lbus_rx_clk)
+    begin
+        if rising_edge(lbus_rx_clk) then
+            -- Safely cross the clock domain from the AXILite interface to LBUS
+            rx_unsync_reg_counters_reset <= gmac_reg_counters_reset;
+            rx_sync_reg_counters_reset   <= rx_unsync_reg_counters_reset;
+            if ((rx_sync_reg_counters_reset = '1') or (lbus_reset = '1') or (Reset = '1')) then
+                -- Reset all registers to zero
+                gmac_reg_tx_packet_rate <= (others => '0');
+                gmac_reg_tx_valid_rate  <= (others => '0');
+                tx_packet_rate_counter  <= 0;
+                tx_packet_counter       <= 0;
+                tx_valid_rate_counter   <= 0;
+                tx_valid_counter        <= 0;
+                lTxOneSecondCounter     <= 0;
+            else
+                -- One Second Timer clock
+                if (lTxOneSecondCounter = C_COUNTERS_CLOCK_FREQUENCY - 1) then
+                    -- This timer is used to generate a tick every one second
+                    gmac_reg_tx_packet_rate <= std_logic_vector(to_unsigned(tx_packet_rate_counter, gmac_reg_tx_packet_rate'length));
+                    gmac_reg_tx_valid_rate  <= std_logic_vector(to_unsigned(tx_valid_rate_counter, gmac_reg_tx_valid_rate'length));
+                    tx_packet_rate_counter  <= 0;
+                    tx_valid_rate_counter   <= 0;
+                    lTxOneSecondCounter     <= 0;
+                else
+                    if ((axis_rx_tlast = '1') and (axis_rx_tvalid = '1')) then
+                        -- Increment the packet counters
+                        tx_packet_rate_counter <= tx_packet_rate_counter + 1;
+                        tx_packet_counter      <= tx_packet_counter + 1;
+                    end if;
+
+                    if ((axis_rx_tlast = '1') and (axis_rx_tvalid = '1') and (axis_rx_tuser = '0')) then
+                        -- Increment the valid counters
+                        tx_valid_rate_counter <= tx_valid_rate_counter + 1;
+                        tx_valid_counter      <= tx_valid_counter + 1;
+                    end if;
+
+                    lTxOneSecondCounter <= lTxOneSecondCounter + 1;
+                end if;
+
+            end if;
+        end if;
+    end process TxCountersProc;
 
     LBUSAXIS_QSFP1_i : lbustoaxis
         port map(
@@ -561,10 +746,10 @@ begin
             axis_rx_tlast   => axis_rx_tlast,
             axis_rx_tuser   => axis_rx_tuser,
             axis_tx_tdata   => axis_tx_tdata,
-            axis_tx_tvalid  => axis_tx_tvalid,
+            axis_tx_tvalid  => laxis_tx_tvalid,
             axis_tx_tkeep   => axis_tx_tkeep,
-            axis_tx_tlast   => axis_tx_tlast,
-            axis_tx_tuser   => axis_tx_tuser,
+            axis_tx_tlast   => laxis_tx_tlast,
+            axis_tx_tuser   => laxis_tx_tuser,
             -- TX
             lbus_tx_rdyout  => lbus_tx_rdyout,
             lbus_txdataout0 => lbus_txdataout0,
