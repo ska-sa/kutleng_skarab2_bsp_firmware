@@ -32,102 +32,135 @@ entity ethernetcore_mm_v1_0 is
     );
     port(
         -- Users to add ports here
-
+        gmac_reg_phy_control_h        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_control_l        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_mac_address          : out STD_LOGIC_VECTOR(47 downto 0);
+        gmac_reg_local_ip_address     : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_gateway_ip_address   : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_multicast_ip_address : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_multicast_ip_mask    : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_udp_port             : out STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_udp_port_mask        : out STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_mac_enable           : out STD_LOGIC;
+        gmac_reg_mac_promiscous_mode  : out STD_LOGIC;
+        gmac_reg_counters_reset       : out STD_LOGIC;
+        gmac_reg_core_type            : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_h         : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_l         : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_afull_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_almost_full_count : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_bad_packet_count  : in  STD_LOGIC_VECTOR(31 downto 0);
+        --
+        gmac_reg_arp_size             : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_rx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_tx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_rx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
         -- User ports ends
         -- Do not modify the ports beyond this line
 
         -- Ports of Axi Slave Bus Interface S00_AXI
-        s00_axi_aclk       : in  std_logic;
-        s00_axi_aresetn    : in  std_logic;
-        s00_axi_awaddr     : in  std_logic_vector(C_S00_AXI_ADDR_WIDTH - 1 downto 0);
-        s00_axi_awprot     : in  std_logic_vector(2 downto 0);
-        s00_axi_awvalid    : in  std_logic;
-        s00_axi_awready    : out std_logic;
-        s00_axi_wdata      : in  std_logic_vector(C_S00_AXI_DATA_WIDTH - 1 downto 0);
-        s00_axi_wstrb      : in  std_logic_vector((C_S00_AXI_DATA_WIDTH / 8) - 1 downto 0);
-        s00_axi_wvalid     : in  std_logic;
-        s00_axi_wready     : out std_logic;
-        s00_axi_bresp      : out std_logic_vector(1 downto 0);
-        s00_axi_bvalid     : out std_logic;
-        s00_axi_bready     : in  std_logic;
-        s00_axi_araddr     : in  std_logic_vector(C_S00_AXI_ADDR_WIDTH - 1 downto 0);
-        s00_axi_arprot     : in  std_logic_vector(2 downto 0);
-        s00_axi_arvalid    : in  std_logic;
-        s00_axi_arready    : out std_logic;
-        s00_axi_rdata      : out std_logic_vector(C_S00_AXI_DATA_WIDTH - 1 downto 0);
-        s00_axi_rresp      : out std_logic_vector(1 downto 0);
-        s00_axi_rvalid     : out std_logic;
-        s00_axi_rready     : in  std_logic;
+        s00_axi_aclk                  : in  std_logic;
+        s00_axi_aresetn               : in  std_logic;
+        s00_axi_awaddr                : in  std_logic_vector(C_S00_AXI_ADDR_WIDTH - 1 downto 0);
+        s00_axi_awprot                : in  std_logic_vector(2 downto 0);
+        s00_axi_awvalid               : in  std_logic;
+        s00_axi_awready               : out std_logic;
+        s00_axi_wdata                 : in  std_logic_vector(C_S00_AXI_DATA_WIDTH - 1 downto 0);
+        s00_axi_wstrb                 : in  std_logic_vector((C_S00_AXI_DATA_WIDTH / 8) - 1 downto 0);
+        s00_axi_wvalid                : in  std_logic;
+        s00_axi_wready                : out std_logic;
+        s00_axi_bresp                 : out std_logic_vector(1 downto 0);
+        s00_axi_bvalid                : out std_logic;
+        s00_axi_bready                : in  std_logic;
+        s00_axi_araddr                : in  std_logic_vector(C_S00_AXI_ADDR_WIDTH - 1 downto 0);
+        s00_axi_arprot                : in  std_logic_vector(2 downto 0);
+        s00_axi_arvalid               : in  std_logic;
+        s00_axi_arready               : out std_logic;
+        s00_axi_rdata                 : out std_logic_vector(C_S00_AXI_DATA_WIDTH - 1 downto 0);
+        s00_axi_rresp                 : out std_logic_vector(1 downto 0);
+        s00_axi_rvalid                : out std_logic;
+        s00_axi_rready                : in  std_logic;
         -- Ports of Axi Slave Bus Interface S01_AXI
-        s01_axi_aclk       : in  std_logic;
-        s01_axi_aresetn    : in  std_logic;
-        s01_axi_awid       : in  std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
-        s01_axi_awaddr     : in  std_logic_vector(C_S01_AXI_ADDR_WIDTH - 1 downto 0);
-        s01_axi_awlen      : in  std_logic_vector(7 downto 0);
-        s01_axi_awsize     : in  std_logic_vector(2 downto 0);
-        s01_axi_awburst    : in  std_logic_vector(1 downto 0);
-        s01_axi_awlock     : in  std_logic;
-        s01_axi_awcache    : in  std_logic_vector(3 downto 0);
-        s01_axi_awprot     : in  std_logic_vector(2 downto 0);
-        s01_axi_awqos      : in  std_logic_vector(3 downto 0);
-        s01_axi_awregion   : in  std_logic_vector(3 downto 0);
-        s01_axi_awuser     : in  std_logic_vector(C_S01_AXI_AWUSER_WIDTH - 1 downto 0);
-        s01_axi_awvalid    : in  std_logic;
-        s01_axi_awready    : out std_logic;
-        s01_axi_wdata      : in  std_logic_vector(C_S01_AXI_DATA_WIDTH - 1 downto 0);
-        s01_axi_wstrb      : in  std_logic_vector((C_S01_AXI_DATA_WIDTH / 8) - 1 downto 0);
-        s01_axi_wlast      : in  std_logic;
-        s01_axi_wuser      : in  std_logic_vector(C_S01_AXI_WUSER_WIDTH - 1 downto 0);
-        s01_axi_wvalid     : in  std_logic;
-        s01_axi_wready     : out std_logic;
-        s01_axi_bid        : out std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
-        s01_axi_bresp      : out std_logic_vector(1 downto 0);
-        s01_axi_buser      : out std_logic_vector(C_S01_AXI_BUSER_WIDTH - 1 downto 0);
-        s01_axi_bvalid     : out std_logic;
-        s01_axi_bready     : in  std_logic;
-        s01_axi_arid       : in  std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
-        s01_axi_araddr     : in  std_logic_vector(C_S01_AXI_ADDR_WIDTH - 1 downto 0);
-        s01_axi_arlen      : in  std_logic_vector(7 downto 0);
-        s01_axi_arsize     : in  std_logic_vector(2 downto 0);
-        s01_axi_arburst    : in  std_logic_vector(1 downto 0);
-        s01_axi_arlock     : in  std_logic;
-        s01_axi_arcache    : in  std_logic_vector(3 downto 0);
-        s01_axi_arprot     : in  std_logic_vector(2 downto 0);
-        s01_axi_arqos      : in  std_logic_vector(3 downto 0);
-        s01_axi_arregion   : in  std_logic_vector(3 downto 0);
-        s01_axi_aruser     : in  std_logic_vector(C_S01_AXI_ARUSER_WIDTH - 1 downto 0);
-        s01_axi_arvalid    : in  std_logic;
-        s01_axi_arready    : out std_logic;
-        s01_axi_rid        : out std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
-        s01_axi_rdata      : out std_logic_vector(C_S01_AXI_DATA_WIDTH - 1 downto 0);
-        s01_axi_rresp      : out std_logic_vector(1 downto 0);
-        s01_axi_rlast      : out std_logic;
-        s01_axi_ruser      : out std_logic_vector(C_S01_AXI_RUSER_WIDTH - 1 downto 0);
-        s01_axi_rvalid     : out std_logic;
-        s01_axi_rready     : in  std_logic;
+        s01_axi_aclk                  : in  std_logic;
+        s01_axi_aresetn               : in  std_logic;
+        s01_axi_awid                  : in  std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
+        s01_axi_awaddr                : in  std_logic_vector(C_S01_AXI_ADDR_WIDTH - 1 downto 0);
+        s01_axi_awlen                 : in  std_logic_vector(7 downto 0);
+        s01_axi_awsize                : in  std_logic_vector(2 downto 0);
+        s01_axi_awburst               : in  std_logic_vector(1 downto 0);
+        s01_axi_awlock                : in  std_logic;
+        s01_axi_awcache               : in  std_logic_vector(3 downto 0);
+        s01_axi_awprot                : in  std_logic_vector(2 downto 0);
+        s01_axi_awqos                 : in  std_logic_vector(3 downto 0);
+        s01_axi_awregion              : in  std_logic_vector(3 downto 0);
+        s01_axi_awuser                : in  std_logic_vector(C_S01_AXI_AWUSER_WIDTH - 1 downto 0);
+        s01_axi_awvalid               : in  std_logic;
+        s01_axi_awready               : out std_logic;
+        s01_axi_wdata                 : in  std_logic_vector(C_S01_AXI_DATA_WIDTH - 1 downto 0);
+        s01_axi_wstrb                 : in  std_logic_vector((C_S01_AXI_DATA_WIDTH / 8) - 1 downto 0);
+        s01_axi_wlast                 : in  std_logic;
+        s01_axi_wuser                 : in  std_logic_vector(C_S01_AXI_WUSER_WIDTH - 1 downto 0);
+        s01_axi_wvalid                : in  std_logic;
+        s01_axi_wready                : out std_logic;
+        s01_axi_bid                   : out std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
+        s01_axi_bresp                 : out std_logic_vector(1 downto 0);
+        s01_axi_buser                 : out std_logic_vector(C_S01_AXI_BUSER_WIDTH - 1 downto 0);
+        s01_axi_bvalid                : out std_logic;
+        s01_axi_bready                : in  std_logic;
+        s01_axi_arid                  : in  std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
+        s01_axi_araddr                : in  std_logic_vector(C_S01_AXI_ADDR_WIDTH - 1 downto 0);
+        s01_axi_arlen                 : in  std_logic_vector(7 downto 0);
+        s01_axi_arsize                : in  std_logic_vector(2 downto 0);
+        s01_axi_arburst               : in  std_logic_vector(1 downto 0);
+        s01_axi_arlock                : in  std_logic;
+        s01_axi_arcache               : in  std_logic_vector(3 downto 0);
+        s01_axi_arprot                : in  std_logic_vector(2 downto 0);
+        s01_axi_arqos                 : in  std_logic_vector(3 downto 0);
+        s01_axi_arregion              : in  std_logic_vector(3 downto 0);
+        s01_axi_aruser                : in  std_logic_vector(C_S01_AXI_ARUSER_WIDTH - 1 downto 0);
+        s01_axi_arvalid               : in  std_logic;
+        s01_axi_arready               : out std_logic;
+        s01_axi_rid                   : out std_logic_vector(C_S01_AXI_ID_WIDTH - 1 downto 0);
+        s01_axi_rdata                 : out std_logic_vector(C_S01_AXI_DATA_WIDTH - 1 downto 0);
+        s01_axi_rresp                 : out std_logic_vector(1 downto 0);
+        s01_axi_rlast                 : out std_logic;
+        s01_axi_ruser                 : out std_logic_vector(C_S01_AXI_RUSER_WIDTH - 1 downto 0);
+        s01_axi_rvalid                : out std_logic;
+        s01_axi_rready                : in  std_logic;
         -- Ports of Axi Slave Bus Interface S_AXI_INTR
-        s_axi_intr_aclk    : in  std_logic;
-        s_axi_intr_aresetn : in  std_logic;
-        s_axi_intr_awaddr  : in  std_logic_vector(C_S_AXI_INTR_ADDR_WIDTH - 1 downto 0);
-        s_axi_intr_awprot  : in  std_logic_vector(2 downto 0);
-        s_axi_intr_awvalid : in  std_logic;
-        s_axi_intr_awready : out std_logic;
-        s_axi_intr_wdata   : in  std_logic_vector(C_S_AXI_INTR_DATA_WIDTH - 1 downto 0);
-        s_axi_intr_wstrb   : in  std_logic_vector((C_S_AXI_INTR_DATA_WIDTH / 8) - 1 downto 0);
-        s_axi_intr_wvalid  : in  std_logic;
-        s_axi_intr_wready  : out std_logic;
-        s_axi_intr_bresp   : out std_logic_vector(1 downto 0);
-        s_axi_intr_bvalid  : out std_logic;
-        s_axi_intr_bready  : in  std_logic;
-        s_axi_intr_araddr  : in  std_logic_vector(C_S_AXI_INTR_ADDR_WIDTH - 1 downto 0);
-        s_axi_intr_arprot  : in  std_logic_vector(2 downto 0);
-        s_axi_intr_arvalid : in  std_logic;
-        s_axi_intr_arready : out std_logic;
-        s_axi_intr_rdata   : out std_logic_vector(C_S_AXI_INTR_DATA_WIDTH - 1 downto 0);
-        s_axi_intr_rresp   : out std_logic_vector(1 downto 0);
-        s_axi_intr_rvalid  : out std_logic;
-        s_axi_intr_rready  : in  std_logic;
-        irq                : out std_logic
+        s_axi_intr_aclk               : in  std_logic;
+        s_axi_intr_aresetn            : in  std_logic;
+        s_axi_intr_awaddr             : in  std_logic_vector(C_S_AXI_INTR_ADDR_WIDTH - 1 downto 0);
+        s_axi_intr_awprot             : in  std_logic_vector(2 downto 0);
+        s_axi_intr_awvalid            : in  std_logic;
+        s_axi_intr_awready            : out std_logic;
+        s_axi_intr_wdata              : in  std_logic_vector(C_S_AXI_INTR_DATA_WIDTH - 1 downto 0);
+        s_axi_intr_wstrb              : in  std_logic_vector((C_S_AXI_INTR_DATA_WIDTH / 8) - 1 downto 0);
+        s_axi_intr_wvalid             : in  std_logic;
+        s_axi_intr_wready             : out std_logic;
+        s_axi_intr_bresp              : out std_logic_vector(1 downto 0);
+        s_axi_intr_bvalid             : out std_logic;
+        s_axi_intr_bready             : in  std_logic;
+        s_axi_intr_araddr             : in  std_logic_vector(C_S_AXI_INTR_ADDR_WIDTH - 1 downto 0);
+        s_axi_intr_arprot             : in  std_logic_vector(2 downto 0);
+        s_axi_intr_arvalid            : in  std_logic;
+        s_axi_intr_arready            : out std_logic;
+        s_axi_intr_rdata              : out std_logic_vector(C_S_AXI_INTR_DATA_WIDTH - 1 downto 0);
+        s_axi_intr_rresp              : out std_logic_vector(1 downto 0);
+        s_axi_intr_rvalid             : out std_logic;
+        s_axi_intr_rready             : in  std_logic;
+        irq                           : out std_logic
     );
 end ethernetcore_mm_v1_0;
 
@@ -140,27 +173,61 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
             C_S_AXI_ADDR_WIDTH : integer := 7
         );
         port(
-            S_AXI_ACLK    : in  std_logic;
-            S_AXI_ARESETN : in  std_logic;
-            S_AXI_AWADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
-            S_AXI_AWPROT  : in  std_logic_vector(2 downto 0);
-            S_AXI_AWVALID : in  std_logic;
-            S_AXI_AWREADY : out std_logic;
-            S_AXI_WDATA   : in  std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
-            S_AXI_WSTRB   : in  std_logic_vector((C_S_AXI_DATA_WIDTH / 8) - 1 downto 0);
-            S_AXI_WVALID  : in  std_logic;
-            S_AXI_WREADY  : out std_logic;
-            S_AXI_BRESP   : out std_logic_vector(1 downto 0);
-            S_AXI_BVALID  : out std_logic;
-            S_AXI_BREADY  : in  std_logic;
-            S_AXI_ARADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
-            S_AXI_ARPROT  : in  std_logic_vector(2 downto 0);
-            S_AXI_ARVALID : in  std_logic;
-            S_AXI_ARREADY : out std_logic;
-            S_AXI_RDATA   : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
-            S_AXI_RRESP   : out std_logic_vector(1 downto 0);
-            S_AXI_RVALID  : out std_logic;
-            S_AXI_RREADY  : in  std_logic
+            gmac_reg_phy_control_h        : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_control_l        : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_mac_address          : out STD_LOGIC_VECTOR(47 downto 0);
+            gmac_reg_local_ip_address     : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_gateway_ip_address   : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_multicast_ip_address : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_multicast_ip_mask    : out STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_udp_port             : out STD_LOGIC_VECTOR(15 downto 0);
+            gmac_reg_udp_port_mask        : out STD_LOGIC_VECTOR(15 downto 0);
+            gmac_reg_mac_enable           : out STD_LOGIC;
+            gmac_reg_mac_promiscous_mode  : out STD_LOGIC;
+            gmac_reg_counters_reset       : out STD_LOGIC;
+            gmac_reg_core_type            : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_status_h         : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_phy_status_l         : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_afull_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_almost_full_count : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_rx_bad_packet_count  : in  STD_LOGIC_VECTOR(31 downto 0);
+            --
+            gmac_reg_arp_size             : in  STD_LOGIC_VECTOR(31 downto 0);
+            gmac_reg_tx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+            gmac_reg_rx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+            gmac_reg_tx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
+            gmac_reg_rx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
+            S_AXI_ACLK                    : in  std_logic;
+            S_AXI_ARESETN                 : in  std_logic;
+            S_AXI_AWADDR                  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+            S_AXI_AWPROT                  : in  std_logic_vector(2 downto 0);
+            S_AXI_AWVALID                 : in  std_logic;
+            S_AXI_AWREADY                 : out std_logic;
+            S_AXI_WDATA                   : in  std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+            S_AXI_WSTRB                   : in  std_logic_vector((C_S_AXI_DATA_WIDTH / 8) - 1 downto 0);
+            S_AXI_WVALID                  : in  std_logic;
+            S_AXI_WREADY                  : out std_logic;
+            S_AXI_BRESP                   : out std_logic_vector(1 downto 0);
+            S_AXI_BVALID                  : out std_logic;
+            S_AXI_BREADY                  : in  std_logic;
+            S_AXI_ARADDR                  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+            S_AXI_ARPROT                  : in  std_logic_vector(2 downto 0);
+            S_AXI_ARVALID                 : in  std_logic;
+            S_AXI_ARREADY                 : out std_logic;
+            S_AXI_RDATA                   : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+            S_AXI_RRESP                   : out std_logic_vector(1 downto 0);
+            S_AXI_RVALID                  : out std_logic;
+            S_AXI_RREADY                  : in  std_logic
         );
     end component ethernetcore_mm_v1_0_S00_AXI;
 
@@ -270,27 +337,61 @@ begin
             C_S_AXI_ADDR_WIDTH => C_S00_AXI_ADDR_WIDTH
         )
         port map(
-            S_AXI_ACLK    => s00_axi_aclk,
-            S_AXI_ARESETN => s00_axi_aresetn,
-            S_AXI_AWADDR  => s00_axi_awaddr,
-            S_AXI_AWPROT  => s00_axi_awprot,
-            S_AXI_AWVALID => s00_axi_awvalid,
-            S_AXI_AWREADY => s00_axi_awready,
-            S_AXI_WDATA   => s00_axi_wdata,
-            S_AXI_WSTRB   => s00_axi_wstrb,
-            S_AXI_WVALID  => s00_axi_wvalid,
-            S_AXI_WREADY  => s00_axi_wready,
-            S_AXI_BRESP   => s00_axi_bresp,
-            S_AXI_BVALID  => s00_axi_bvalid,
-            S_AXI_BREADY  => s00_axi_bready,
-            S_AXI_ARADDR  => s00_axi_araddr,
-            S_AXI_ARPROT  => s00_axi_arprot,
-            S_AXI_ARVALID => s00_axi_arvalid,
-            S_AXI_ARREADY => s00_axi_arready,
-            S_AXI_RDATA   => s00_axi_rdata,
-            S_AXI_RRESP   => s00_axi_rresp,
-            S_AXI_RVALID  => s00_axi_rvalid,
-            S_AXI_RREADY  => s00_axi_rready
+            gmac_reg_phy_control_h        => gmac_reg_phy_control_h,
+            gmac_reg_phy_control_l        => gmac_reg_phy_control_l,
+            gmac_reg_mac_address          => gmac_reg_mac_address,
+            gmac_reg_local_ip_address     => gmac_reg_local_ip_address,
+            gmac_reg_gateway_ip_address   => gmac_reg_gateway_ip_address,
+            gmac_reg_multicast_ip_address => gmac_reg_multicast_ip_address,
+            gmac_reg_multicast_ip_mask    => gmac_reg_multicast_ip_mask,
+            gmac_reg_udp_port             => gmac_reg_udp_port,
+            gmac_reg_udp_port_mask        => gmac_reg_udp_port_mask,
+            gmac_reg_mac_enable           => gmac_reg_mac_enable,
+            gmac_reg_mac_promiscous_mode  => gmac_reg_mac_promiscous_mode,
+            gmac_reg_counters_reset       => gmac_reg_counters_reset,
+            gmac_reg_core_type            => gmac_reg_core_type,
+            gmac_reg_phy_status_h         => gmac_reg_phy_status_h,
+            gmac_reg_phy_status_l         => gmac_reg_phy_status_l,
+            gmac_reg_tx_packet_rate       => gmac_reg_tx_packet_rate,
+            gmac_reg_tx_packet_count      => gmac_reg_tx_packet_count,
+            gmac_reg_tx_valid_rate        => gmac_reg_tx_valid_rate,
+            gmac_reg_tx_valid_count       => gmac_reg_tx_valid_count,
+            gmac_reg_tx_overflow_count    => gmac_reg_tx_overflow_count,
+            gmac_reg_tx_afull_count       => gmac_reg_tx_afull_count,
+            gmac_reg_rx_packet_rate       => gmac_reg_rx_packet_rate,
+            gmac_reg_rx_packet_count      => gmac_reg_rx_packet_count,
+            gmac_reg_rx_valid_rate        => gmac_reg_rx_valid_rate,
+            gmac_reg_rx_valid_count       => gmac_reg_rx_valid_count,
+            gmac_reg_rx_overflow_count    => gmac_reg_rx_overflow_count,
+            gmac_reg_rx_almost_full_count => gmac_reg_rx_almost_full_count,
+            gmac_reg_rx_bad_packet_count  => gmac_reg_rx_bad_packet_count,
+            --                           => --                           ,
+            gmac_reg_arp_size             => gmac_reg_arp_size,
+            gmac_reg_tx_word_size         => gmac_reg_tx_word_size,
+            gmac_reg_rx_word_size         => gmac_reg_rx_word_size,
+            gmac_reg_tx_buffer_max_size   => gmac_reg_tx_buffer_max_size,
+            gmac_reg_rx_buffer_max_size   => gmac_reg_rx_buffer_max_size,
+            S_AXI_ACLK                    => s00_axi_aclk,
+            S_AXI_ARESETN                 => s00_axi_aresetn,
+            S_AXI_AWADDR                  => s00_axi_awaddr,
+            S_AXI_AWPROT                  => s00_axi_awprot,
+            S_AXI_AWVALID                 => s00_axi_awvalid,
+            S_AXI_AWREADY                 => s00_axi_awready,
+            S_AXI_WDATA                   => s00_axi_wdata,
+            S_AXI_WSTRB                   => s00_axi_wstrb,
+            S_AXI_WVALID                  => s00_axi_wvalid,
+            S_AXI_WREADY                  => s00_axi_wready,
+            S_AXI_BRESP                   => s00_axi_bresp,
+            S_AXI_BVALID                  => s00_axi_bvalid,
+            S_AXI_BREADY                  => s00_axi_bready,
+            S_AXI_ARADDR                  => s00_axi_araddr,
+            S_AXI_ARPROT                  => s00_axi_arprot,
+            S_AXI_ARVALID                 => s00_axi_arvalid,
+            S_AXI_ARREADY                 => s00_axi_arready,
+            S_AXI_RDATA                   => s00_axi_rdata,
+            S_AXI_RRESP                   => s00_axi_rresp,
+            S_AXI_RVALID                  => s00_axi_rvalid,
+            S_AXI_RREADY                  => s00_axi_rready
         );
 
     -- Instantiation of Axi Bus Interface S01_AXI

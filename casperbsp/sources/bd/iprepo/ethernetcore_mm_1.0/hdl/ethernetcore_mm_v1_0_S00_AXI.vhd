@@ -16,70 +16,103 @@ entity ethernetcore_mm_v1_0_S00_AXI is
     );
     port(
         -- Users to add ports here
-
+        gmac_reg_phy_control_h        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_control_l        : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_mac_address          : out STD_LOGIC_VECTOR(47 downto 0);
+        gmac_reg_local_ip_address     : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_gateway_ip_address   : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_multicast_ip_address : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_multicast_ip_mask    : out STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_udp_port             : out STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_udp_port_mask        : out STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_mac_enable           : out STD_LOGIC;
+        gmac_reg_mac_promiscous_mode  : out STD_LOGIC;
+        gmac_reg_counters_reset       : out STD_LOGIC;
+        gmac_reg_core_type            : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_h         : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_phy_status_l         : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_afull_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_rate       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_packet_count      : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_rate        : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_valid_count       : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_overflow_count    : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_almost_full_count : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_rx_bad_packet_count  : in  STD_LOGIC_VECTOR(31 downto 0);
+        --
+        gmac_reg_arp_size             : in  STD_LOGIC_VECTOR(31 downto 0);
+        gmac_reg_tx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_rx_word_size         : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_tx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
+        gmac_reg_rx_buffer_max_size   : in  STD_LOGIC_VECTOR(15 downto 0);
         -- User ports ends
         -- Do not modify the ports beyond this line
 
         -- Global Clock Signal
-        S_AXI_ACLK    : in  std_logic;
+        S_AXI_ACLK                    : in  std_logic;
         -- Global Reset Signal. This Signal is Active LOW
-        S_AXI_ARESETN : in  std_logic;
+        S_AXI_ARESETN                 : in  std_logic;
         -- Write address (issued by master, acceped by Slave)
-        S_AXI_AWADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+        S_AXI_AWADDR                  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
         -- Write channel Protection type. This signal indicates the
         -- privilege and security level of the transaction, and whether
         -- the transaction is a data access or an instruction access.
-        S_AXI_AWPROT  : in  std_logic_vector(2 downto 0);
+        S_AXI_AWPROT                  : in  std_logic_vector(2 downto 0);
         -- Write address valid. This signal indicates that the master signaling
         -- valid write address and control information.
-        S_AXI_AWVALID : in  std_logic;
+        S_AXI_AWVALID                 : in  std_logic;
         -- Write address ready. This signal indicates that the slave is ready
         -- to accept an address and associated control signals.
-        S_AXI_AWREADY : out std_logic;
+        S_AXI_AWREADY                 : out std_logic;
         -- Write data (issued by master, acceped by Slave) 
-        S_AXI_WDATA   : in  std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+        S_AXI_WDATA                   : in  std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
         -- Write strobes. This signal indicates which byte lanes hold
         -- valid data. There is one write strobe bit for each eight
         -- bits of the write data bus.    
-        S_AXI_WSTRB   : in  std_logic_vector((C_S_AXI_DATA_WIDTH / 8) - 1 downto 0);
+        S_AXI_WSTRB                   : in  std_logic_vector((C_S_AXI_DATA_WIDTH / 8) - 1 downto 0);
         -- Write valid. This signal indicates that valid write
         -- data and strobes are available.
-        S_AXI_WVALID  : in  std_logic;
+        S_AXI_WVALID                  : in  std_logic;
         -- Write ready. This signal indicates that the slave
         -- can accept the write data.
-        S_AXI_WREADY  : out std_logic;
+        S_AXI_WREADY                  : out std_logic;
         -- Write response. This signal indicates the status
         -- of the write transaction.
-        S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+        S_AXI_BRESP                   : out std_logic_vector(1 downto 0);
         -- Write response valid. This signal indicates that the channel
         -- is signaling a valid write response.
-        S_AXI_BVALID  : out std_logic;
+        S_AXI_BVALID                  : out std_logic;
         -- Response ready. This signal indicates that the master
         -- can accept a write response.
-        S_AXI_BREADY  : in  std_logic;
+        S_AXI_BREADY                  : in  std_logic;
         -- Read address (issued by master, acceped by Slave)
-        S_AXI_ARADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+        S_AXI_ARADDR                  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
         -- Protection type. This signal indicates the privilege
         -- and security level of the transaction, and whether the
         -- transaction is a data access or an instruction access.
-        S_AXI_ARPROT  : in  std_logic_vector(2 downto 0);
+        S_AXI_ARPROT                  : in  std_logic_vector(2 downto 0);
         -- Read address valid. This signal indicates that the channel
         -- is signaling valid read address and control information.
-        S_AXI_ARVALID : in  std_logic;
+        S_AXI_ARVALID                 : in  std_logic;
         -- Read address ready. This signal indicates that the slave is
         -- ready to accept an address and associated control signals.
-        S_AXI_ARREADY : out std_logic;
+        S_AXI_ARREADY                 : out std_logic;
         -- Read data (issued by slave)
-        S_AXI_RDATA   : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+        S_AXI_RDATA                   : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
         -- Read response. This signal indicates the status of the
         -- read transfer.
-        S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+        S_AXI_RRESP                   : out std_logic_vector(1 downto 0);
         -- Read valid. This signal indicates that the channel is
         -- signaling the required read data.
-        S_AXI_RVALID  : out std_logic;
+        S_AXI_RVALID                  : out std_logic;
         -- Read ready. This signal indicates that the master can
         -- accept the read data and response information.
-        S_AXI_RREADY  : in  std_logic
+        S_AXI_RREADY                  : in  std_logic
     );
 end ethernetcore_mm_v1_0_S00_AXI;
 
@@ -149,18 +182,30 @@ architecture arch_imp of ethernetcore_mm_v1_0_S00_AXI is
 begin
     -- I/O Connections assignments
 
-    S_AXI_AWREADY <= axi_awready;
-    S_AXI_WREADY  <= axi_wready;
-    S_AXI_BRESP   <= axi_bresp;
-    S_AXI_BVALID  <= axi_bvalid;
-    S_AXI_ARREADY <= axi_arready;
-    S_AXI_RDATA   <= axi_rdata;
-    S_AXI_RRESP   <= axi_rresp;
-    S_AXI_RVALID  <= axi_rvalid;
+    S_AXI_AWREADY                 <= axi_awready;
+    S_AXI_WREADY                  <= axi_wready;
+    S_AXI_BRESP                   <= axi_bresp;
+    S_AXI_BVALID                  <= axi_bvalid;
+    S_AXI_ARREADY                 <= axi_arready;
+    S_AXI_RDATA                   <= axi_rdata;
+    S_AXI_RRESP                   <= axi_rresp;
+    S_AXI_RVALID                  <= axi_rvalid;
     -- Implement axi_awready generation
     -- axi_awready is asserted for one S_AXI_ACLK clock cycle when both
     -- S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
     -- de-asserted when reset is low.
+    gmac_reg_phy_control_h        <= slv_reg14;
+    gmac_reg_phy_control_l        <= slv_reg15;
+    gmac_reg_counters_reset       <= slv_reg30(0);
+    gmac_reg_mac_address          <= slv_reg3(15 downto 0) & slv_reg4;
+    gmac_reg_local_ip_address     <= slv_reg5;
+    gmac_reg_gateway_ip_address   <= slv_reg6;
+    gmac_reg_multicast_ip_address <= slv_reg7;
+    gmac_reg_multicast_ip_mask    <= slv_reg8;
+    gmac_reg_udp_port             <= slv_reg11(15 downto 0);
+    gmac_reg_udp_port_mask        <= slv_reg11(31 downto 16);
+    gmac_reg_mac_enable           <= slv_reg10(0);
+    gmac_reg_mac_promiscous_mode  <= slv_reg10(1);
 
     process(S_AXI_ACLK)
     begin
@@ -653,18 +698,52 @@ begin
     -- and the slave is ready to accept the read address.
     slv_reg_rden <= axi_arready and S_AXI_ARVALID and (not axi_rvalid);
 
-    process(slv_reg0, slv_reg1, slv_reg2, slv_reg3, slv_reg4, slv_reg5, slv_reg6, slv_reg7, slv_reg8, slv_reg9, slv_reg10, slv_reg11, slv_reg12, slv_reg13, slv_reg14, slv_reg15, slv_reg16, slv_reg17, slv_reg18, slv_reg19, slv_reg20, slv_reg21, slv_reg22, slv_reg23, slv_reg24, slv_reg25, slv_reg26, slv_reg27, slv_reg28, slv_reg29, slv_reg30, slv_reg31, axi_araddr, S_AXI_ARESETN, slv_reg_rden)
+    process(gmac_reg_core_type, gmac_reg_tx_buffer_max_size, gmac_reg_rx_buffer_max_size, gmac_reg_tx_word_size, gmac_reg_rx_word_size, slv_reg3, slv_reg4, slv_reg5, slv_reg6, slv_reg7, slv_reg8, slv_reg9, slv_reg10, slv_reg11, gmac_reg_phy_status_h, gmac_reg_phy_status_l, slv_reg14, slv_reg15, gmac_reg_tx_packet_count, gmac_reg_tx_packet_rate, gmac_reg_tx_valid_count, gmac_reg_tx_overflow_count, gmac_reg_tx_afull_count, gmac_reg_rx_packet_rate, gmac_reg_rx_packet_count, gmac_reg_rx_valid_rate, gmac_reg_arp_size, gmac_reg_rx_valid_count, gmac_reg_tx_valid_rate, gmac_reg_rx_overflow_count, gmac_reg_rx_bad_packet_count, gmac_reg_rx_almost_full_count, slv_reg30, slv_reg31, axi_araddr)
         variable loc_addr : std_logic_vector(OPT_MEM_ADDR_BITS downto 0);
     begin
         -- Address decoding for reading registers
         loc_addr := axi_araddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
         case loc_addr is
             when b"00000" =>
-                reg_data_out <= slv_reg0;
+                ----------------------------------------------------------------
+                -- Register Address:0x0000                                    --
+                -- Register Name:Core Type                                    --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[07:00]:type[7:0]:8-bit Ethernet Type = 0x05       -- 
+                -- Register[15:08]:rev[7:0] :8-bit Core Version  = 0x10       -- 
+                -- Register[23:16]:CPU_RX_ENABLED[16]='1'Enabled,'0'Disabled  -- 
+                -- Register[31:24]:CPU_TX_ENABLED[24]='1'Enabled,'0'Disabled  -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_core_type;
+
             when b"00001" =>
-                reg_data_out <= slv_reg1;
+                ----------------------------------------------------------------
+                -- Register Address:0x0004                                    --
+                -- Register Name:Transmit and Receive Available Bytes         --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_BUF_MAX[31:16]:RX_BUF_MAX[15:00]        -- 
+                ----------------------------------------------------------------                                    
+                reg_data_out <= gmac_reg_tx_buffer_max_size & gmac_reg_rx_buffer_max_size;
             when b"00010" =>
-                reg_data_out <= slv_reg2;
+                ----------------------------------------------------------------
+                -- Register Address:0x0008                                    --
+                -- Register Name:Transmit and Receive Bytes Per Word          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_WORD_SIZE[31:16]:RX_WORD_SIZE[15:00]    -- 
+                ----------------------------------------------------------------                                    
+                reg_data_out <= gmac_reg_tx_word_size & gmac_reg_rx_word_size;
             when b"00011" =>
                 reg_data_out <= slv_reg3;
             when b"00100" =>
@@ -684,41 +763,202 @@ begin
             when b"01011" =>
                 reg_data_out <= slv_reg11;
             when b"01100" =>
-                reg_data_out <= slv_reg12;
+                ----------------------------------------------------------------
+                -- Register Address:0x0030                                    --
+                -- Register Name:PHY Status Register                          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:PHY_STATUS[63:32]                          -- 
+                ----------------------------------------------------------------                    
+                reg_data_out <= gmac_reg_phy_status_h;
             when b"01101" =>
-                reg_data_out <= slv_reg13;
+                ----------------------------------------------------------------
+                -- Register Address:0x0034                                    --
+                -- Register Name:PHY Status Register                          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:PHY_STATUS[31:00]                          -- 
+                ----------------------------------------------------------------                    
+                reg_data_out <= gmac_reg_phy_status_l;
+
             when b"01110" =>
                 reg_data_out <= slv_reg14;
             when b"01111" =>
                 reg_data_out <= slv_reg15;
             when b"10000" =>
-                reg_data_out <= slv_reg16;
+                ----------------------------------------------------------------
+                -- Register Address:0x0040                                    --
+                -- Register Name:ARP Cache Size                               --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:ARP_SIZE[31:00]                            -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_arp_size;
             when b"10001" =>
-                reg_data_out <= slv_reg17;
+                ----------------------------------------------------------------
+                -- Register Address:0x0044                                    --
+                -- Register Name:Transmit Packet Rate                         --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_PKT_RATE[31:00]                         -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_packet_rate;
             when b"10010" =>
-                reg_data_out <= slv_reg18;
+                ----------------------------------------------------------------
+                -- Register Address:0x0048                                    --
+                -- Register Name:Transmit Packet Count                        --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_PKT_CNT[31:00]                          -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_packet_count;
             when b"10011" =>
-                reg_data_out <= slv_reg19;
+                ----------------------------------------------------------------
+                -- Register Address:0x004C                                    --
+                -- Register Name:Transmit Valid Rate                          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_VALID_RATE[31:00]                       -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_valid_rate;
             when b"10100" =>
-                reg_data_out <= slv_reg20;
+                ----------------------------------------------------------------
+                -- Register Address:0x0050                                    --
+                -- Register Name:Transmit Valid Count                         --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_VALID_CNT[31:00]                        -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_valid_count;
             when b"10101" =>
-                reg_data_out <= slv_reg21;
+                ----------------------------------------------------------------
+                -- Register Address:0x0054                                    --
+                -- Register Name:Transmit Overflow Count                      --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_OVERFLOW_CNT[31:00]                     -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_overflow_count;
             when b"10110" =>
-                reg_data_out <= slv_reg22;
+                ----------------------------------------------------------------
+                -- Register Address:0x0058                                    --
+                -- Register Name:Transmit Almost Full Count                   --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:TX_AFULL_CNT[31:00]                        -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_tx_afull_count;
             when b"10111" =>
-                reg_data_out <= slv_reg23;
+                ----------------------------------------------------------------
+                -- Register Address:0x005C                                    --
+                -- Register Name:Receive Packet Rate                          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_PKT_RATE[31:00]                        -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_packet_rate;
             when b"11000" =>
-                reg_data_out <= slv_reg24;
+                ----------------------------------------------------------------
+                -- Register Address:0x0060                                    --
+                -- Register Name:Receive Packet Count                         --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_PKT_CNT[31:00]                          -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_packet_count;
             when b"11001" =>
-                reg_data_out <= slv_reg25;
+                ----------------------------------------------------------------
+                -- Register Address:0x0064                                    --
+                -- Register Name:Receive Valid Rate                           --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_VALID_RATE[31:00]                       -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_valid_rate;
             when b"11010" =>
-                reg_data_out <= slv_reg26;
+                ----------------------------------------------------------------
+                -- Register Address:0x0068                                    --
+                -- Register Name:Receive Valid Count                          --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_VALID_CNT[31:00]                        -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_valid_count;
             when b"11011" =>
-                reg_data_out <= slv_reg27;
+                ----------------------------------------------------------------
+                -- Register Address:0x006C                                    --
+                -- Register Name:Receive Overflow Count                       --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_OVERFLOW_CNT[31:00]                     -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_overflow_count;
             when b"11100" =>
-                reg_data_out <= slv_reg28;
+                ----------------------------------------------------------------
+                -- Register Address:0x0070                                    --
+                -- Register Name:Receive Almost Full Count                    --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_AFULL_CNT[31:00]                        -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_almost_full_count;
             when b"11101" =>
-                reg_data_out <= slv_reg29;
+                ----------------------------------------------------------------
+                -- Register Address:0x0074                                    --
+                -- Register Name:Receive Bad Packet Count                     --
+                -- Register Mode:Read Only                                    --
+                -- Register Bit Fields:                                       --
+                ----------------------------------------------------------------    
+                -- Bit Range      :Mapping  : Description                     --
+                ----------------------------------------------------------------    
+                -- Register[31:00]:RX_BAD_PACKET_CNT[31:00]                   -- 
+                ----------------------------------------------------------------    
+                reg_data_out <= gmac_reg_rx_bad_packet_count;
             when b"11110" =>
                 reg_data_out <= slv_reg30;
             when b"11111" =>
