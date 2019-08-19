@@ -2,10 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity ethernetcore_mm_v1_0_S01_AXI is
+entity ethernetcore_mm_v1_0_S03_AXI is
 	generic(
 		-- Users to add parameters here
-		C_DATA_BUFFER_ASIZE  : natural := 13;
+		C_ARP_CACHE_ASIZE  : natural := 13;
 		-- User parameters ends
 		-- Do not modify the parameters beyond this line
 		-- Width of ID for for write address, write data, read address and read data
@@ -30,20 +30,12 @@ entity ethernetcore_mm_v1_0_S01_AXI is
 		------------------------------------------------------------------------
 		-- Ring Buffer Interface according to EthernetCore Memory MAP         --
 		------------------------------------------------------------------------ 
-		ring_buffer_data_write_enable      : out STD_LOGIC;
-		ring_buffer_data_read_enable       : out STD_LOGIC;
-		ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(15 downto 0);
-		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(2 downto 0);
-		ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(15 downto 0);
-		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(2 downto 0);
-		ring_buffer_data_write_address     : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
-		ring_buffer_data_read_address      : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
+		arp_cache_write_enable  : out STD_LOGIC;
+		arp_cache_read_enable   : out STD_LOGIC;
+		arp_cache_write_data    : out STD_LOGIC_VECTOR(31 downto 0);
+		arp_cache_read_data     : in  STD_LOGIC_VECTOR(31 downto 0);
+		arp_cache_write_address : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
+		arp_cache_read_address  : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
 		-- User ports ends
 		-- Do not modify the ports beyond this line
 		-- Global Clock Signal
@@ -177,9 +169,9 @@ entity ethernetcore_mm_v1_0_S01_AXI is
 		-- accept the read data and response information.
 		S_AXI_RREADY                       : in  std_logic
 	);
-end ethernetcore_mm_v1_0_S01_AXI;
+end ethernetcore_mm_v1_0_S03_AXI;
 
-architecture arch_imp of ethernetcore_mm_v1_0_S01_AXI is
+architecture arch_imp of ethernetcore_mm_v1_0_S03_AXI is
 
 	-- AXI4FULL signals
 	signal axi_awaddr       : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
@@ -252,12 +244,11 @@ begin
 	aw_wrap_en    <= '1' when (((axi_awaddr AND std_logic_vector(to_unsigned(aw_wrap_size, C_S_AXI_ADDR_WIDTH))) XOR std_logic_vector(to_unsigned(aw_wrap_size, C_S_AXI_ADDR_WIDTH))) = low) else '0';
 	ar_wrap_en    <= '1' when (((axi_araddr AND std_logic_vector(to_unsigned(ar_wrap_size, C_S_AXI_ADDR_WIDTH))) XOR std_logic_vector(to_unsigned(ar_wrap_size, C_S_AXI_ADDR_WIDTH))) = low) else '0';
 
-	ring_buffer_data_write_address     <= axi_awaddr(ADDR_LSB + C_DATA_BUFFER_ASIZE - 1 downto ADDR_LSB);
-	ring_buffer_data_read_address      <= axi_araddr(ADDR_LSB + C_DATA_BUFFER_ASIZE - 1 downto ADDR_LSB);
-	ring_buffer_data_write_enable      <= axi_wready and S_AXI_WVALID and S_AXI_WSTRB(1) and S_AXI_WSTRB(0);
-	ring_buffer_data_read_enable       <= axi_arv_arr_flag;
-	ring_buffer_data_write_data        <= S_AXI_WDATA(15 downto 0);
-	ring_buffer_data_write_byte_enable <= S_AXI_WDATA(16) & S_AXI_WSTRB(1 downto 0);
+	arp_cache_write_address     <= axi_awaddr(ADDR_LSB + C_ARP_CACHE_ASIZE - 1 downto ADDR_LSB);
+	arp_cache_read_address      <= axi_araddr(ADDR_LSB + C_ARP_CACHE_ASIZE - 1 downto ADDR_LSB);
+	arp_cache_write_enable      <= axi_wready and S_AXI_WVALID and S_AXI_WSTRB(1) and S_AXI_WSTRB(0);
+	arp_cache_read_enable       <= axi_arv_arr_flag;
+	arp_cache_write_data        <= S_AXI_WDATA(31 downto 0);
 	-- Implement axi_awready generation
 
 	-- axi_awready is asserted for one S_AXI_ACLK clock cycle when both
@@ -487,13 +478,13 @@ begin
 		end if;
 	end process;
 
-	process(ring_buffer_data_read_data, ring_buffer_data_read_byte_enable, axi_rvalid) is
+	process(arp_cache_read_data, axi_rvalid) is
 	begin
 		if (axi_rvalid = '1') then
 			-- When there is a valid read address (S_AXI_ARVALID) with 
 			-- acceptance of read address by the slave (axi_arready), 
 			-- output the read data 
-			axi_rdata <= X"000" & '0' & ring_buffer_data_read_byte_enable & ring_buffer_data_read_data; -- memory range 0 read data
+			axi_rdata <= arp_cache_read_data; -- memory range 0 read data
 		else
 			axi_rdata <= (others => '0');
 		end if;
