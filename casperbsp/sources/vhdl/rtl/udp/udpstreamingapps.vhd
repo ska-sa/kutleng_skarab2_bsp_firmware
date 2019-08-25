@@ -132,7 +132,6 @@ entity udpstreamingapps is
 		axis_tx_tready                              : in  STD_LOGIC;
 		axis_tx_tkeep                               : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
 		axis_tx_tlast                               : out STD_LOGIC;
-		axis_tx_tuser                               : out STD_LOGIC;
 		--Inputs from AXIS bus of the MAC side
 		axis_rx_tdata                               : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
 		axis_rx_tvalid                              : in  STD_LOGIC;
@@ -210,7 +209,6 @@ architecture rtl of udpstreamingapps is
 			axis_tx_tready                              : in  STD_LOGIC;
 			axis_tx_tkeep                               : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
 			axis_tx_tlast                               : out STD_LOGIC;
-			axis_tx_tuser                               : out STD_LOGIC;
 			--Inputs from AXIS bus of the MAC side
 			axis_rx_tdata                               : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
 			axis_rx_tvalid                              : in  STD_LOGIC;
@@ -238,15 +236,13 @@ architecture rtl of udpstreamingapps is
 			axis_tx_tready    : in  STD_LOGIC;
 			axis_tx_tkeep     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
 			axis_tx_tlast     : out STD_LOGIC;
-			axis_tx_tuser     : out STD_LOGIC;
 			-- Port N
 			axis_rx_tpriority : in  STD_LOGIC_VECTOR((G_NUM_PORTS * G_PRIORITY_WIDTH) - 1 downto 0);
 			axis_rx_tdata     : in  STD_LOGIC_VECTOR((G_NUM_PORTS * G_DATA_WIDTH) - 1 downto 0);
 			axis_rx_tvalid    : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0);
 			axis_rx_tready    : out STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0);
 			axis_rx_tkeep     : in  STD_LOGIC_VECTOR((G_NUM_PORTS * (G_DATA_WIDTH / 8)) - 1 downto 0);
-			axis_rx_tlast     : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0);
-			axis_rx_tuser     : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0)
+			axis_rx_tlast     : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0)
 		);
 	end component axisfabricmultiplexer;
 	type dwordarray_t is array (0 to (G_NUM_STREAMING_DATA_SERVERS - 1)) of std_logic_vector(31 downto 0);
@@ -265,7 +261,6 @@ architecture rtl of udpstreamingapps is
 	signal axis_mux_tready               : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 	signal axis_mux_tkeep                : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_AXIS_DATA_WIDTH / 8)) - 1 downto 0);
 	signal axis_mux_tlast                : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-	signal axis_mux_tuser                : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 
 begin
 	aximm_gmac_reg_tx_overflow_count    <= gmac_reg_tx_overflow_sum;
@@ -363,7 +358,6 @@ begin
 				axis_tx_tready                              => axis_mux_tready(i),
 				axis_tx_tkeep                               => axis_mux_tkeep(((i + 1) * (G_AXIS_DATA_WIDTH / 8)) - 1 downto ((i) * (G_AXIS_DATA_WIDTH / 8))),
 				axis_tx_tlast                               => axis_mux_tlast(i),
-				axis_tx_tuser                               => axis_mux_tuser(i),
 				--Inputs from AXIS bus of the MAC side
 				axis_rx_tdata                               => axis_rx_tdata,
 				axis_rx_tvalid                              => axis_rx_tvalid,
@@ -394,15 +388,13 @@ begin
 				axis_tx_tready    => axis_tx_tready,
 				axis_tx_tkeep     => axis_tx_tkeep,
 				axis_tx_tlast     => axis_tx_tlast,
-				axis_tx_tuser     => axis_tx_tuser,
 				-- Port N
 				axis_rx_tpriority => axis_mux_tpriority,
 				axis_rx_tdata     => axis_mux_tdata,
 				axis_rx_tvalid    => axis_mux_tvalid,
 				axis_rx_tready    => axis_mux_tready,
 				axis_rx_tkeep     => axis_mux_tkeep,
-				axis_rx_tlast     => axis_mux_tlast,
-				axis_rx_tuser     => axis_mux_tuser
+				axis_rx_tlast     => axis_mux_tlast
 			);
 	end generate MUXGEN;
 
@@ -416,8 +408,6 @@ begin
 		axis_mux_tready(0) <= axis_tx_tready;
 		axis_tx_tkeep      <= axis_mux_tkeep;
 		axis_tx_tlast      <= axis_mux_tlast(0);
-		axis_tx_tuser      <= axis_mux_tuser(0);
-
 	end generate THRUGEN;
 
 end architecture rtl;
