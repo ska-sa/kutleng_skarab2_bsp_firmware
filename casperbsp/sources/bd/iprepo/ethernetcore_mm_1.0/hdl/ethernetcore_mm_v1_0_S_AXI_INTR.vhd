@@ -34,7 +34,7 @@ entity ethernetcore_mm_v1_0_S_AXI_INTR is
         S_AXI_ACLK    : in  std_logic;
         -- Global Reset Signal. This Signal is Active LOW
         S_AXI_ARESETN : in  std_logic;
-        -- Write address (issued by master, acceped by Slave)
+        -- Write address (issued by master, accepted by Slave)
         S_AXI_AWADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
         -- Write channel Protection type. This signal indicates the
         -- privilege and security level of the transaction, and whether
@@ -46,7 +46,7 @@ entity ethernetcore_mm_v1_0_S_AXI_INTR is
         -- Write address ready. This signal indicates that the slave is ready
         -- to accept an address and associated control signals.
         S_AXI_AWREADY : out std_logic;
-        -- Write data (issued by master, acceped by Slave) 
+        -- Write data (issued by master, accepted by Slave) 
         S_AXI_WDATA   : in  std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
         -- Write strobes. This signal indicates which byte lanes hold
         -- valid data. There is one write strobe bit for each eight
@@ -67,7 +67,7 @@ entity ethernetcore_mm_v1_0_S_AXI_INTR is
         -- Response ready. This signal indicates that the master
         -- can accept a write response.
         S_AXI_BREADY  : in  std_logic;
-        -- Read address (issued by master, acceped by Slave)
+        -- Read address (issued by master, accepted by Slave)
         S_AXI_ARADDR  : in  std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
         -- Protection type. This signal indicates the privilege
         -- and security level of the transaction, and whether the
