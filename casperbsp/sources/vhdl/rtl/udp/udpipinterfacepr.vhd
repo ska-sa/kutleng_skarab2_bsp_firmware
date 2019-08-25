@@ -131,8 +131,8 @@ entity udpipinterfacepr is
 		------------------------------------------------------------------------ 
 		aximm_gmac_arp_cache_write_enable            : in  STD_LOGIC;
 		aximm_gmac_arp_cache_read_enable             : in  STD_LOGIC;
-		aximm_gmac_arp_cache_write_data              : in  STD_LOGIC_VECTOR(G_ARP_DATA_WIDTH-1 downto 0);
-		aximm_gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(G_ARP_DATA_WIDTH-1 downto 0);
+		aximm_gmac_arp_cache_write_data              : in  STD_LOGIC_VECTOR(G_ARP_DATA_WIDTH - 1 downto 0);
+		aximm_gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(G_ARP_DATA_WIDTH - 1 downto 0);
 		aximm_gmac_arp_cache_write_address           : in  STD_LOGIC_VECTOR(G_ARP_CACHE_ASIZE - 1 downto 0);
 		aximm_gmac_arp_cache_read_address            : in  STD_LOGIC_VECTOR(G_ARP_CACHE_ASIZE - 1 downto 0);
 		------------------------------------------------------------------------
@@ -185,8 +185,8 @@ entity udpipinterfacepr is
 		-- Aggregate data rate for all modules combined must be less than 100G--                                --
 		-- Each module in a PR configuration makes a PR boundary.             --
 		------------------------------------------------------------------------
-        -- Streaming data clocks 
-        axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+		-- Streaming data clocks 
+		axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 		-- Streaming data outputs to AXIS of the Yellow Blocks
 		axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
 		axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -503,18 +503,18 @@ architecture rtl of udpipinterfacepr is
 	constant C_READ_REG_BUFFER_SIZE        : NATURAL := 2048;
 	constant C_WRITE_REG_BUFFER_SIZE       : NATURAL := 2048;
 	constant C_REG_READ_WRITE_WORD_LENGTHS : NATURAL := 16; -- Word lengths are 16 bits at a time
-	signal	ARPReadDataEnable  			   : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-	signal	ARPReadData        			   : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * G_ARP_DATA_WIDTH * 2) - 1 downto 0);
-	signal	ARPReadAddress     			   : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_ARP_CACHE_ASIZE - 1)) - 1 downto 0);
-	
+	signal ARPReadDataEnable               : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+	signal ARPReadData                     : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * G_ARP_DATA_WIDTH * 2) - 1 downto 0);
+	signal ARPReadAddress                  : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_ARP_CACHE_ASIZE - 1)) - 1 downto 0);
+
 begin
 	gmac_reg_mac_enable  <= aximm_gmac_reg_mac_enable;
 	gmac_reg_mac_promisc <= aximm_gmac_reg_mac_promiscous_mode;
 
 	aximm_gmac_reg_rx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
 	aximm_gmac_reg_tx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
-	aximm_gmac_reg_rx_buffer_max_size  <= std_logic_vector(to_unsigned(C_READ_REG_BUFFER_SIZE, 32));
-	aximm_gmac_reg_tx_buffer_max_size  <= std_logic_vector(to_unsigned(C_WRITE_REG_BUFFER_SIZE, 32));
+	aximm_gmac_reg_rx_buffer_max_size  <= std_logic_vector(to_unsigned(C_READ_REG_BUFFER_SIZE, 16));
+	aximm_gmac_reg_tx_buffer_max_size  <= std_logic_vector(to_unsigned(C_WRITE_REG_BUFFER_SIZE, 16));
 	aximm_gmac_reg_arp_size            <= std_logic_vector(to_unsigned(C_ARP_REG_BUFFER_SIZE, 32));
 	aximm_gmac_reg_core_type           <= gmac_reg_core_type;
 	aximm_gmac_reg_phy_status_h        <= gmac_reg_phy_status_h;
@@ -532,7 +532,7 @@ begin
 	aximm_gmac_reg_rx_bad_packet_count <= gmac_reg_rx_bad_packet_count;
 	gmac_reg_counters_reset            <= aximm_gmac_reg_counters_reset;
 
-	ARPCACHE_i:arpcache 
+	ARPCACHE_i : arpcache
 		generic map(
 			G_WRITE_DATA_WIDTH => G_ARP_DATA_WIDTH,
 			G_NUM_CACHE_BLOCKS => G_NUM_STREAMING_DATA_SERVERS,
@@ -553,7 +553,6 @@ begin
 			ARPReadData        => ARPReadData,
 			ARPReadAddress     => ARPReadAddress
 		);
-
 
 	ARP1_i : arpmodule
 		generic map(
@@ -581,8 +580,8 @@ begin
 
 	UDPDATAApp_i : macifudpserver
 		generic map(
-			G_SLOT_WIDTH      => C_PRIORITY_WIDTH,
-			G_ADDR_WIDTH      => 5
+			G_SLOT_WIDTH => C_PRIORITY_WIDTH,
+			G_ADDR_WIDTH => 5
 		)
 		port map(
 			axis_clk                       => axis_clk,
@@ -660,16 +659,16 @@ begin
 				axis_rx_tkeep     => axis_rx_tkeep,
 				axis_rx_tlast     => axis_rx_tlast
 				-- Must be done internally
---				axis_prog_full    => axis_prog_full,
---				axis_prog_empty   => axis_prog_empty,
---				axis_data_count   => axis_data_count,
---				ICAP_PRDONE       => ICAP_PRDONE,
---				ICAP_PRERROR      => ICAP_PRERROR,
---				ICAP_AVAIL        => ICAP_AVAIL,
---				ICAP_CSIB         => ICAP_CSIB,
---				ICAP_RDWRB        => ICAP_RDWRB,
---				ICAP_DataOut      => ICAP_DataOut,
---				ICAP_DataIn       => ICAP_DataIn
+				--				axis_prog_full    => axis_prog_full,
+				--				axis_prog_empty   => axis_prog_empty,
+				--				axis_data_count   => axis_data_count,
+				--				ICAP_PRDONE       => ICAP_PRDONE,
+				--				ICAP_PRERROR      => ICAP_PRERROR,
+				--				ICAP_AVAIL        => ICAP_AVAIL,
+				--				ICAP_CSIB         => ICAP_CSIB,
+				--				ICAP_RDWRB        => ICAP_RDWRB,
+				--				ICAP_DataOut      => ICAP_DataOut,
+				--				ICAP_DataIn       => ICAP_DataIn
 			);
 
 		AXISMUX_i : axisthreeportfabricmultiplexer
