@@ -220,7 +220,7 @@ architecture rtl of udpstreamingapps is
 
 	component axisfabricmultiplexer is
 		generic(
-			G_NUM_PORTS              : natural := 4;
+			G_MUX_PORTS              : natural := 4;
 			G_MAX_PACKET_BLOCKS_SIZE : natural := 64;
 			G_PRIORITY_WIDTH         : natural := 4;
 			G_DATA_WIDTH             : natural := 8
@@ -237,12 +237,12 @@ architecture rtl of udpstreamingapps is
 			axis_tx_tkeep     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
 			axis_tx_tlast     : out STD_LOGIC;
 			-- Port N
-			axis_rx_tpriority : in  STD_LOGIC_VECTOR((G_NUM_PORTS * G_PRIORITY_WIDTH) - 1 downto 0);
-			axis_rx_tdata     : in  STD_LOGIC_VECTOR((G_NUM_PORTS * G_DATA_WIDTH) - 1 downto 0);
-			axis_rx_tvalid    : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0);
-			axis_rx_tready    : out STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0);
-			axis_rx_tkeep     : in  STD_LOGIC_VECTOR((G_NUM_PORTS * (G_DATA_WIDTH / 8)) - 1 downto 0);
-			axis_rx_tlast     : in  STD_LOGIC_VECTOR(G_NUM_PORTS - 1 downto 0)
+			axis_rx_tpriority : in  STD_LOGIC_VECTOR((G_MUX_PORTS * G_PRIORITY_WIDTH) - 1 downto 0);
+			axis_rx_tdata     : in  STD_LOGIC_VECTOR((G_MUX_PORTS * G_DATA_WIDTH) - 1 downto 0);
+			axis_rx_tvalid    : in  STD_LOGIC_VECTOR(G_MUX_PORTS - 1 downto 0);
+			axis_rx_tready    : out STD_LOGIC_VECTOR(G_MUX_PORTS - 1 downto 0);
+			axis_rx_tkeep     : in  STD_LOGIC_VECTOR((G_MUX_PORTS * (G_DATA_WIDTH / 8)) - 1 downto 0);
+			axis_rx_tlast     : in  STD_LOGIC_VECTOR(G_MUX_PORTS - 1 downto 0)
 		);
 	end component axisfabricmultiplexer;
 	type dwordarray_t is array (0 to (G_NUM_STREAMING_DATA_SERVERS - 1)) of std_logic_vector(31 downto 0);
@@ -372,7 +372,7 @@ begin
 		-- Multiplex all data into 
 		FABMUXi : axisfabricmultiplexer
 			generic map(
-				G_NUM_PORTS              => G_NUM_STREAMING_DATA_SERVERS,
+				G_MUX_PORTS              => G_NUM_STREAMING_DATA_SERVERS,
 				G_MAX_PACKET_BLOCKS_SIZE => 64,
 				G_PRIORITY_WIDTH         => G_SLOT_WIDTH,
 				G_DATA_WIDTH             => G_AXIS_DATA_WIDTH

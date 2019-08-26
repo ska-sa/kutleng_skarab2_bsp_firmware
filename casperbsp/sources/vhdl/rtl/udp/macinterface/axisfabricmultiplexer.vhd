@@ -73,6 +73,7 @@ entity axisfabricmultiplexer is
 		axis_clk          : in  STD_LOGIC;
 		axis_reset        : in  STD_LOGIC;
 		--Outputs to AXIS bus MAC side 
+		axis_tx_tpriority : out STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
 		axis_tx_tdata     : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
 		axis_tx_tvalid    : out STD_LOGIC;
 		axis_tx_tready    : in  STD_LOGIC;
@@ -206,21 +207,22 @@ begin
 					case StateVariable is
 						-- Evaluate Ethernet header
 						when SearchReadyPacket =>
-							axis_tx_tlast  <= '0';
-							axis_tx_tvalid <= '0';
-							axis_tx_tuser  <= '0';
-							axis_tx_tdata  <= (others => '0');
-							axis_tx_tkeep  <= (others => '0');
-							axis_rx_tready <= (others => '0');
-							
+							axis_tx_tlast     <= '0';
+							axis_tx_tvalid    <= '0';
+							axis_tx_tuser     <= '0';
+							axis_tx_tdata     <= (others => '0');
+							axis_tx_tkeep     <= (others => '0');
+							axis_tx_tpriority <= (others => '0');
+							axis_rx_tready    <= (others => '0');
+
 							if (CurrentHighestPriorityValue /= 0) then
-								ExtractCurrentSlotPriority                 <= '1';
-								CurrentActiveSlot                          <= CurrentHighestPrioritySlot;
-								DataPacketBlockCounter                     <= 0;
-								TransferClockCount                         <= 0;
-								TransferClockCount                         <= 0;
-								DataPacketBlockCounter                     <= 0;
-								StateVariable                              <= ProcessPacketSt;
+								ExtractCurrentSlotPriority <= '1';
+								CurrentActiveSlot          <= CurrentHighestPrioritySlot;
+								DataPacketBlockCounter     <= 0;
+								TransferClockCount         <= 0;
+								TransferClockCount         <= 0;
+								DataPacketBlockCounter     <= 0;
+								StateVariable              <= ProcessPacketSt;
 							else
 
 								ExtractCurrentSlotPriority <= '0';
@@ -242,12 +244,13 @@ begin
 								StateVariable                     <= SearchReadyPacket;
 							else
 								-- Pass all other signals
-								axis_tx_tvalid <= rx_tvalid(CurrentActiveSlot);
-								axis_tx_tlast  <= rx_tlast(CurrentActiveSlot);
-								axis_tx_tdata  <= axis_rx_tdata_array(CurrentActiveSlot);
-								axis_tx_tkeep  <= axis_rx_tkeep_array(CurrentActiveSlot);
+								axis_tx_tvalid    <= rx_tvalid(CurrentActiveSlot);
+								axis_tx_tlast     <= rx_tlast(CurrentActiveSlot);
+								axis_tx_tdata     <= axis_rx_tdata_array(CurrentActiveSlot);
+								axis_tx_tkeep     <= axis_rx_tkeep_array(CurrentActiveSlot);
+								axis_tx_tpriority <= axis_rx_tpriority_array(CurrentActiveSlot);
 								-- Flag no errors
-								axis_tx_tuser  <= '0';
+								axis_tx_tuser     <= '0';
 
 								if (rx_tvalid(CurrentActiveSlot) = '1') then
 									DataPacketBlockCounter <= DataPacketBlockCounter + 1;
@@ -260,12 +263,12 @@ begin
 									else
 										-- Enable the current slot
 										axis_rx_tready(CurrentActiveSlot) <= '1';
-										StateVariable <= ProcessPacketSt;
+										StateVariable                     <= ProcessPacketSt;
 									end if;
 								else
 									-- Enable the current slot  
 									axis_rx_tready(CurrentActiveSlot) <= '1';
-									StateVariable <= ProcessPacketSt;
+									StateVariable                     <= ProcessPacketSt;
 								end if;
 							end if;
 
