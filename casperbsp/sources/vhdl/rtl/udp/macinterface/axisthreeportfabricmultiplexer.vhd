@@ -113,6 +113,7 @@ architecture rtl of axisthreeportfabricmultiplexer is
             axis_clk          : in  STD_LOGIC;
             axis_reset        : in  STD_LOGIC;
             --Outputs to AXIS bus MAC side 
+			axis_tx_tpriority : out STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
             axis_tx_tdata     : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             axis_tx_tvalid    : out STD_LOGIC;
             axis_tx_tready    : in  STD_LOGIC;
@@ -176,6 +177,7 @@ begin
         port map(
             axis_clk          => axis_clk,
             axis_reset        => axis_reset,
+            axis_tx_tpriority => open,
             axis_tx_tdata     => axis_tx_tdata,
             axis_tx_tvalid    => axis_tx_tvalid,
             axis_tx_tready    => axis_tx_tready,
