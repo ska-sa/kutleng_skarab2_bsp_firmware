@@ -14,78 +14,78 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity microblaze_axi_us_plus_wrapper is
 	generic(
 		-- Users to add parameters here
-		C_ARP_CACHE_ASIZE      : natural := 13;
-		C_DATA_TX_BUFFER_ASIZE : natural := 13;
-		C_DATA_RX_BUFFER_ASIZE : natural := 13;
-		C_SLOT_WIDTH           : natural := 4
+		C_ARP_CACHE_ASIZE          : natural := 13;
+		C_CPU_TX_DATA_BUFFER_ASIZE : natural := 13;
+		C_CPU_RX_DATA_BUFFER_ASIZE : natural := 13;
+		C_SLOT_WIDTH               : natural := 4
 	);
 	port(
 		------------------------------------------------------------------------
 		-- MAC PHY Register Interface according to EthernetCore Memory MAP    --
 		------------------------------------------------------------------------ 
-		gmac_reg_phy_control_h                 : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_phy_control_l                 : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_mac_address                   : in  STD_LOGIC_VECTOR(47 downto 0);
-		gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_gateway_ip_address            : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_multicast_ip_address          : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_multicast_ip_mask             : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_udp_port                      : in  STD_LOGIC_VECTOR(15 downto 0);
-		gmac_reg_udp_port_mask                 : in  STD_LOGIC_VECTOR(15 downto 0);
-		gmac_reg_mac_enable                    : in  STD_LOGIC;
-		gmac_reg_mac_promiscous_mode           : in  STD_LOGIC;
-		gmac_reg_counters_reset                : in  STD_LOGIC;
-		gmac_reg_core_type                     : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_phy_status_h                  : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_phy_status_l                  : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_afull_count                : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_rx_bad_packet_count           : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_arp_size                      : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_reg_tx_word_size                  : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_reg_rx_word_size                  : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_reg_tx_buffer_max_size            : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_reg_rx_buffer_max_size            : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_arp_cache_write_enable            : in  STD_LOGIC;
-		gmac_arp_cache_read_enable             : in  STD_LOGIC;
-		gmac_arp_cache_write_data              : in  STD_LOGIC_VECTOR(31 downto 0);
-		gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0);
-		gmac_arp_cache_write_address           : in  STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
-		gmac_arp_cache_read_address            : in  STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
-		gmac_tx_data_write_enable              : in  STD_LOGIC;
-		gmac_tx_data_read_enable               : in  STD_LOGIC;
-		gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
-		gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-		gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
-		gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
-		gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-		gmac_tx_ringbuffer_slot_set            : in  STD_LOGIC;
-		gmac_tx_ringbuffer_slot_status         : out STD_LOGIC;
-		gmac_tx_ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-		gmac_rx_data_write_enable              : in  STD_LOGIC;
-		gmac_rx_data_read_enable               : in  STD_LOGIC;
-		gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
-		gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-		gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-		gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
-		gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
-		gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-		gmac_rx_ringbuffer_slot_clear          : in  STD_LOGIC;
-		gmac_rx_ringbuffer_slot_status         : out STD_LOGIC;
-		gmac_rx_ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+		gmac_reg_phy_control_h                 : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_phy_control_l                 : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_mac_address                   : out STD_LOGIC_VECTOR(47 downto 0);
+		gmac_reg_local_ip_address              : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_gateway_ip_address            : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_multicast_ip_address          : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_multicast_ip_mask             : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_udp_port                      : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_reg_udp_port_mask                 : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_reg_mac_enable                    : out STD_LOGIC;
+		gmac_reg_mac_promiscous_mode           : out STD_LOGIC;
+		gmac_reg_counters_reset                : out STD_LOGIC;
+		gmac_reg_core_type                     : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_phy_status_h                  : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_phy_status_l                  : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_packet_rate                : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_packet_count               : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_valid_rate                 : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_valid_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_overflow_count             : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_afull_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_packet_rate                : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_packet_count               : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_valid_rate                 : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_valid_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_overflow_count             : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_almost_full_count          : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_rx_bad_packet_count           : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_arp_size                      : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_reg_tx_word_size                  : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_reg_rx_word_size                  : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_reg_tx_buffer_max_size            : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_reg_rx_buffer_max_size            : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_arp_cache_write_enable            : out STD_LOGIC;
+		gmac_arp_cache_read_enable             : out STD_LOGIC;
+		gmac_arp_cache_write_data              : out STD_LOGIC_VECTOR(31 downto 0);
+		gmac_arp_cache_read_data               : in  STD_LOGIC_VECTOR(31 downto 0);
+		gmac_arp_cache_write_address           : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
+		gmac_arp_cache_read_address            : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
+		gmac_tx_data_write_enable              : out STD_LOGIC;
+		gmac_tx_data_read_enable               : out STD_LOGIC;
+		gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
+		gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+		gmac_tx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
+		gmac_tx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
+		gmac_tx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+		gmac_tx_ringbuffer_slot_set            : out STD_LOGIC;
+		gmac_tx_ringbuffer_slot_status         : in  STD_LOGIC;
+		gmac_tx_ringbuffer_number_slots_filled : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+		gmac_rx_data_write_enable              : out STD_LOGIC;
+		gmac_rx_data_read_enable               : out STD_LOGIC;
+		gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
+		gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+		gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+		gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+		gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+		gmac_rx_ringbuffer_slot_clear          : out STD_LOGIC;
+		gmac_rx_ringbuffer_slot_status         : in  STD_LOGIC;
+		gmac_rx_ringbuffer_number_slots_filled : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
 		ClockStable                            : in  STD_LOGIC;
 		PSClock                                : in  STD_LOGIC;
 		PSReset                                : in  STD_LOGIC;
@@ -98,78 +98,78 @@ architecture STRUCTURE of microblaze_axi_us_plus_wrapper is
 	component microblaze_axi_us_plus is
 		generic(
 			-- Users to add parameters here
-			C_ARP_CACHE_ASIZE      : natural := 13;
-			C_DATA_TX_BUFFER_ASIZE : natural := 13;
-			C_DATA_RX_BUFFER_ASIZE : natural := 13;
-			C_SLOT_WIDTH           : natural := 4
+			C_ARP_CACHE_ASIZE          : natural := 13;
+			C_CPU_TX_DATA_BUFFER_ASIZE : natural := 13;
+			C_CPU_RX_DATA_BUFFER_ASIZE : natural := 13;
+			C_SLOT_WIDTH               : natural := 4
 		);
 		port(
 			------------------------------------------------------------------------
 			-- MAC PHY Register Interface according to EthernetCore Memory MAP    --
 			------------------------------------------------------------------------ 
-			gmac_reg_phy_control_h                 : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_phy_control_l                 : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_mac_address                   : in  STD_LOGIC_VECTOR(47 downto 0);
-			gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_gateway_ip_address            : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_multicast_ip_address          : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_multicast_ip_mask             : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_udp_port                      : in  STD_LOGIC_VECTOR(15 downto 0);
-			gmac_reg_udp_port_mask                 : in  STD_LOGIC_VECTOR(15 downto 0);
-			gmac_reg_mac_enable                    : in  STD_LOGIC;
-			gmac_reg_mac_promiscous_mode           : in  STD_LOGIC;
-			gmac_reg_counters_reset                : in  STD_LOGIC;
-			gmac_reg_core_type                     : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_phy_status_h                  : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_phy_status_l                  : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_afull_count                : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_packet_rate                : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_packet_count               : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_valid_rate                 : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_valid_count                : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_overflow_count             : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_almost_full_count          : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_rx_bad_packet_count           : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_arp_size                      : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_reg_tx_word_size                  : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_reg_rx_word_size                  : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_reg_tx_buffer_max_size            : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_reg_rx_buffer_max_size            : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_arp_cache_write_enable            : in  STD_LOGIC;
-			gmac_arp_cache_read_enable             : in  STD_LOGIC;
-			gmac_arp_cache_write_data              : in  STD_LOGIC_VECTOR(31 downto 0);
-			gmac_arp_cache_read_data               : out STD_LOGIC_VECTOR(31 downto 0);
-			gmac_arp_cache_write_address           : in  STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
-			gmac_arp_cache_read_address            : in  STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
-			gmac_tx_data_write_enable              : in  STD_LOGIC;
-			gmac_tx_data_read_enable               : in  STD_LOGIC;
-			gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
-			gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-			gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
-			gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
-			gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-			gmac_tx_ringbuffer_slot_set            : in  STD_LOGIC;
-			gmac_tx_ringbuffer_slot_status         : out STD_LOGIC;
-			gmac_tx_ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-			gmac_rx_data_write_enable              : in  STD_LOGIC;
-			gmac_rx_data_read_enable               : in  STD_LOGIC;
-			gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
-			gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-			gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-			gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
-			gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
-			gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-			gmac_rx_ringbuffer_slot_clear          : in  STD_LOGIC;
-			gmac_rx_ringbuffer_slot_status         : out STD_LOGIC;
-			gmac_rx_ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+			gmac_reg_phy_control_h                 : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_phy_control_l                 : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_mac_address                   : out STD_LOGIC_VECTOR(47 downto 0);
+			gmac_reg_local_ip_address              : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_gateway_ip_address            : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_multicast_ip_address          : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_multicast_ip_mask             : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_udp_port                      : out STD_LOGIC_VECTOR(15 downto 0);
+			gmac_reg_udp_port_mask                 : out STD_LOGIC_VECTOR(15 downto 0);
+			gmac_reg_mac_enable                    : out STD_LOGIC;
+			gmac_reg_mac_promiscous_mode           : out STD_LOGIC;
+			gmac_reg_counters_reset                : out STD_LOGIC;
+			gmac_reg_core_type                     : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_phy_status_h                  : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_phy_status_l                  : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_packet_rate                : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_packet_count               : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_valid_rate                 : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_valid_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_overflow_count             : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_afull_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_packet_rate                : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_packet_count               : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_valid_rate                 : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_valid_count                : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_overflow_count             : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_almost_full_count          : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_rx_bad_packet_count           : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_arp_size                      : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_reg_tx_word_size                  : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_reg_rx_word_size                  : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_reg_tx_buffer_max_size            : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_reg_rx_buffer_max_size            : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_arp_cache_write_enable            : out STD_LOGIC;
+			gmac_arp_cache_read_enable             : out STD_LOGIC;
+			gmac_arp_cache_write_data              : out STD_LOGIC_VECTOR(31 downto 0);
+			gmac_arp_cache_read_data               : in  STD_LOGIC_VECTOR(31 downto 0);
+			gmac_arp_cache_write_address           : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
+			gmac_arp_cache_read_address            : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
+			gmac_tx_data_write_enable              : out STD_LOGIC;
+			gmac_tx_data_read_enable               : out STD_LOGIC;
+			gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+			gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
+			gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+			gmac_tx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
+			gmac_tx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
+			gmac_tx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+			gmac_tx_ringbuffer_slot_set            : out STD_LOGIC;
+			gmac_tx_ringbuffer_slot_status         : in  STD_LOGIC;
+			gmac_tx_ringbuffer_number_slots_filled : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+			gmac_rx_data_write_enable              : out STD_LOGIC;
+			gmac_rx_data_read_enable               : out STD_LOGIC;
+			gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+			gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
+			gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+			gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+			gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+			gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+			gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
+			gmac_rx_ringbuffer_slot_clear          : out STD_LOGIC;
+			gmac_rx_ringbuffer_slot_status         : in  STD_LOGIC;
+			gmac_rx_ringbuffer_number_slots_filled : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
 			PSClock                                : in  STD_LOGIC;
 			PSReset                                : in  STD_LOGIC;
 			ClockStable                            : in  STD_LOGIC;
@@ -181,10 +181,10 @@ begin
 	microblaze_axi_us_plus_i : component microblaze_axi_us_plus
 		generic map(
 			-- Users to add parameters here
-			C_ARP_CACHE_ASIZE      => C_ARP_CACHE_ASIZE,
-			C_DATA_TX_BUFFER_ASIZE => C_DATA_TX_BUFFER_ASIZE,
-			C_DATA_RX_BUFFER_ASIZE => C_DATA_RX_BUFFER_ASIZE,
-			C_SLOT_WIDTH           => C_SLOT_WIDTH
+			C_ARP_CACHE_ASIZE          => C_ARP_CACHE_ASIZE,
+			C_CPU_TX_DATA_BUFFER_ASIZE => C_CPU_TX_DATA_BUFFER_ASIZE,
+			C_CPU_RX_DATA_BUFFER_ASIZE => C_CPU_RX_DATA_BUFFER_ASIZE,
+			C_SLOT_WIDTH               => C_SLOT_WIDTH
 		)
 		port map(
 			gmac_reg_phy_control_h                 => gmac_reg_phy_control_h,
