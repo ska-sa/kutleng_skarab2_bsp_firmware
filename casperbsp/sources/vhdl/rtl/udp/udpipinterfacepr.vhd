@@ -828,7 +828,7 @@ begin
 
 	NOPRCFGi : if G_INCLUDE_ICAP = false generate
 	begin
-
+        -- When not using ICAP we only need two ports for the multiplexer 
 		AXISMUX_i : axistwoportfabricmultiplexer
 			generic map(
 				G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
