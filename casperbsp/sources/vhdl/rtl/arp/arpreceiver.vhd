@@ -133,7 +133,7 @@ architecture rtl of arpreceiver is
     -- Packet Type ARP=0x0806 
     constant C_ARP_TYPE      : std_logic_vector(15 downto 0) := X"0806";
     -- Packet Type RARP=0x0835 
-    constant C_RARP_TYPE     : std_logic_vector(15 downto 0) := X"0835";
+    constant C_RARP_TYPE     : std_logic_vector(15 downto 0) := X"8035";
     -- Packet Type VLAN=0x8100 
     --constant C_VLAN_TYPE      : std_logic_vector(15 downto 0)       := X"8100";
     -- Packet Type DVLAN=0x88A8 

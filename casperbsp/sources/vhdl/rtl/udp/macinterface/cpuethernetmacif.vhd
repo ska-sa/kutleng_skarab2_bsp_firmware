@@ -74,21 +74,23 @@ entity cpuethernetmacif is
 		aximm_gmac_reg_mac_address                   : in  STD_LOGIC_VECTOR(47 downto 0);
 		aximm_gmac_reg_udp_port                      : in  STD_LOGIC_VECTOR(15 downto 0);
 		aximm_gmac_reg_udp_port_mask                 : in  STD_LOGIC_VECTOR(15 downto 0);
+                aximm_gmac_reg_mac_promiscous_mode           : in  STD_LOGIC;
+                aximm_gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);		
 		------------------------------------------------------------------------
 		-- Transmit Ring Buffer Interface according to EthernetCore Memory MAP--
 		------------------------------------------------------------------------ 
 		aximm_gmac_tx_data_write_enable              : in  STD_LOGIC;
 		aximm_gmac_tx_data_read_enable               : in  STD_LOGIC;
-		aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+		aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).
+		aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+		aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).
+		aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 		aximm_gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -100,16 +102,16 @@ entity cpuethernetmacif is
 		------------------------------------------------------------------------ 
 		aximm_gmac_rx_data_write_enable              : in  STD_LOGIC;
 		aximm_gmac_rx_data_read_enable               : in  STD_LOGIC;
-		aximm_gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+		aximm_gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		aximm_gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).		
+		aximm_gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+		aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).		
+		aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 		aximm_gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -149,16 +151,16 @@ architecture rtl of cpuethernetmacif is
 			-- Packet Readout in addressed bus format
 			data_write_enable              : in  STD_LOGIC;
 			data_read_enable               : in  STD_LOGIC;
-			data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+			data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
-			-- Bit (0-1) Byte Enables
-			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+			-- Bit (0) Byte Enables
+			-- Bit (1) Maps to TLAST (To terminate the data stream).
+			data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+			data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
-			-- Bit (0-1) Byte Enables
-			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+			-- Bit (0) Byte Enables
+			-- Bit (1) Maps to TLAST (To terminate the data stream).
+			data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 			data_write_address             : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -194,16 +196,16 @@ architecture rtl of cpuethernetmacif is
 			-- Packet Readout in addressed bus format
 			data_write_enable              : in  STD_LOGIC;
 			data_read_enable               : in  STD_LOGIC;
-			data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+			data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
-			-- Bit (0-1) Byte Enables
-			-- Bit (2) Maps to TLAST (To terminate the data stream).		
-			data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+			-- Bit (0) Byte Enables
+			-- Bit (1) Maps to TLAST (To terminate the data stream).		
+			data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+			data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
-			-- Bit (0-1) Byte Enables
-			-- Bit (2) Maps to TLAST (To terminate the data stream).		
-			data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+			-- Bit (0) Byte Enables
+			-- Bit (1) Maps to TLAST (To terminate the data stream).		
+			data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 			data_write_address             : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 			ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -264,6 +266,8 @@ begin
 			reg_mac_address                => aximm_gmac_reg_mac_address,
 			reg_udp_port                   => aximm_gmac_reg_udp_port,
 			reg_udp_port_mask              => aximm_gmac_reg_udp_port_mask,
+			reg_promiscous_mode            => aximm_gmac_reg_mac_promiscous_mode,
+                        reg_local_ip_address           => aximm_gmac_reg_local_ip_address,       			
 			data_write_enable              => aximm_gmac_rx_data_write_enable,
 			data_read_enable               => aximm_gmac_rx_data_read_enable,
 			data_write_data                => aximm_gmac_rx_data_write_data,

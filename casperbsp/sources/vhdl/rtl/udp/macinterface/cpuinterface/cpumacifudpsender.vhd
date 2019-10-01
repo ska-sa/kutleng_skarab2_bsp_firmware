@@ -64,9 +64,9 @@ entity cpumacifudpsender is
 	generic(
 		G_SLOT_WIDTH      : natural := 4;
 		G_AXIS_DATA_WIDTH : natural := 512;
-		G_CPU_DATA_WIDTH  : natural := 16;
-		-- The address width is log2(2048/(512/8))=5 bits wide
-		G_ADDR_WIDTH      : natural := 5
+		G_CPU_DATA_WIDTH  : natural := 8;
+		-- The address width is log2(2048/8))=11 bits wide
+		G_ADDR_WIDTH      : natural := 11
 	);
 	port(
 		axis_clk                       : in  STD_LOGIC;
@@ -78,13 +78,13 @@ entity cpumacifudpsender is
 		data_read_enable               : in  STD_LOGIC;
 		data_write_data                : in  STD_LOGIC_VECTOR(G_CPU_DATA_WIDTH - 1 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		data_write_byte_enable         : in  STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8) - 1 downto 0);
+		-- Bit (0) Byte Enables when it is '1' else
+		-- Bit (0) Maps to TLAST (To terminate the data stream when it becomes '0').
+		data_write_byte_enable         : in  STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8) - 1  downto 0);
 		data_read_data                 : out STD_LOGIC_VECTOR(G_CPU_DATA_WIDTH - 1 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
+		-- Bit (0) Byte Enables when it is '1' else
+		-- Bit (0) Maps to TLAST (To terminate the data stream when it becomes '0').
 		data_read_byte_enable          : out STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8) - 1 downto 0);
 		data_write_address             : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -226,9 +226,10 @@ begin
 	end process SlotSetClearProc;
 
 	--Generate the number of slots filled using the axis_clk
-	--Synchronize it with the slow Ingres slot set
+	--Synchronize it with the slow Egress slot set
 	-- Send the number of slots filled to the CPU for status update
-	ringbuffer_number_slots_filled <= EgressRingBufferSlotsFilled;
+	ringbuffer_number_slots_filled <= std_logic_vector(lFilledSlots);
+	EgressRingBufferSlotsFilled <= std_logic_vector(lFilledSlots);	
 
 	FilledSlotCounterProc : process(axis_clk)
 	begin

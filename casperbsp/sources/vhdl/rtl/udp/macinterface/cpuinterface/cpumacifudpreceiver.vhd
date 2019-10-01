@@ -61,50 +61,208 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity cpumacifudpreceiver is
-	generic(
-		G_SLOT_WIDTH      : natural := 4;
-		G_AXIS_DATA_WIDTH : natural := 512;
-		-- The address width is log2(2048/(512/8))=5 bits wide
-		G_ADDR_WIDTH      : natural := 5
-	);
-	port(
-		axis_clk                       : in  STD_LOGIC;
-		aximm_clk                      : in  STD_LOGIC;
-		axis_reset                     : in  STD_LOGIC;
-		-- Setup information
-		reg_mac_address                : in  STD_LOGIC_VECTOR(47 downto 0);
-		reg_udp_port                   : in  STD_LOGIC_VECTOR(15 downto 0);
-		reg_udp_port_mask              : in  STD_LOGIC_VECTOR(15 downto 0);
-		-- Packet Readout in addressed bus format
-		data_write_enable              : in  STD_LOGIC;
-		data_read_enable               : in  STD_LOGIC;
-		data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
-		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-		data_write_address             : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-		data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-		ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-		ringbuffer_slot_clear          : in  STD_LOGIC;
-		ringbuffer_slot_status         : out STD_LOGIC;
-		ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-		--Inputs from AXIS bus of the MAC side
-		axis_rx_tdata                  : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
-		axis_rx_tvalid                 : in  STD_LOGIC;
-		axis_rx_tuser                  : in  STD_LOGIC;
-		axis_rx_tkeep                  : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
-		axis_rx_tlast                  : in  STD_LOGIC
-	);
+    generic(
+        G_SLOT_WIDTH         : natural := 4;
+        G_CPU_DATA_WIDTH     : natural := 8;
+        G_INGRESS_ADDR_WIDTH : natural := 5;
+        G_AXIS_DATA_WIDTH    : natural := 512;
+        -- The address width is log2(2048/8))=11 bits wide
+        G_ADDR_WIDTH         : natural := 11
+    );
+    port(
+        axis_clk                       : in  STD_LOGIC;
+        aximm_clk                      : in  STD_LOGIC;
+        axis_reset                     : in  STD_LOGIC;
+        -- Setup information
+        reg_mac_address                : in  STD_LOGIC_VECTOR(47 downto 0);
+        reg_udp_port                   : in  STD_LOGIC_VECTOR(15 downto 0);
+        reg_udp_port_mask              : in  STD_LOGIC_VECTOR(15 downto 0);
+        reg_promiscous_mode            : in  STD_LOGIC;
+        reg_local_ip_address           : in  STD_LOGIC_VECTOR(31 downto 0);
+        -- Packet Readout in addressed bus format
+        data_read_enable               : in  STD_LOGIC;
+        data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
+        -- The Byte Enable is as follows
+        -- Bit (0) Byte Enables
+        -- Bit (0) Maps to TLAST (To terminate the data stream).		
+        data_read_byte_enable          : out STD_LOGIC_VECTOR(0 downto 0);
+        data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        ringbuffer_slot_clear          : in  STD_LOGIC;
+        ringbuffer_slot_status         : out STD_LOGIC;
+        ringbuffer_number_slots_filled : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        --Inputs from AXIS bus of the MAC side
+        axis_rx_tdata                  : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
+        axis_rx_tvalid                 : in  STD_LOGIC;
+        axis_rx_tuser                  : in  STD_LOGIC;
+        axis_rx_tkeep                  : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+        axis_rx_tlast                  : in  STD_LOGIC
+    );
 end entity cpumacifudpreceiver;
 
 architecture rtl of cpumacifudpreceiver is
+    component cpumacifethernetreceiver is
+        generic(
+            G_SLOT_WIDTH : natural := 4;
+            -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
+            -- The address width is log2(2048/(512/8))=5 bits wide
+            -- 1 x (16KBRAM) per slot = 1 x 4 = 4 (16K BRAMS)/ 2 (32K BRAMS)   
+            G_ADDR_WIDTH : natural := 5
+            -- For 9600 Jumbo ethernet frame packet size = ceil(9600)=16384 Bytes 
+            -- The address width is log2(16384/(512/8))=8 bits wide
+            -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
+            -- G_ADDR_WIDTH      : natural                          := 5
+        );
+        port(
+            axis_clk               : in  STD_LOGIC;
+            axis_reset             : in  STD_LOGIC;
+            -- Local Server port range mask
+            ServerPortRange        : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- Setup information
+            ReceiverMACAddress     : in  STD_LOGIC_VECTOR(47 downto 0);
+            ReceiverIPAddress      : in  STD_LOGIC_VECTOR(31 downto 0);
+            ReceiverPromiscousMode : in  STD_LOGIC;
+            -- Packet Readout in addressed bus format
+            RingBufferSlotID       : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RingBufferSlotSet      : out STD_LOGIC;
+            RingBufferDataWrite    : out STD_LOGIC;
+            -- Enable[0] is a special bit (we assume always 1 when packet is valid)
+            -- we use it to save TLAST
+            RingBufferDataEnable   : out STD_LOGIC_VECTOR(63 downto 0);
+            RingBufferDataOut      : out STD_LOGIC_VECTOR(511 downto 0);
+            RingBufferAddress      : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            --Inputs from AXIS bus of the MAC side
+            axis_rx_tdata          : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tvalid         : in  STD_LOGIC;
+            axis_rx_tuser          : in  STD_LOGIC;
+            axis_rx_tkeep          : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tlast          : in  STD_LOGIC
+        );
+    end component cpumacifethernetreceiver;
+
+    -- TODO
+    -- Watch out for enable signals and TLAST as this maybe skewed during resize
+    -- TODO
+    -- Simulate enable TLAST resize mapping.
+    component cpuifreceiverpacketringbuffer is
+        generic(
+            G_SLOT_WIDTH  : natural := 4;
+            G_ADDR_AWIDTH : natural := 8;
+            G_ADDR_BWIDTH : natural := 8;
+            G_DATA_AWIDTH : natural := 64;
+            G_DATA_BWIDTH : natural := 64
+        );
+        port(
+            RxClk                  : in  STD_LOGIC;
+            TxClk                  : in  STD_LOGIC;
+            -- Reception port
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
+            RxPacketDataWrite      : in  STD_LOGIC;
+            RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
+            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
+            RxPacketSlotSet        : in  STD_LOGIC;
+            RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RxPacketSlotStatus     : out STD_LOGIC;
+            -- Transmission port
+            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
+            TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
+            TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+            TxPacketDataRead       : in  STD_LOGIC;
+            TxPacketSlotClear      : in  STD_LOGIC;
+            TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            TxPacketSlotStatus     : out STD_LOGIC
+        );
+    end component cpuifreceiverpacketringbuffer;
+
+    signal IngressRingBufferDataEnable : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal IngressRingBufferDataWrite  : STD_LOGIC;
+    signal IngressRingBufferDataOut    : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+    signal IngressRingBufferSlotSet    : STD_LOGIC;
+    signal IngressRingBufferSlotID     : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal IngressRingBufferSlotStatus : STD_LOGIC;
+    signal lFilledSlots                : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotClearBuffer            : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotClear                  : STD_LOGIC;
+    signal lSlotSetBuffer              : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotSet                    : STD_LOGIC;
 
 begin
+    --These slot clear and set operations are slow and must be spaced atleast
+    -- 8 clock cycles apart for a conflict not to exist
+    -- As these are controlled by the CPU this is not a problem
+    SlotSetClearProc : process(axis_clk)
+    begin
+        if rising_edge(axis_clk) then
+            if (axis_reset = '1') then
+                lSlotClear <= '0';
+                lSlotSet   <= '0';
+            else
+                lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 1 downto 1) & IngressRingBufferSlotSet;
+                lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 1 downto 1) & ringbuffer_slot_clear;
+                -- Slot clear is late processed
+                if (lSlotClearBuffer = X"1100") then
+                    lSlotClear <= '1';
+                else
+                    lSlotClear <= '0';
+                end if;
+                -- Slot set is early processed
+                if (lSlotSetBuffer = X"0001") then
+                    lSlotSet <= '1';
+                else
+                    lSlotSet <= '0';
+                end if;
 
+	RXCPURBi : cpuifreceiverpacketringbuffer
+		generic map(
+			G_SLOT_WIDTH  => G_SLOT_WIDTH,
+			G_ADDR_BWIDTH => G_ADDR_WIDTH,
+			G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
+			G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
+			G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
+		)
+		port map(
+			TxClk                  => aximm_clk,
+			RxClk                  => axis_clk,
+			RxPacketByteEnable     => IngressRingBufferDataEnable,
+			RxPacketDataWrite      => IngressRingBufferDataWrite,
+			RxPacketData           => IngressRingBufferDataOut,
+			RxPacketAddress        => IngressRingBufferAddress,
+			RxPacketSlotSet        => IngressRingBufferSlotSet,
+			RxPacketSlotID         => IngressRingBufferSlotID,
+			RxPacketSlotStatus     => IngressRingBufferSlotStatus,
+			-- Transmission port   => data_write_address,
+			TxPacketReadByteEnable => data_read_byte_enable,
+			TxPacketDataOut        => data_read_data,
+			TxPacketReadAddress    => data_read_address,
+			TxPacketDataRead       => data_read_enable,
+			TxPacketSlotClear      => ringbuffer_slot_clear,
+			TxPacketSlotID         => ringbuffer_slot_id,
+			TxPacketSlotStatus     => ringbuffer_slot_status
+		);
+
+	RXRECEIVERi:cpumacifethernetreceiver 
+		generic map(
+			G_SLOT_WIDTH => G_SLOT_WIDTH,
+			G_ADDR_WIDTH => G_INGRESS_ADDR_WIDTH
+		)
+		port map(
+			axis_clk               => axis_clk,
+			axis_reset             => axis_reset,
+			ServerPortRange        => reg_udp_port_mask,
+			ReceiverMACAddress     => reg_mac_address,
+			ReceiverIPAddress      => reg_local_ip_address,
+			ReceiverPromiscousMode => reg_promisc_mode,
+			RingBufferSlotID       => IngressRingBufferSlotID,
+			RingBufferSlotSet      => IngressRingBufferSlotSet,
+			RingBufferDataWrite    => IngressRingBufferDataWrite,
+			RingBufferDataEnable   => IngressRingBufferDataEnable,
+			RingBufferDataOut      => IngressRingBufferDataOut,
+			RingBufferAddress      => IngressRingBufferAddress,
+			axis_rx_tdata          => axis_rx_tdata ,
+			axis_rx_tvalid         => axis_rx_tvalid,
+			axis_rx_tuser          => axis_rx_tuser,
+			axis_rx_tkeep          => axis_rx_tkeep,
+			axis_rx_tlast          => axis_rx_tlast 
+		);
 end architecture rtl;
