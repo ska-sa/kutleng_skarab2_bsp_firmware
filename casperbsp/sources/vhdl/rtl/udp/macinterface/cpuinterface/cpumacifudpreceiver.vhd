@@ -213,6 +213,33 @@ begin
                     lSlotSet <= '0';
                 end if;
 
+            end if;
+        end if;
+    end process SlotSetClearProc;
+
+    --Generate the number of slots filled using the axis_clk
+    --Synchronize it with the slow Ingress slot set
+    -- Send the number of slots filled to the CPU for status update
+    ringbuffer_number_slots_filled <= std_logic_vector(lFilledSlots);
+
+    FilledSlotCounterProc : process(axis_clk)
+    begin
+        if rising_edge(axis_clk) then
+            if (axis_reset = '1') then
+                lFilledSlots <= (others => '0');
+            else
+                if ((lSlotClear = '0') and (lSlotSet = '1')) then
+                    lFilledSlots <= lFilledSlots + 1;
+                elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
+                    lFilledSlots <= lFilledSlots - 1;
+                else
+                    -- Its a neutral operation
+                    lFilledSlots <= lFilledSlots;
+                end if;
+            end if;
+        end if;
+    end process FilledSlotCounterProc;                
+
 	RXCPURBi : cpuifreceiverpacketringbuffer
 		generic map(
 			G_SLOT_WIDTH  => G_SLOT_WIDTH,
@@ -220,7 +247,7 @@ begin
 			G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
 			G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
 			G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
-		)
+		) 
 		port map(
 			TxClk                  => aximm_clk,
 			RxClk                  => axis_clk,
@@ -252,7 +279,7 @@ begin
 			ServerPortRange        => reg_udp_port_mask,
 			ReceiverMACAddress     => reg_mac_address,
 			ReceiverIPAddress      => reg_local_ip_address,
-			ReceiverPromiscousMode => reg_promisc_mode,
+			ReceiverPromiscousMode => reg_promiscous_mode,
 			RingBufferSlotID       => IngressRingBufferSlotID,
 			RingBufferSlotSet      => IngressRingBufferSlotSet,
 			RingBufferDataWrite    => IngressRingBufferDataWrite,
