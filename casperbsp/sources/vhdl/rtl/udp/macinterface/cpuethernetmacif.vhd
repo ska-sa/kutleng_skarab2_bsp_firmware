@@ -193,6 +193,8 @@ architecture rtl of cpuethernetmacif is
 			reg_mac_address                : in  STD_LOGIC_VECTOR(47 downto 0);
 			reg_udp_port                   : in  STD_LOGIC_VECTOR(15 downto 0);
 			reg_udp_port_mask              : in  STD_LOGIC_VECTOR(15 downto 0);
+            reg_promiscous_mode            : in  STD_LOGIC;
+            reg_local_ip_address           : in  STD_LOGIC_VECTOR(31 downto 0);			
 			-- Packet Readout in addressed bus format
 			data_write_enable              : in  STD_LOGIC;
 			data_read_enable               : in  STD_LOGIC;
@@ -267,7 +269,7 @@ begin
 			reg_udp_port                   => aximm_gmac_reg_udp_port,
 			reg_udp_port_mask              => aximm_gmac_reg_udp_port_mask,
 			reg_promiscous_mode            => aximm_gmac_reg_mac_promiscous_mode,
-                        reg_local_ip_address           => aximm_gmac_reg_local_ip_address,       			
+            reg_local_ip_address           => aximm_gmac_reg_local_ip_address,       			
 			data_write_enable              => aximm_gmac_rx_data_write_enable,
 			data_read_enable               => aximm_gmac_rx_data_read_enable,
 			data_write_data                => aximm_gmac_rx_data_write_data,
