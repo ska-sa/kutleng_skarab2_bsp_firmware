@@ -13,7 +13,7 @@ entity ethernetcore_mm_v1_0_S02_AXI is
 		-- Width of S_AXI data bus
 		C_S_AXI_DATA_WIDTH   : integer := 32;
 		-- Width of S_AXI address bus
-		C_S_AXI_ADDR_WIDTH   : integer := 10;
+		C_S_AXI_ADDR_WIDTH   : integer := 15;
 		-- Width of optional user defined signal in write address channel
 		C_S_AXI_AWUSER_WIDTH : integer := 0;
 		-- Width of optional user defined signal in read address channel
@@ -32,16 +32,16 @@ entity ethernetcore_mm_v1_0_S02_AXI is
 		------------------------------------------------------------------------ 
 		ring_buffer_data_write_enable      : out STD_LOGIC;
 		ring_buffer_data_read_enable       : out STD_LOGIC;
-		ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(15 downto 0);
+		ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(2 downto 0);
-		ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(15 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).
+		ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(1 downto 0);
+		ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(2 downto 0);
+		-- Bit (0) Byte Enables
+		-- Bit (1) Maps to TLAST (To terminate the data stream).
+		ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(1 downto 0);
 		ring_buffer_data_write_address     : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 		ring_buffer_data_read_address      : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 		-- User ports ends
@@ -227,7 +227,7 @@ architecture arch_imp of ethernetcore_mm_v1_0_S02_AXI is
 	constant ADDR_LSB          : integer                                           := (C_S_AXI_DATA_WIDTH / 32) + 1;
 	constant OPT_MEM_ADDR_BITS : integer                                           := 7;
 	constant USER_NUM_MEM      : integer                                           := 1;
-	constant low               : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0) := "0000000000";
+	constant low               : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0) := (others => '0');
 
 	signal i : integer;
 	signal j : integer;
@@ -256,8 +256,8 @@ begin
 	ring_buffer_data_read_address      <= axi_araddr(ADDR_LSB + C_DATA_BUFFER_ASIZE - 1 downto ADDR_LSB);
 	ring_buffer_data_write_enable      <= axi_wready and S_AXI_WVALID and S_AXI_WSTRB(1) and S_AXI_WSTRB(0);
 	ring_buffer_data_read_enable       <= axi_arv_arr_flag;
-	ring_buffer_data_write_data        <= S_AXI_WDATA(15 downto 0);
-	ring_buffer_data_write_byte_enable <= S_AXI_WDATA(16) & S_AXI_WSTRB(1 downto 0);
+	ring_buffer_data_write_data        <= S_AXI_WDATA(7 downto 0);
+	ring_buffer_data_write_byte_enable <= S_AXI_WDATA(8) & S_AXI_WSTRB(0);
 	-- Implement axi_awready generation
 
 	-- axi_awready is asserted for one S_AXI_ACLK clock cycle when both
@@ -493,7 +493,7 @@ begin
 			-- When there is a valid read address (S_AXI_ARVALID) with 
 			-- acceptance of read address by the slave (axi_arready), 
 			-- output the read data 
-			axi_rdata <= X"000" & '0' & ring_buffer_data_read_byte_enable & ring_buffer_data_read_data; -- memory range 0 read data
+			axi_rdata <= X"0000" & X"0" & '0' & '0' & ring_buffer_data_read_byte_enable & ring_buffer_data_read_data; -- memory range 0 read data
 		else
 			axi_rdata <= (others => '0');
 		end if;

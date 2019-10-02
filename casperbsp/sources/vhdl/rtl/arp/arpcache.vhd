@@ -68,7 +68,7 @@ entity arpcache is
 	);
 	port(
 		CPUClk             : in  STD_LOGIC;
-		EthernetClk        : in  STD_LOGIC_VECTOR(G_ARP_CACHE_ASIZE - 1 downto 0);
+		EthernetClk        : in  STD_LOGIC_VECTOR(G_NUM_CACHE_BLOCKS - 1 downto 0);
 		-- CPU port
 		CPUReadDataEnable  : in  STD_LOGIC;
 		CPUReadData        : out STD_LOGIC_VECTOR(G_WRITE_DATA_WIDTH - 1 downto 0);

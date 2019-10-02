@@ -17,7 +17,7 @@ entity ethernetcore_mm_v1_0 is
 		-- Parameters of Axi Slave Bus Interface S01_AXI
 		C_S01_AXI_ID_WIDTH      : integer          := 1;
 		C_S01_AXI_DATA_WIDTH    : integer          := 32;
-		C_S01_AXI_ADDR_WIDTH    : integer          := 10;
+		C_S01_AXI_ADDR_WIDTH    : integer          := 15;
 		C_S01_AXI_AWUSER_WIDTH  : integer          := 0;
 		C_S01_AXI_ARUSER_WIDTH  : integer          := 0;
 		C_S01_AXI_WUSER_WIDTH   : integer          := 0;
@@ -26,7 +26,7 @@ entity ethernetcore_mm_v1_0 is
 		-- Parameters of Axi Slave Bus Interface S02_AXI
 		C_S02_AXI_ID_WIDTH      : integer          := 1;
 		C_S02_AXI_DATA_WIDTH    : integer          := 32;
-		C_S02_AXI_ADDR_WIDTH    : integer          := 10;
+		C_S02_AXI_ADDR_WIDTH    : integer          := 15;
 		C_S02_AXI_AWUSER_WIDTH  : integer          := 0;
 		C_S02_AXI_ARUSER_WIDTH  : integer          := 0;
 		C_S02_AXI_WUSER_WIDTH   : integer          := 0;
@@ -35,7 +35,7 @@ entity ethernetcore_mm_v1_0 is
 		-- Parameters of Axi Slave Bus Interface S03_AXI
 		C_S03_AXI_ID_WIDTH      : integer          := 1;
 		C_S03_AXI_DATA_WIDTH    : integer          := 32;
-		C_S03_AXI_ADDR_WIDTH    : integer          := 10;
+		C_S03_AXI_ADDR_WIDTH    : integer          := 15;
 		C_S03_AXI_AWUSER_WIDTH  : integer          := 0;
 		C_S03_AXI_ARUSER_WIDTH  : integer          := 0;
 		C_S03_AXI_WUSER_WIDTH   : integer          := 0;
@@ -103,16 +103,16 @@ entity ethernetcore_mm_v1_0 is
 		------------------------------------------------------------------------ 
 		gmac_tx_data_write_enable              : out STD_LOGIC;
 		gmac_tx_data_read_enable               : out STD_LOGIC;
-		gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
-		gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(1 downto 0);
+		gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+		gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
 		gmac_tx_data_write_address             : out STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
 		gmac_tx_data_read_address              : out STD_LOGIC_VECTOR(C_DATA_TX_BUFFER_ASIZE - 1 downto 0);
 		gmac_tx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
@@ -124,16 +124,16 @@ entity ethernetcore_mm_v1_0 is
 		------------------------------------------------------------------------ 
 		gmac_rx_data_write_enable              : out STD_LOGIC;
 		gmac_rx_data_read_enable               : out STD_LOGIC;
-		gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
+		gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
-		gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
+		gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(1 downto 0);
+		gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+		gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
 		gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
 		gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_DATA_RX_BUFFER_ASIZE - 1 downto 0);
 		gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
@@ -425,16 +425,16 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
 			------------------------------------------------------------------------ 
 			ring_buffer_data_write_enable      : out STD_LOGIC;
 			ring_buffer_data_read_enable       : out STD_LOGIC;
-			ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(15 downto 0);
+			ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(2 downto 0);
-			ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(15 downto 0);
+			ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(1 downto 0);
+			ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(2 downto 0);
+			ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(1 downto 0);
 			ring_buffer_data_write_address     : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 			ring_buffer_data_read_address      : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 			-- User ports ends			
@@ -505,16 +505,16 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
 			------------------------------------------------------------------------ 
 			ring_buffer_data_write_enable      : out STD_LOGIC;
 			ring_buffer_data_read_enable       : out STD_LOGIC;
-			ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(15 downto 0);
+			ring_buffer_data_write_data        : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(2 downto 0);
-			ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(15 downto 0);
+			ring_buffer_data_write_byte_enable : out STD_LOGIC_VECTOR(1 downto 0);
+			ring_buffer_data_read_data         : in  STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(2 downto 0);
+			ring_buffer_data_read_byte_enable  : in  STD_LOGIC_VECTOR(1 downto 0);
 			ring_buffer_data_write_address     : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 			ring_buffer_data_read_address      : out STD_LOGIC_VECTOR(C_DATA_BUFFER_ASIZE - 1 downto 0);
 			-- User ports ends			

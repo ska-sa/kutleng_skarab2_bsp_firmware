@@ -142,16 +142,16 @@ entity udpipinterfacepr is
 		------------------------------------------------------------------------ 
 		aximm_gmac_tx_data_write_enable              : in  STD_LOGIC;
 		aximm_gmac_tx_data_read_enable               : in  STD_LOGIC;
-		aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+		aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+		aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+		aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).
-		aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+		aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 		aximm_gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -161,19 +161,12 @@ entity udpipinterfacepr is
 		------------------------------------------------------------------------
 		-- Receive Ring Buffer Interface according to EthernetCore Memory MAP --
 		------------------------------------------------------------------------ 
-		aximm_gmac_rx_data_write_enable              : in  STD_LOGIC;
 		aximm_gmac_rx_data_read_enable               : in  STD_LOGIC;
-		aximm_gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+		aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0-1) Byte Enables
 		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		aximm_gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-		aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-		-- The Byte Enable is as follows
-		-- Bit (0-1) Byte Enables
-		-- Bit (2) Maps to TLAST (To terminate the data stream).		
-		aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-		aximm_gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+		aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 		aximm_gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
 		aximm_gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 		aximm_gmac_rx_ringbuffer_slot_clear          : in  STD_LOGIC;
@@ -264,16 +257,16 @@ architecture rtl of udpipinterfacepr is
 			------------------------------------------------------------------------ 
 			aximm_gmac_tx_data_write_enable              : in  STD_LOGIC;
 			aximm_gmac_tx_data_read_enable               : in  STD_LOGIC;
-			aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+			aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+			aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+			aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).
-			aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+			aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 			aximm_gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 			aximm_gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
 			aximm_gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -283,19 +276,12 @@ architecture rtl of udpipinterfacepr is
 			------------------------------------------------------------------------
 			-- Receive Ring Buffer Interface according to EthernetCore Memory MAP --
 			------------------------------------------------------------------------ 
-			aximm_gmac_rx_data_write_enable              : in  STD_LOGIC;
 			aximm_gmac_rx_data_read_enable               : in  STD_LOGIC;
-			aximm_gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+			aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
 			-- The Byte Enable is as follows
 			-- Bit (0-1) Byte Enables
 			-- Bit (2) Maps to TLAST (To terminate the data stream).		
-			aximm_gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-			aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-			-- The Byte Enable is as follows
-			-- Bit (0-1) Byte Enables
-			-- Bit (2) Maps to TLAST (To terminate the data stream).		
-			aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-			aximm_gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+			aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
 			aximm_gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
 			aximm_gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 			aximm_gmac_rx_ringbuffer_slot_clear          : in  STD_LOGIC;
@@ -637,7 +623,7 @@ begin
 			G_SLOT_WIDTH                 => G_SLOT_WIDTH,
 			-- Number of UDP Streaming Data Server Modules 
 			G_NUM_STREAMING_DATA_SERVERS => G_NUM_STREAMING_DATA_SERVERS,
-			G_ARP_CACHE_ASIZE            => G_ARP_CACHE_ASIZE,
+			G_ARP_CACHE_ASIZE            => G_ARP_CACHE_ASIZE-1,
 			G_ARP_DATA_WIDTH             => 32
 		)
 		port map(
@@ -714,13 +700,9 @@ begin
 			aximm_gmac_tx_ringbuffer_slot_set            => aximm_gmac_tx_ringbuffer_slot_set,
 			aximm_gmac_tx_ringbuffer_slot_status         => aximm_gmac_tx_ringbuffer_slot_status,
 			aximm_gmac_tx_ringbuffer_number_slots_filled => aximm_gmac_tx_ringbuffer_number_slots_filled,
-			aximm_gmac_rx_data_write_enable              => aximm_gmac_rx_data_write_enable,
 			aximm_gmac_rx_data_read_enable               => aximm_gmac_rx_data_read_enable,
-			aximm_gmac_rx_data_write_data                => aximm_gmac_rx_data_write_data,
-			aximm_gmac_rx_data_write_byte_enable         => aximm_gmac_rx_data_write_byte_enable,
 			aximm_gmac_rx_data_read_data                 => aximm_gmac_rx_data_read_data,
 			aximm_gmac_rx_data_read_byte_enable          => aximm_gmac_rx_data_read_byte_enable,
-			aximm_gmac_rx_data_write_address             => aximm_gmac_rx_data_write_address,
 			aximm_gmac_rx_data_read_address              => aximm_gmac_rx_data_read_address,
 			aximm_gmac_rx_ringbuffer_slot_id             => aximm_gmac_rx_ringbuffer_slot_id,
 			aximm_gmac_rx_ringbuffer_slot_clear          => aximm_gmac_rx_ringbuffer_slot_clear,

@@ -79,13 +79,13 @@ entity cpumacifudpsender is
 		data_write_data                : in  STD_LOGIC_VECTOR(G_CPU_DATA_WIDTH - 1 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0) Byte Enables when it is '1' else
-		-- Bit (0) Maps to TLAST (To terminate the data stream when it becomes '0').
-		data_write_byte_enable         : in  STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8) - 1  downto 0);
+		-- Bit (1) Maps to TLAST (To terminate the data stream when it becomes '0').
+		data_write_byte_enable         : in  STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8)   downto 0);
 		data_read_data                 : out STD_LOGIC_VECTOR(G_CPU_DATA_WIDTH - 1 downto 0);
 		-- The Byte Enable is as follows
 		-- Bit (0) Byte Enables when it is '1' else
-		-- Bit (0) Maps to TLAST (To terminate the data stream when it becomes '0').
-		data_read_byte_enable          : out STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8) - 1 downto 0);
+		-- Bit (1) Maps to TLAST (To terminate the data stream when it becomes '0').
+		data_read_byte_enable          : out STD_LOGIC_VECTOR((G_CPU_DATA_WIDTH / 8)  downto 0);
 		data_write_address             : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -120,22 +120,22 @@ architecture rtl of cpumacifudpsender is
 			RxClk                   : in  STD_LOGIC;
 			TxClk                   : in  STD_LOGIC;
 			-- Transmission port
-			TxPacketByteEnable      : out STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
+			TxPacketByteEnable      : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
 			TxPacketDataRead        : in  STD_LOGIC;
-			TxPacketData            : out STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-			TxPacketAddress         : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
+			TxPacketData            : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
+			TxPacketAddress         : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
 			TxPacketSlotClear       : in  STD_LOGIC;
 			TxPacketSlotID          : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 			TxPacketSlotStatus      : out STD_LOGIC;
 			-- Reception port
-			RxPacketReadByteEnable  : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
-			RxPacketDataOut         : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-			RxPacketReadAddress     : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+			RxPacketReadByteEnable  : out STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8)  downto 0);
+			RxPacketDataOut         : out STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
+			RxPacketReadAddress     : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
 			RxPacketDataRead        : in  STD_LOGIC;
-			RxPacketWriteByteEnable : in  STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
+			RxPacketWriteByteEnable : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8)  downto 0);
 			RxPacketDataWrite       : in  STD_LOGIC;
-			RxPacketDataIn          : in  STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-			RxPacketWriteAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+			RxPacketDataIn          : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
+			RxPacketWriteAddress    : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
 			RxPacketSlotSet         : in  STD_LOGIC;
 			RxPacketSlotID          : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 			RxPacketSlotStatus      : out STD_LOGIC

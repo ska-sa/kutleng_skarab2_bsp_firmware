@@ -13,7 +13,7 @@ entity ethernetcore_mm_v1_0_S03_AXI is
 		-- Width of S_AXI data bus
 		C_S_AXI_DATA_WIDTH   : integer := 32;
 		-- Width of S_AXI address bus
-		C_S_AXI_ADDR_WIDTH   : integer := 10;
+		C_S_AXI_ADDR_WIDTH   : integer := 15;
 		-- Width of optional user defined signal in write address channel
 		C_S_AXI_AWUSER_WIDTH : integer := 0;
 		-- Width of optional user defined signal in read address channel
@@ -219,7 +219,7 @@ architecture arch_imp of ethernetcore_mm_v1_0_S03_AXI is
 	constant ADDR_LSB          : integer                                           := (C_S_AXI_DATA_WIDTH / 32) + 1;
 	constant OPT_MEM_ADDR_BITS : integer                                           := 7;
 	constant USER_NUM_MEM      : integer                                           := 1;
-	constant low               : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0) := "0000000000";
+	constant low               : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0) := (others => '0');
 
 	signal i : integer;
 	signal j : integer;

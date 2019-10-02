@@ -148,7 +148,7 @@ begin
 	RAMH : ramdpwrr
 		generic map(
 			G_INIT_VALUE => G_INIT_VALUE,
-			G_ADDR_WIDTH => G_ADDR_WIDTH,
+			G_ADDR_WIDTH => G_ADDR_WIDTH-1,
 			G_DATA_WIDTH => G_DATA_WIDTH
 		)
 		port map(
@@ -167,7 +167,7 @@ begin
 	RAML : ramdpwrr
 		generic map(
 			G_INIT_VALUE => G_INIT_VALUE,
-			G_ADDR_WIDTH => G_ADDR_WIDTH,
+			G_ADDR_WIDTH => G_ADDR_WIDTH-1,
 			G_DATA_WIDTH => G_DATA_WIDTH
 		)
 		port map(

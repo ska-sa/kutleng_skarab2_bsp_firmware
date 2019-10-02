@@ -82,8 +82,8 @@ entity cpuifreceiverpacketringbuffer is
         G_DATA_BWIDTH : natural := 64
     );
     port(
-        ClkA                   : in  STD_LOGIC;
-        ClkB                   : in  STD_LOGIC;
+        RxClk                  : in  STD_LOGIC;
+        TxClk                  : in  STD_LOGIC;
         -- Reception port
         RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
         RxPacketDataWrite      : in  STD_LOGIC;
@@ -93,7 +93,7 @@ entity cpuifreceiverpacketringbuffer is
         RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RxPacketSlotStatus     : out STD_LOGIC;
         -- Transmission port
-        TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
+        TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8)  downto 0);
         TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
         TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
@@ -172,8 +172,8 @@ begin
             G_ADDR_WIDTH => G_SLOT_WIDTH
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             -- Port A
             EnableA       => RxPacketSlotSet,
             WriteAEnable  => RxPacketSlotSet,
@@ -212,8 +212,8 @@ begin
             G_DATA_BWIDTH => (TxPacketReadByteEnable'length)
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             WriteAAddress => lRxPacketAddress,
             EnableA       => RxPacketDataWrite,
             WriteAEnable  => RxPacketDataWrite,
@@ -233,8 +233,8 @@ begin
             G_DATA_BWIDTH => (TxPacketDataOut'length)
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             WriteAAddress => lRxPacketAddress,
             EnableA       => RxPacketDataWrite,
             WriteAEnable  => RxPacketDataWrite,

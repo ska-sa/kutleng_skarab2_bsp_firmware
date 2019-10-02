@@ -82,25 +82,25 @@ entity cpuifsenderpacketringbuffer is
         G_DATA_BWIDTH : natural := 64
     );
     port(
-        ClkA                   : in  STD_LOGIC;
-        ClkB                   : in  STD_LOGIC;
+        RxClk                  : in  STD_LOGIC;
+        TxClk                  : in  STD_LOGIC;
         -- Transmission port
-        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
+        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
-        TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-        TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
+        TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
+        TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
         TxPacketSlotClear      : in  STD_LOGIC;
         TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         TxPacketSlotStatus     : out STD_LOGIC;
         -- Reception port
-		RxPacketReadByteEnable  : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
-		RxPacketDataOut         : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-		RxPacketReadAddress     : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+		RxPacketReadByteEnable  : out STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8)  downto 0);
+		RxPacketDataOut         : out STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
+		RxPacketReadAddress     : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
 		RxPacketDataRead        : in  STD_LOGIC;
-		RxPacketWriteByteEnable : in  STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
+		RxPacketWriteByteEnable : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8)  downto 0);
 		RxPacketDataWrite       : in  STD_LOGIC;
-		RxPacketDataIn          : in  STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-		RxPacketWriteAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+		RxPacketDataIn          : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
+		RxPacketWriteAddress    : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
 		RxPacketSlotSet         : in  STD_LOGIC;
 		RxPacketSlotID          : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
 		RxPacketSlotStatus      : out STD_LOGIC
@@ -165,6 +165,7 @@ architecture rtl of cpuifsenderpacketringbuffer is
     signal GND_EnableDwidth : std_logic_vector(TxPacketByteEnable'length - 1 downto 0);
     signal SlotAStatusUnused : std_logic;
     signal SlotBStatusUnused : std_logic;
+    signal EnableA           : std_logic;  
 
 begin
     VCC_onebit <= '1';
@@ -177,8 +178,8 @@ begin
             G_ADDR_WIDTH => G_SLOT_WIDTH
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             -- Port A
             EnableA       => RxPacketSlotSet,
             WriteAEnable  => RxPacketSlotSet,
@@ -219,8 +220,8 @@ begin
             G_DATA_BWIDTH => (TxPacketByteEnable'length)
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             WriteAAddress => lRxPacketAddress,
             EnableA       => RxPacketDataWrite,
             WriteAEnable  => RxPacketDataWrite,
@@ -232,6 +233,9 @@ begin
             WriteBAddress => lTxPacketAddress,
             ReadBData     => TxPacketByteEnable
         );
+        
+        EnableA <= (RxPacketDataWrite or RxPacketDataRead);
+        
     DataBuffer_i : assymetricdualportpacketram
         generic map(
             G_ADDR_AWIDTH => (RxPacketReadAddress'length + RxPacketSlotID'length),
@@ -240,10 +244,10 @@ begin
             G_DATA_BWIDTH => (TxPacketData'length)
         )
         port map(
-            ClkA          => ClkA,
-            ClkB          => ClkB,
+            ClkA          => RxClk,
+            ClkB          => TxClk,
             WriteAAddress => lRxPacketAddress,
-            EnableA       => (RxPacketDataWrite or RxPacketDataRead),
+            EnableA       => EnableA,
             WriteAEnable  => RxPacketDataWrite,
             WriteAData    => RxPacketDataIn,
             ReadAData     => RxPacketDataOut,

@@ -238,16 +238,16 @@ architecture rtl of gmactop is
             ------------------------------------------------------------------------ 
             aximm_gmac_tx_data_write_enable              : in  STD_LOGIC;
             aximm_gmac_tx_data_read_enable               : in  STD_LOGIC;
-            aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+            aximm_gmac_tx_data_write_data                : in  STD_LOGIC_VECTOR(7 downto 0);
             -- The Byte Enable is as follows
             -- Bit (0-1) Byte Enables
             -- Bit (2) Maps to TLAST (To terminate the data stream).
-            aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-            aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
+            aximm_gmac_tx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(1 downto 0);
+            aximm_gmac_tx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
             -- The Byte Enable is as follows
             -- Bit (0-1) Byte Enables
             -- Bit (2) Maps to TLAST (To terminate the data stream).
-            aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
+            aximm_gmac_tx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
             aximm_gmac_tx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
             aximm_gmac_tx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
             aximm_gmac_tx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -257,19 +257,12 @@ architecture rtl of gmactop is
             ------------------------------------------------------------------------
             -- Receive Ring Buffer Interface according to EthernetCore Memory MAP --
             ------------------------------------------------------------------------ 
-            aximm_gmac_rx_data_write_enable              : in  STD_LOGIC;
             aximm_gmac_rx_data_read_enable               : in  STD_LOGIC;
-            aximm_gmac_rx_data_write_data                : in  STD_LOGIC_VECTOR(15 downto 0);
+            aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
             -- The Byte Enable is as follows
             -- Bit (0-1) Byte Enables
             -- Bit (2) Maps to TLAST (To terminate the data stream).        
-            aximm_gmac_rx_data_write_byte_enable         : in  STD_LOGIC_VECTOR(2 downto 0);
-            aximm_gmac_rx_data_read_data                 : out STD_LOGIC_VECTOR(15 downto 0);
-            -- The Byte Enable is as follows
-            -- Bit (0-1) Byte Enables
-            -- Bit (2) Maps to TLAST (To terminate the data stream).        
-            aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(2 downto 0);
-            aximm_gmac_rx_data_write_address             : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+            aximm_gmac_rx_data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
             aximm_gmac_rx_data_read_address              : in  STD_LOGIC_VECTOR(G_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
             aximm_gmac_rx_ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             aximm_gmac_rx_ringbuffer_slot_clear          : in  STD_LOGIC;
@@ -485,23 +478,19 @@ architecture rtl of gmactop is
             gmac_arp_cache_read_address            : out STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
             gmac_tx_data_write_enable              : out STD_LOGIC;
             gmac_tx_data_read_enable               : out STD_LOGIC;
-            gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
-            gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
-            gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
-            gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
+            gmac_tx_data_write_data                : out STD_LOGIC_VECTOR(7 downto 0);
+            gmac_tx_data_write_byte_enable         : out STD_LOGIC_VECTOR(1 downto 0);
+            gmac_tx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
+            gmac_tx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
             gmac_tx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
             gmac_tx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
             gmac_tx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
             gmac_tx_ringbuffer_slot_set            : out STD_LOGIC;
             gmac_tx_ringbuffer_slot_status         : in  STD_LOGIC;
             gmac_tx_ringbuffer_number_slots_filled : in  STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-            gmac_rx_data_write_enable              : out STD_LOGIC;
             gmac_rx_data_read_enable               : out STD_LOGIC;
-            gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(15 downto 0);
-            gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(2 downto 0);
-            gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(15 downto 0);
-            gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(2 downto 0);
-            gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+            gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
+            gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
             gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
             gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
             gmac_rx_ringbuffer_slot_clear          : out STD_LOGIC;
@@ -694,23 +683,19 @@ architecture rtl of gmactop is
     signal port1_gmac_arp_cache_read_address            : STD_LOGIC_VECTOR(C_ARP_CACHE_ASIZE - 1 downto 0);
     signal port1_gmac_tx_data_write_enable              : STD_LOGIC;
     signal port1_gmac_tx_data_read_enable               : STD_LOGIC;
-    signal port1_gmac_tx_data_write_data                : STD_LOGIC_VECTOR(15 downto 0);
-    signal port1_gmac_tx_data_write_byte_enable         : STD_LOGIC_VECTOR(2 downto 0);
-    signal port1_gmac_tx_data_read_data                 : STD_LOGIC_VECTOR(15 downto 0);
-    signal port1_gmac_tx_data_read_byte_enable          : STD_LOGIC_VECTOR(2 downto 0);
+    signal port1_gmac_tx_data_write_data                : STD_LOGIC_VECTOR(7 downto 0);
+    signal port1_gmac_tx_data_write_byte_enable         : STD_LOGIC_VECTOR(1 downto 0);
+    signal port1_gmac_tx_data_read_data                 : STD_LOGIC_VECTOR(7 downto 0);
+    signal port1_gmac_tx_data_read_byte_enable          : STD_LOGIC_VECTOR(1 downto 0);
     signal port1_gmac_tx_data_write_address             : STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
     signal port1_gmac_tx_data_read_address              : STD_LOGIC_VECTOR(C_CPU_TX_DATA_BUFFER_ASIZE - 1 downto 0);
     signal port1_gmac_tx_ringbuffer_slot_id             : STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
     signal port1_gmac_tx_ringbuffer_slot_set            : STD_LOGIC;
     signal port1_gmac_tx_ringbuffer_slot_status         : STD_LOGIC;
     signal port1_gmac_tx_ringbuffer_number_slots_filled : STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
-    signal port1_gmac_rx_data_write_enable              : STD_LOGIC;
     signal port1_gmac_rx_data_read_enable               : STD_LOGIC;
-    signal port1_gmac_rx_data_write_data                : STD_LOGIC_VECTOR(15 downto 0);
-    signal port1_gmac_rx_data_write_byte_enable         : STD_LOGIC_VECTOR(2 downto 0);
-    signal port1_gmac_rx_data_read_data                 : STD_LOGIC_VECTOR(15 downto 0);
-    signal port1_gmac_rx_data_read_byte_enable          : STD_LOGIC_VECTOR(2 downto 0);
-    signal port1_gmac_rx_data_write_address             : STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+    signal port1_gmac_rx_data_read_data                 : STD_LOGIC_VECTOR(7 downto 0);
+    signal port1_gmac_rx_data_read_byte_enable          : STD_LOGIC_VECTOR(1 downto 0);
     signal port1_gmac_rx_data_read_address              : STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
     signal port1_gmac_rx_ringbuffer_slot_id             : STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
     signal port1_gmac_rx_ringbuffer_slot_clear          : STD_LOGIC;
@@ -969,13 +954,9 @@ begin
             aximm_gmac_tx_ringbuffer_slot_set            => port1_gmac_tx_ringbuffer_slot_set,
             aximm_gmac_tx_ringbuffer_slot_status         => port1_gmac_tx_ringbuffer_slot_status,
             aximm_gmac_tx_ringbuffer_number_slots_filled => port1_gmac_tx_ringbuffer_number_slots_filled,
-            aximm_gmac_rx_data_write_enable              => port1_gmac_rx_data_write_enable,
             aximm_gmac_rx_data_read_enable               => port1_gmac_rx_data_read_enable,
-            aximm_gmac_rx_data_write_data                => port1_gmac_rx_data_write_data,
-            aximm_gmac_rx_data_write_byte_enable         => port1_gmac_rx_data_write_byte_enable,
             aximm_gmac_rx_data_read_data                 => port1_gmac_rx_data_read_data,
             aximm_gmac_rx_data_read_byte_enable          => port1_gmac_rx_data_read_byte_enable,
-            aximm_gmac_rx_data_write_address             => port1_gmac_rx_data_write_address,
             aximm_gmac_rx_data_read_address              => port1_gmac_rx_data_read_address,
             aximm_gmac_rx_ringbuffer_slot_id             => port1_gmac_rx_ringbuffer_slot_id,
             aximm_gmac_rx_ringbuffer_slot_clear          => port1_gmac_rx_ringbuffer_slot_clear,
@@ -1092,13 +1073,9 @@ begin
             gmac_tx_ringbuffer_slot_set            => port1_gmac_tx_ringbuffer_slot_set,
             gmac_tx_ringbuffer_slot_status         => port1_gmac_tx_ringbuffer_slot_status,
             gmac_tx_ringbuffer_number_slots_filled => port1_gmac_tx_ringbuffer_number_slots_filled,
-            gmac_rx_data_write_enable              => port1_gmac_rx_data_write_enable,
             gmac_rx_data_read_enable               => port1_gmac_rx_data_read_enable,
-            gmac_rx_data_write_data                => port1_gmac_rx_data_write_data,
-            gmac_rx_data_write_byte_enable         => port1_gmac_rx_data_write_byte_enable,
             gmac_rx_data_read_data                 => port1_gmac_rx_data_read_data,
             gmac_rx_data_read_byte_enable          => port1_gmac_rx_data_read_byte_enable,
-            gmac_rx_data_write_address             => port1_gmac_rx_data_write_address,
             gmac_rx_data_read_address              => port1_gmac_rx_data_read_address,
             gmac_rx_ringbuffer_slot_id             => port1_gmac_rx_ringbuffer_slot_id,
             gmac_rx_ringbuffer_slot_clear          => port1_gmac_rx_ringbuffer_slot_clear,

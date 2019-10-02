@@ -84,8 +84,8 @@ entity cpumacifudpreceiver is
         data_read_data                 : out STD_LOGIC_VECTOR(7 downto 0);
         -- The Byte Enable is as follows
         -- Bit (0) Byte Enables
-        -- Bit (0) Maps to TLAST (To terminate the data stream).		
-        data_read_byte_enable          : out STD_LOGIC_VECTOR(0 downto 0);
+        -- Bit (1) Maps to TLAST (To terminate the data stream).		
+        data_read_byte_enable          : out STD_LOGIC_VECTOR(1 downto 0);
         data_read_address              : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         ringbuffer_slot_id             : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         ringbuffer_slot_clear          : in  STD_LOGIC;
@@ -164,7 +164,7 @@ architecture rtl of cpumacifudpreceiver is
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RxPacketSlotStatus     : out STD_LOGIC;
             -- Transmission port
-            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
+            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8)  downto 0);
             TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
             TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
@@ -177,7 +177,7 @@ architecture rtl of cpumacifudpreceiver is
     signal IngressRingBufferDataEnable : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataWrite  : STD_LOGIC;
     signal IngressRingBufferDataOut    : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
-    signal IngressRingBufferAddress    : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : STD_LOGIC_VECTOR(G_INGRESS_ADDR_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotSet    : STD_LOGIC;
     signal IngressRingBufferSlotID     : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : STD_LOGIC;
