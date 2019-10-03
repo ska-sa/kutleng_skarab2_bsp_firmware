@@ -23,7 +23,11 @@ set_property PACKAGE_PIN AW19 [get_ports sysclk1_300_n]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_p]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_n]
 
-
+# UART (USB Based)
+set_property PACKAGE_PIN BB20 [get_ports rs232_uart_rxd];
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_rxd];
+set_property PACKAGE_PIN BF18 [get_ports rs232_uart_txd];
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_txd];
 
 
 

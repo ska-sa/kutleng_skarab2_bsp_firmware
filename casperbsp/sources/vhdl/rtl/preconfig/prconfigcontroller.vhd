@@ -662,28 +662,28 @@ begin
             TxPacketSlotTypeStatus => ICAPWriterRingBufferSlotTypeStatus
         );
 
-    ICAPRINGBufferILAi : icapringbufferila
-        port map(
-            clk        => axis_clk,
-            probe0     => ICAPRingBufferByteEnable,
-            probe1(0)  => ICAPRingBufferDataWrite,
-            probe2     => ICAPRingBufferData,
-            probe3     => ICAPRingBufferAddress,
-            probe4(0)  => ICAPRingBufferSlotSet,
-            probe5     => ICAPRingBufferSlotID,
-            probe6(0)  => ICAPRingBufferSlotType,
-            probe7(0)  => ICAPRingBufferSlotStatus,
-            probe8     => ICAPWriterRingBufferDataEnable,
-            probe9(0)  => ICAPWriterRingBufferDataRead,
-            probe10    => ICAPWriterRingBufferDataIn,
-            probe11    => ICAPWriterRingBufferAddress,
-            probe12(0) => ICAPWriterRingBufferSlotClear,
-            probe13    => ICAPWriterRingBufferSlotID,
-            probe14(0) => ICAPWriterRingBufferSlotStatus,
-            probe15(0) => ICAPWriterRingBufferSlotTypeStatus,
-            probe16    => std_logic_vector(lICAPFilledSlots),
-            probe17    => std_logic_vector(lICAPRingBufferOverFlow)
-        );
+--    ICAPRINGBufferILAi : icapringbufferila
+--        port map(
+--            clk        => axis_clk,
+--            probe0     => ICAPRingBufferByteEnable,
+--            probe1(0)  => ICAPRingBufferDataWrite,
+--            probe2     => ICAPRingBufferData,
+--            probe3     => ICAPRingBufferAddress,
+--            probe4(0)  => ICAPRingBufferSlotSet,
+--            probe5     => ICAPRingBufferSlotID,
+--            probe6(0)  => ICAPRingBufferSlotType,
+--            probe7(0)  => ICAPRingBufferSlotStatus,
+--            probe8     => ICAPWriterRingBufferDataEnable,
+--            probe9(0)  => ICAPWriterRingBufferDataRead,
+--            probe10    => ICAPWriterRingBufferDataIn,
+--            probe11    => ICAPWriterRingBufferAddress,
+--            probe12(0) => ICAPWriterRingBufferSlotClear,
+--            probe13    => ICAPWriterRingBufferSlotID,
+--            probe14(0) => ICAPWriterRingBufferSlotStatus,
+--            probe15(0) => ICAPWriterRingBufferSlotTypeStatus,
+--            probe16    => std_logic_vector(lICAPFilledSlots),
+--            probe17    => std_logic_vector(lICAPRingBufferOverFlow)
+--        );
 
     ICAPWRSM_i : icapwritersm
         generic map(
@@ -856,28 +856,28 @@ begin
             ICAP_Readback              => ICAP_ReadBack
         );
 
-    ICAPPROTOCOLILAi : icapprotocolila
-        port map(
-            clk        => axis_clk,
-            probe0(0)  => SenderBusy,
-            probe1(0)  => ProtocolError,
-            probe2(0)  => ProtocolErrorClear,
-            probe3     => ProtocolErrorID,
-            probe4     => ProtocolIPIdentification,
-            probe5     => ProtocolID,
-            probe6     => ProtocolSequence,
-            probe7(0)  => ICAPWriteDone,
-            probe8(0)  => ICAPWriteResponseSent,
-            probe9(0)  => ICAP_AVAIL,
-            probe10    => ICAPIPIdentification,
-            probe11    => ICAPProtocolID,
-            probe12    => ICAPProtocolSequence,
-            probe13(0) => axis_prog_full,
-            probe14(0) => axis_prog_empty,
-            probe15    => std_logic_vector(lICAPFilledSlots),
-            probe16(0) => ICAP_PRDONE,
-            probe17(0) => ICAP_PRERROR,
-            probe18    => axis_data_count
-        );
+--    ICAPPROTOCOLILAi : icapprotocolila
+--        port map(
+--            clk        => axis_clk,
+--            probe0(0)  => SenderBusy,
+--            probe1(0)  => ProtocolError,
+--            probe2(0)  => ProtocolErrorClear,
+--            probe3     => ProtocolErrorID,
+--            probe4     => ProtocolIPIdentification,
+--            probe5     => ProtocolID,
+--            probe6     => ProtocolSequence,
+--            probe7(0)  => ICAPWriteDone,
+--            probe8(0)  => ICAPWriteResponseSent,
+--            probe9(0)  => ICAP_AVAIL,
+--            probe10    => ICAPIPIdentification,
+--            probe11    => ICAPProtocolID,
+--            probe12    => ICAPProtocolSequence,
+--            probe13(0) => axis_prog_full,
+--            probe14(0) => axis_prog_empty,
+--            probe15    => std_logic_vector(lICAPFilledSlots),
+--            probe16(0) => ICAP_PRDONE,
+--            probe17(0) => ICAP_PRERROR,
+--            probe18    => axis_data_count
+--        );
 
 end architecture rtl;

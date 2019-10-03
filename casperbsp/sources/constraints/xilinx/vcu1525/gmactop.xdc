@@ -9,6 +9,11 @@ create_clock -period 3.333 [get_ports sysclk1_300_p]
 set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_p]] 0.010
 
 
+# UART (USB Based)
+set_property PACKAGE_PIN BB20 [get_ports rs232_uart_rxd];
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_rxd];
+set_property PACKAGE_PIN BF18 [get_ports rs232_uart_txd];
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_txd];
 
 
 set_property LOC CMACE4_X0Y7 [get_cells -hierarchical -filter {NAME =~ *inst/i_EthMACPHY100GQSFP14x_top/* && REF_NAME==CMACE4}]
