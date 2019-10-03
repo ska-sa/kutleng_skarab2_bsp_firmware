@@ -57,8 +57,8 @@
 --                    QSFP28+[2].                                              -
 -- Dependencies     : mac100gphy,microblaze_axi_us_plus_wrapper,clockgen100mhz,-
 --                    testcomms,udpipinterfacepr,pciexdma_refbd_wrapper.       -
---                    partialblinker,ledflasher                                -
--- Revision History : V1.0 - Initial design                                     -
+--                    partialblinker,ledflasher,ICAP3E                         -
+-- Revision History : V1.0 - Initial design                                    -
 --------------------------------------------------------------------------------
 
 library ieee;

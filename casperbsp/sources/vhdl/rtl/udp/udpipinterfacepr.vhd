@@ -64,6 +64,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity udpipinterfacepr is
     generic(
@@ -764,6 +766,23 @@ begin
                 ICAP_RDWRB        => ICAP_RDWRB,
                 ICAP_DataOut      => ICAP_DataOut,
                 ICAP_DataIn       => ICAP_DataIn
+            );
+
+        ICAPE3_i : ICAPE3
+            generic map(
+                DEVICE_ID         => X"03628093",
+                ICAP_AUTO_SWITCH  => "DISABLE",
+                SIM_CFG_FILE_NAME => "NONE"
+            )
+            port map(
+                AVAIL   => ICAP_AVAIL,
+                O       => ICAP_DataOut,
+                PRDONE  => ICAP_PRDONE,
+                PRERROR => ICAP_PRERROR,
+                CLK     => icap_clk,
+                CSIB    => ICAP_CSIB,
+                I       => ICAP_DataIn,
+                RDWRB   => ICAP_RDWRB
             );
 
         AXISMUX_i : axisthreeportfabricmultiplexer
