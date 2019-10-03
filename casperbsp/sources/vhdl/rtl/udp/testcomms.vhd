@@ -73,21 +73,21 @@ entity testcomms is
 
     );
     port(
-        axis_clk        : in  STD_LOGIC;
-        axis_reset      : in  STD_LOGIC;
+        axis_clk       : in  STD_LOGIC;
+        axis_reset     : in  STD_LOGIC;
         --Outputs to AXIS bus MAC side 
-        axis_tx_tdata   : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        axis_tx_tvalid  : out STD_LOGIC;
-        axis_tx_tready  : in  STD_LOGIC;
-        axis_tx_tkeep   : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-        axis_tx_tlast   : out STD_LOGIC;
-        axis_tx_tuser   : out STD_LOGIC;
+        axis_tx_tdata  : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+        axis_tx_tvalid : out STD_LOGIC;
+        axis_tx_tready : in  STD_LOGIC;
+        axis_tx_tkeep  : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        axis_tx_tlast  : out STD_LOGIC;
+        axis_tx_tuser  : out STD_LOGIC;
         --Inputs from AXIS bus of the MAC side
-        axis_rx_tdata   : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        axis_rx_tvalid  : in  STD_LOGIC;
-        axis_rx_tuser   : in  STD_LOGIC;
-        axis_rx_tkeep   : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
-        axis_rx_tlast   : in  STD_LOGIC
+        axis_rx_tdata  : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+        axis_rx_tvalid : in  STD_LOGIC;
+        axis_rx_tuser  : in  STD_LOGIC;
+        axis_rx_tkeep  : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        axis_rx_tlast  : in  STD_LOGIC
     );
 end entity testcomms;
 
@@ -173,7 +173,6 @@ architecture rtl of testcomms is
         );
     end component arpmodule;
 
-
     component axistwoportfabricmultiplexer is
         generic(
             G_MAX_PACKET_BLOCKS_SIZE : natural := 64;
@@ -224,7 +223,6 @@ architecture rtl of testcomms is
     signal axis_tx_tkeep_1_udp     : STD_LOGIC_VECTOR(63 downto 0);
     signal axis_tx_tlast_1_udp     : STD_LOGIC;
     signal axis_tx_tready_1_udp    : STD_LOGIC;
-
 
     signal UDPRingBufferSlotID         : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
     signal UDPRingBufferSlotClear      : STD_LOGIC;
@@ -313,7 +311,6 @@ begin
             axis_rx_tkeep                  => axis_rx_tkeep,
             axis_rx_tlast                  => axis_rx_tlast
         );
-
 
     AXISMUX_i : axistwoportfabricmultiplexer
         generic map(

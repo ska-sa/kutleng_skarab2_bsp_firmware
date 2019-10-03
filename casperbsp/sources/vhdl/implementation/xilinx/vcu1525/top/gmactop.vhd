@@ -125,9 +125,9 @@ end entity gmactop;
 architecture rtl of gmactop is
     -- If partial reconfiguration is not desired set this variable to false.
     constant C_INCLUDE_ICAP               : boolean                          := true;
---    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";
+    --    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";
     constant C_EMAC_ADDR_2                : std_logic_vector(47 downto 0)    := X"000A_3502_4194";
---    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
+    --    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
     constant C_IP_ADDR_2                  : std_logic_vector(31 downto 0)    := X"C0A8_640F"; --192.168.100.15
     constant C_UDP_SERVER_PORT            : natural range 0 to ((2**16) - 1) := 10000;
     constant C_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 20000;
@@ -513,7 +513,6 @@ architecture rtl of gmactop is
         );
     end component clockgen100mhz;
 
-
     ----------------------------------------------------------------------------
     --                 Vivado logic analyser test modules                     --
     -- TODO                                                                   --
@@ -554,8 +553,6 @@ architecture rtl of gmactop is
             probe_out2 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
         );
     end component resetvio;
-
-
 
     ----------------------------------------------------------------------------
     --                       LED blinker test modules                         --
@@ -625,14 +622,14 @@ architecture rtl of gmactop is
 
     signal Enable : STD_LOGIC;
 
---    signal ICAP_PRDONE  : std_logic;
---    signal ICAP_PRERROR : std_logic;
---    signal ICAP_AVAIL   : std_logic;
---    signal ICAP_CSIB    : std_logic;
---    signal ICAP_RDWRB   : std_logic;
---    signal ICAP_DataOut : std_logic_vector(31 downto 0);
---    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
---    signal ICAP_CSI                                     : std_logic;
+    --    signal ICAP_PRDONE  : std_logic;
+    --    signal ICAP_PRERROR : std_logic;
+    --    signal ICAP_AVAIL   : std_logic;
+    --    signal ICAP_CSIB    : std_logic;
+    --    signal ICAP_RDWRB   : std_logic;
+    --    signal ICAP_DataOut : std_logic_vector(31 downto 0);
+    --    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
+    --    signal ICAP_CSI                                     : std_logic;
 
     --    signal ZERO_30_vector : std_logic_vector(29 downto 0);
     signal Sig_Vcc                                      : std_logic;
@@ -1122,7 +1119,7 @@ begin
             axis_tx_tlast                => axis_rx_tlast_2,
             axis_tx_tuser                => axis_rx_tuser_2
         );
-        
+
     ----------------------------------------------------------------------------
     --                 Ethernet Bandwidth test Interface                      --
     -- This module is used only for Ethernet bandwidth testing nothing more.  --
@@ -1152,7 +1149,6 @@ begin
             axis_rx_tkeep  => axis_rx_tkeep_2,
             axis_rx_tlast  => axis_rx_tlast_2
         );
-
 
     MAINAXIS_i : axisila
         port map(
@@ -1244,9 +1240,9 @@ begin
         port map(
             --            GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
             GPIO2_0_tri_i(31 downto 0) => ICAP_DataIn_Dummy(31 downto 0),
---            GPIO2_0_tri_i(31 downto 2) => ICAP_DataIn_Dummy(31 downto 2),
---            GPIO2_0_tri_i(1)           => ICAP_PRERROR,
---            GPIO2_0_tri_i(0)           => ICAP_PRDONE,
+            --            GPIO2_0_tri_i(31 downto 2) => ICAP_DataIn_Dummy(31 downto 2),
+            --            GPIO2_0_tri_i(1)           => ICAP_PRERROR,
+            --            GPIO2_0_tri_i(0)           => ICAP_PRDONE,
             GPIO_0_tri_o               => open,
             --            M_AXIS_0_tdata             => ICAP_DataIn,
             M_AXIS_0_tdata             => ICAP_DataIn_Dummy,
@@ -1272,11 +1268,7 @@ begin
     -- partition (PRM).                                                       --
     ----------------------------------------------------------------------------
 
-
-
     --                Transition to partial reconfigurable region             --   
-
-
 
     ----------------------------------------------------------------------------
     --                      Partial Reconfiguration Module                    --       

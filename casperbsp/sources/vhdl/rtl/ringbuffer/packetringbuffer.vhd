@@ -99,7 +99,7 @@ entity packetringbuffer is
         RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RxPacketSlotType       : in  STD_LOGIC;
         RxPacketSlotStatus     : out STD_LOGIC;
-        RxPacketSlotTypeStatus : out STD_LOGIC		
+        RxPacketSlotTypeStatus : out STD_LOGIC
     );
 end entity packetringbuffer;
 
@@ -175,14 +175,14 @@ begin
             ReadBData(1)  => TxPacketSlotTypeStatus
         );
 
-    lRxPacketData((RxPacketByteEnable'length+RxPacketData'length)-1 downto RxPacketData'length) <= RxPacketByteEnable;
-    lRxPacketData(RxPacketData'length-1 downto 0)                                               <= RxPacketData;
+    lRxPacketData((RxPacketByteEnable'length + RxPacketData'length) - 1 downto RxPacketData'length) <= RxPacketByteEnable;
+    lRxPacketData(RxPacketData'length - 1 downto 0)                                                 <= RxPacketData;
 
-    lRxPacketAddress((RxPacketSlotID'length+RxPacketAddress'length)-1 downto RxPacketAddress'length) <= RxPacketSlotID;
-    lRxPacketAddress(RxPacketAddress'length-1 downto 0)                                              <= RxPacketAddress;
+    lRxPacketAddress((RxPacketSlotID'length + RxPacketAddress'length) - 1 downto RxPacketAddress'length) <= RxPacketSlotID;
+    lRxPacketAddress(RxPacketAddress'length - 1 downto 0)                                                <= RxPacketAddress;
 
-    lTxPacketAddress((TxPacketSlotID'length+TxPacketAddress'length)-1 downto TxPacketAddress'length) <= TxPacketSlotID;
-    lTxPacketAddress(TxPacketAddress'length-1 downto 0)                                              <= TxPacketAddress;
+    lTxPacketAddress((TxPacketSlotID'length + TxPacketAddress'length) - 1 downto TxPacketAddress'length) <= TxPacketSlotID;
+    lTxPacketAddress(TxPacketAddress'length - 1 downto 0)                                                <= TxPacketAddress;
 
     TxPacketByteEnable <= lTxPacketData((TxPacketByteEnable'length + TxPacketData'length) - 1 downto TxPacketData'length);
     TxPacketData       <= lTxPacketData(TxPacketData'length - 1 downto 0);

@@ -593,7 +593,7 @@ begin
                         -- Clear the current processing slot
                         FilterRingBufferSlotClear <= '1';
                         -- Restart the Frame Iterations
-                        lBufferFrameIterations <= 0;
+                        lBufferFrameIterations    <= 0;
                         StateVariable             <= NextSlotSt;
 
                     when NextSlotSt =>
@@ -658,12 +658,11 @@ begin
                     when NextICAPBufferSlotSt =>
                         -- Data has integrity forward it by setting the active
                         -- ICAP Ring Buffer slot
-                        ICAPRingBufferSlotSet   <= '0';
+                        ICAPRingBufferSlotSet <= '0';
                         -- Output the current SlotID
-                        ICAPRingBufferSlotID    <= std_logic_vector(lSenderRingBufferSlotID);
+                        ICAPRingBufferSlotID  <= std_logic_vector(lSenderRingBufferSlotID);
                         -- Go check for data on next receiver ring buffer slot
-                        StateVariable           <= CheckSlotSt;
-
+                        StateVariable         <= CheckSlotSt;
 
                     when WaitSendErrorResponseSt =>
                         -- Alert the responder of the error 

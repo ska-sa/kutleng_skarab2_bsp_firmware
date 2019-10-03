@@ -112,7 +112,7 @@ entity protocolresponderprconfigsm is
         --ICAPE3 interface
         axis_prog_full             : in  STD_LOGIC;
         axis_prog_empty            : in  STD_LOGIC;
-        axis_data_count            : in  STD_LOGIC_VECTOR(13 downto 0);                                                
+        axis_data_count            : in  STD_LOGIC_VECTOR(13 downto 0);
         ICAP_FilledSlots           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         ICAP_PRDONE                : in  STD_LOGIC;
         ICAP_PRERROR               : in  STD_LOGIC;
@@ -137,8 +137,8 @@ architecture rtl of protocolresponderprconfigsm is
     signal StateVariable : ConfigurationControllerSM_t := InitialiseSt;
     constant C_DWORD_MAX : natural                     := (16 - 1);
 
-    constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012";--was 12
-    constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026";--was 26
+    constant C_RESPONSE_UDP_LENGTH    : std_logic_vector(15 downto 0) := X"0012"; --was 12
+    constant C_RESPONSE_IPV4_LENGTH   : std_logic_vector(15 downto 0) := X"0026"; --was 26
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
     constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)  := X"45";
     constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)  := X"00";
@@ -171,9 +171,9 @@ architecture rtl of protocolresponderprconfigsm is
     alias lPRPacketID               : std_logic_vector(15 downto 0) is lRingBufferData(351 downto 336);
     alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(383 downto 352);
     alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(415 downto 384);
---    alias lPRFIFOState              : std_logic_vector(15 downto 0) is lRingBufferData(367 downto 352);
---    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(399 downto 368);
---    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(431 downto 400);
+    --    alias lPRFIFOState              : std_logic_vector(15 downto 0) is lRingBufferData(367 downto 352);
+    --    alias lPRPacketSequence         : std_logic_vector(31 downto 0) is lRingBufferData(399 downto 368);
+    --    alias lPRDWordCommand           : std_logic_vector(31 downto 0) is lRingBufferData(431 downto 400);
     signal lIPHDRCheckSum           : unsigned(16 downto 0);
     signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
     signal lUDPHDRCheckSum          : unsigned(17 downto 0);
@@ -417,7 +417,7 @@ begin
                             lProtocolErrorStatus <= '1';
                             lPacketSequence      <= ProtocolSequence;
                             lPacketDWORDCommand  <= ProtocolErrorID;
-                            lIPIdentification    <= unsigned(ProtocolIPIdentification);-- Dont increment identification + 1;
+                            lIPIdentification    <= unsigned(ProtocolIPIdentification); -- Dont increment identification + 1;
                             StateVariable        <= AcknowledgeProtocolSt;
 
                         else
@@ -431,7 +431,7 @@ begin
                                 laxis_prog_full       <= axis_prog_full;
                                 laxis_prog_empty      <= axis_prog_empty;
                                 lPacketSequence       <= ICAPProtocolSequence;
-                                lIPIdentification     <= unsigned(ICAPIPIdentification);-- Dont increment identification  + 1;
+                                lIPIdentification     <= unsigned(ICAPIPIdentification); -- Dont increment identification  + 1;
                                 StateVariable         <= AcknowledgeICAPSt;
 
                             else
@@ -459,7 +459,7 @@ begin
                         -- Signal the busy status of the packet responder
                         SenderBusy <= '1';
                         -- Send the fifo status
-                        lPacketID  <=  ICAP_FilledSlots & lICAP_PRERROR & lICAP_PRDONE & laxis_prog_full & laxis_prog_empty & ICAPProtocolID(13 - G_SLOT_WIDTH-2 downto 0);
+                        lPacketID  <= ICAP_FilledSlots & lICAP_PRERROR & lICAP_PRDONE & laxis_prog_full & laxis_prog_empty & ICAPProtocolID(13 - G_SLOT_WIDTH - 2 downto 0);
                         lFIFOState <= laxis_prog_full & laxis_prog_empty & axis_data_count(13 downto 0);
                         if (ICAPWriteDone = '1') then
                             StateVariable <= AcknowledgeICAPSt;
@@ -502,7 +502,7 @@ begin
                         -- These three will be overwritten later
                         -- The response PacketID
                         lPRPacketID                     <= byteswap(lPacketID);
---                        lPRFIFOState                    <= byteswap(lFIFOState);
+                        --                        lPRFIFOState                    <= byteswap(lFIFOState);
                         -- The response Packet Sequence
                         lPRPacketSequence               <= byteswap(lPacketSequence);
                         -- The response Configuration Status
@@ -612,8 +612,8 @@ begin
                                 lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lSourceUDPPort))) + lUDPHDRCheckSum(17 downto 16);
                             when 8 =>
                                 lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(byteswap(lDestinationUDPPort))) + lUDPHDRCheckSum(17 downto 16);
---                            when 9 =>
---                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lFIFOState)) + lUDPHDRCheckSum(17 downto 16);
+                            --                            when 9 =>
+                            --                                lUDPHDRCheckSum(16 downto 0) <= ('0' & lUDPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lFIFOState)) + lUDPHDRCheckSum(17 downto 16);
                             when 9 =>
                                 if (lUDPHDRCheckSum(16) = '1') then
                                     lUDPHDRCheckSum(15 downto 0) <= lUDPHDRCheckSum(15 downto 0) + 1;

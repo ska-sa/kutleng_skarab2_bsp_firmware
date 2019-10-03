@@ -164,7 +164,7 @@ architecture rtl of cpumacifudpreceiver is
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RxPacketSlotStatus     : out STD_LOGIC;
             -- Transmission port
-            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8)  downto 0);
+            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) downto 0);
             TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
             TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
@@ -238,58 +238,58 @@ begin
                 end if;
             end if;
         end if;
-    end process FilledSlotCounterProc;                
+    end process FilledSlotCounterProc;
 
-	RXCPURBi : cpuifreceiverpacketringbuffer
-		generic map(
-			G_SLOT_WIDTH  => G_SLOT_WIDTH,
-			G_ADDR_BWIDTH => G_ADDR_WIDTH,
-			G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
-			G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
-			G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
-		) 
-		port map(
-			TxClk                  => aximm_clk,
-			RxClk                  => axis_clk,
-			RxPacketByteEnable     => IngressRingBufferDataEnable,
-			RxPacketDataWrite      => IngressRingBufferDataWrite,
-			RxPacketData           => IngressRingBufferDataOut,
-			RxPacketAddress        => IngressRingBufferAddress,
-			RxPacketSlotSet        => IngressRingBufferSlotSet,
-			RxPacketSlotID         => IngressRingBufferSlotID,
-			RxPacketSlotStatus     => IngressRingBufferSlotStatus,
-			-- Transmission port   => data_write_address,
-			TxPacketReadByteEnable => data_read_byte_enable,
-			TxPacketDataOut        => data_read_data,
-			TxPacketReadAddress    => data_read_address,
-			TxPacketDataRead       => data_read_enable,
-			TxPacketSlotClear      => ringbuffer_slot_clear,
-			TxPacketSlotID         => ringbuffer_slot_id,
-			TxPacketSlotStatus     => ringbuffer_slot_status
-		);
+    RXCPURBi : cpuifreceiverpacketringbuffer
+        generic map(
+            G_SLOT_WIDTH  => G_SLOT_WIDTH,
+            G_ADDR_BWIDTH => G_ADDR_WIDTH,
+            G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
+            G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
+            G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
+        )
+        port map(
+            TxClk                  => aximm_clk,
+            RxClk                  => axis_clk,
+            RxPacketByteEnable     => IngressRingBufferDataEnable,
+            RxPacketDataWrite      => IngressRingBufferDataWrite,
+            RxPacketData           => IngressRingBufferDataOut,
+            RxPacketAddress        => IngressRingBufferAddress,
+            RxPacketSlotSet        => IngressRingBufferSlotSet,
+            RxPacketSlotID         => IngressRingBufferSlotID,
+            RxPacketSlotStatus     => IngressRingBufferSlotStatus,
+            -- Transmission port   => data_write_address,
+            TxPacketReadByteEnable => data_read_byte_enable,
+            TxPacketDataOut        => data_read_data,
+            TxPacketReadAddress    => data_read_address,
+            TxPacketDataRead       => data_read_enable,
+            TxPacketSlotClear      => ringbuffer_slot_clear,
+            TxPacketSlotID         => ringbuffer_slot_id,
+            TxPacketSlotStatus     => ringbuffer_slot_status
+        );
 
-	RXRECEIVERi:cpumacifethernetreceiver 
-		generic map(
-			G_SLOT_WIDTH => G_SLOT_WIDTH,
-			G_ADDR_WIDTH => G_INGRESS_ADDR_WIDTH
-		)
-		port map(
-			axis_clk               => axis_clk,
-			axis_reset             => axis_reset,
-			ServerPortRange        => reg_udp_port_mask,
-			ReceiverMACAddress     => reg_mac_address,
-			ReceiverIPAddress      => reg_local_ip_address,
-			ReceiverPromiscousMode => reg_promiscous_mode,
-			RingBufferSlotID       => IngressRingBufferSlotID,
-			RingBufferSlotSet      => IngressRingBufferSlotSet,
-			RingBufferDataWrite    => IngressRingBufferDataWrite,
-			RingBufferDataEnable   => IngressRingBufferDataEnable,
-			RingBufferDataOut      => IngressRingBufferDataOut,
-			RingBufferAddress      => IngressRingBufferAddress,
-			axis_rx_tdata          => axis_rx_tdata ,
-			axis_rx_tvalid         => axis_rx_tvalid,
-			axis_rx_tuser          => axis_rx_tuser,
-			axis_rx_tkeep          => axis_rx_tkeep,
-			axis_rx_tlast          => axis_rx_tlast 
-		);
+    RXRECEIVERi : cpumacifethernetreceiver
+        generic map(
+            G_SLOT_WIDTH => G_SLOT_WIDTH,
+            G_ADDR_WIDTH => G_INGRESS_ADDR_WIDTH
+        )
+        port map(
+            axis_clk               => axis_clk,
+            axis_reset             => axis_reset,
+            ServerPortRange        => reg_udp_port_mask,
+            ReceiverMACAddress     => reg_mac_address,
+            ReceiverIPAddress      => reg_local_ip_address,
+            ReceiverPromiscousMode => reg_promiscous_mode,
+            RingBufferSlotID       => IngressRingBufferSlotID,
+            RingBufferSlotSet      => IngressRingBufferSlotSet,
+            RingBufferDataWrite    => IngressRingBufferDataWrite,
+            RingBufferDataEnable   => IngressRingBufferDataEnable,
+            RingBufferDataOut      => IngressRingBufferDataOut,
+            RingBufferAddress      => IngressRingBufferAddress,
+            axis_rx_tdata          => axis_rx_tdata,
+            axis_rx_tvalid         => axis_rx_tvalid,
+            axis_rx_tuser          => axis_rx_tuser,
+            axis_rx_tkeep          => axis_rx_tkeep,
+            axis_rx_tlast          => axis_rx_tlast
+        );
 end architecture rtl;

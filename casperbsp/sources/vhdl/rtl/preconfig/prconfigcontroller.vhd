@@ -99,7 +99,7 @@ entity prconfigcontroller is
         axis_tx_tlast     : out STD_LOGIC;
         axis_prog_full    : in  STD_LOGIC;
         axis_prog_empty   : in  STD_LOGIC;
-        axis_data_count   : in  STD_LOGIC_VECTOR(13 downto 0);                
+        axis_data_count   : in  STD_LOGIC_VECTOR(13 downto 0);
         ICAP_PRDONE       : in  std_logic;
         ICAP_PRERROR      : in  std_logic;
         ICAP_AVAIL        : in  std_logic;
@@ -213,7 +213,6 @@ architecture rtl of prconfigcontroller is
         );
     end component dualportpacketringbuffer;
 
-
     component packetringbuffer is
         generic(
             G_SLOT_WIDTH : natural := 4;
@@ -291,7 +290,7 @@ architecture rtl of prconfigcontroller is
             --ICAPE3 interface
             axis_prog_full             : in  STD_LOGIC;
             axis_prog_empty            : in  STD_LOGIC;
-            axis_data_count            : in  STD_LOGIC_VECTOR(13 downto 0);                            
+            axis_data_count            : in  STD_LOGIC_VECTOR(13 downto 0);
             ICAP_FilledSlots           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             ICAP_PRDONE                : in  STD_LOGIC;
             ICAP_PRERROR               : in  STD_LOGIC;
@@ -391,7 +390,7 @@ architecture rtl of prconfigcontroller is
             --Inputs from AXIS bus of the MAC side
             --ICAPE3 interface
             axis_prog_full           : in  STD_LOGIC;
-            axis_data_count          : in  STD_LOGIC_VECTOR(13 downto 0);                                        
+            axis_data_count          : in  STD_LOGIC_VECTOR(13 downto 0);
             ICAP_CSIB                : out STD_LOGIC;
             ICAP_RDWRB               : out STD_LOGIC;
             ICAP_AVAIL               : in  STD_LOGIC;
@@ -444,12 +443,12 @@ architecture rtl of prconfigcontroller is
             probe14 : in STD_LOGIC_VECTOR(0 to 0);
             probe15 : in STD_LOGIC_VECTOR(0 to 0);
             probe16 : in STD_LOGIC_VECTOR(3 downto 0);
-            probe17 : in STD_LOGIC_VECTOR(15 downto 0) 
+            probe17 : in STD_LOGIC_VECTOR(15 downto 0)
         );
     end component icapringbufferila;
-    constant C_DATA_WIDTH                     : natural := 512;
-    constant G_ICAP_RB_ADDR_WIDTH             : natural := 8;
-    constant G_FILLED_SLOTS_MAX               : unsigned (G_SLOT_WIDTH - 1 downto 0) := (others => '1');
+    constant C_DATA_WIDTH                     : natural                             := 512;
+    constant G_ICAP_RB_ADDR_WIDTH             : natural                             := 8;
+    constant G_FILLED_SLOTS_MAX               : unsigned(G_SLOT_WIDTH - 1 downto 0) := (others => '1');
     signal SenderRingBufferSlotID             : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal SenderRingBufferSlotClear          : std_logic;
     signal SenderRingBufferSlotStatus         : std_logic;
@@ -459,7 +458,7 @@ architecture rtl of prconfigcontroller is
     signal SenderRingBufferDataEnable         : std_logic_vector(63 downto 0);
     signal SenderRingBufferDataIn             : std_logic_vector(511 downto 0);
     signal SenderRingBufferAddress            : std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
-    signal lSenderFilledSlots                 : unsigned(G_SLOT_WIDTH - 1 downto 0);    
+    signal lSenderFilledSlots                 : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lICAPFilledSlots                   : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lICAPRingBufferOverFlow            : unsigned(15 downto 0);
     signal SenderRingBufferPacketSlotSet      : std_logic;
@@ -612,17 +611,17 @@ begin
         if rising_edge(axis_clk) then
 
             if (axis_reset = '1') then
-                lICAPFilledSlots <= (others => '0');
+                lICAPFilledSlots        <= (others => '0');
                 lICAPRingBufferOverFlow <= (others => '0');
             else
                 if ((ICAPWriterRingBufferSlotClear = '0') and (ICAPRingBufferSlotSet = '1')) then
-                    if(lICAPFilledSlots < G_FILLED_SLOTS_MAX) then                    
+                    if (lICAPFilledSlots < G_FILLED_SLOTS_MAX) then
                         lICAPFilledSlots <= lICAPFilledSlots + 1;
                     else
-                        lICAPRingBufferOverFlow <= lICAPRingBufferOverFlow + 1; 
+                        lICAPRingBufferOverFlow <= lICAPRingBufferOverFlow + 1;
                     end if;
                 elsif ((ICAPWriterRingBufferSlotClear = '1') and (ICAPRingBufferSlotSet = '0')) then
-                    if(lICAPFilledSlots /= 0) then
+                    if (lICAPFilledSlots /= 0) then
                         lICAPFilledSlots <= lICAPFilledSlots - 1;
                     end if;
                 else
@@ -640,7 +639,7 @@ begin
             G_DATA_WIDTH => 32
         )
         port map(
-            Clk                     => axis_clk,
+            Clk                    => axis_clk,
             -- Reception port
             RxPacketByteEnable     => ICAPRingBufferByteEnable,
             RxPacketDataWrite      => ICAPRingBufferDataWrite,
@@ -662,28 +661,28 @@ begin
             TxPacketSlotTypeStatus => ICAPWriterRingBufferSlotTypeStatus
         );
 
---    ICAPRINGBufferILAi : icapringbufferila
---        port map(
---            clk        => axis_clk,
---            probe0     => ICAPRingBufferByteEnable,
---            probe1(0)  => ICAPRingBufferDataWrite,
---            probe2     => ICAPRingBufferData,
---            probe3     => ICAPRingBufferAddress,
---            probe4(0)  => ICAPRingBufferSlotSet,
---            probe5     => ICAPRingBufferSlotID,
---            probe6(0)  => ICAPRingBufferSlotType,
---            probe7(0)  => ICAPRingBufferSlotStatus,
---            probe8     => ICAPWriterRingBufferDataEnable,
---            probe9(0)  => ICAPWriterRingBufferDataRead,
---            probe10    => ICAPWriterRingBufferDataIn,
---            probe11    => ICAPWriterRingBufferAddress,
---            probe12(0) => ICAPWriterRingBufferSlotClear,
---            probe13    => ICAPWriterRingBufferSlotID,
---            probe14(0) => ICAPWriterRingBufferSlotStatus,
---            probe15(0) => ICAPWriterRingBufferSlotTypeStatus,
---            probe16    => std_logic_vector(lICAPFilledSlots),
---            probe17    => std_logic_vector(lICAPRingBufferOverFlow)
---        );
+    --    ICAPRINGBufferILAi : icapringbufferila
+    --        port map(
+    --            clk        => axis_clk,
+    --            probe0     => ICAPRingBufferByteEnable,
+    --            probe1(0)  => ICAPRingBufferDataWrite,
+    --            probe2     => ICAPRingBufferData,
+    --            probe3     => ICAPRingBufferAddress,
+    --            probe4(0)  => ICAPRingBufferSlotSet,
+    --            probe5     => ICAPRingBufferSlotID,
+    --            probe6(0)  => ICAPRingBufferSlotType,
+    --            probe7(0)  => ICAPRingBufferSlotStatus,
+    --            probe8     => ICAPWriterRingBufferDataEnable,
+    --            probe9(0)  => ICAPWriterRingBufferDataRead,
+    --            probe10    => ICAPWriterRingBufferDataIn,
+    --            probe11    => ICAPWriterRingBufferAddress,
+    --            probe12(0) => ICAPWriterRingBufferSlotClear,
+    --            probe13    => ICAPWriterRingBufferSlotID,
+    --            probe14(0) => ICAPWriterRingBufferSlotStatus,
+    --            probe15(0) => ICAPWriterRingBufferSlotTypeStatus,
+    --            probe16    => std_logic_vector(lICAPFilledSlots),
+    --            probe17    => std_logic_vector(lICAPRingBufferOverFlow)
+    --        );
 
     ICAPWRSM_i : icapwritersm
         generic map(
@@ -731,11 +730,11 @@ begin
                 lSenderFilledSlots <= (others => '0');
             else
                 if ((SenderRingBufferSlotClear = '0') and (SenderRingBufferPacketSlotSet = '1')) then
-                    if(lSenderFilledSlots < G_FILLED_SLOTS_MAX) then
+                    if (lSenderFilledSlots < G_FILLED_SLOTS_MAX) then
                         lSenderFilledSlots <= lSenderFilledSlots + 1;
                     end if;
                 elsif ((SenderRingBufferSlotClear = '1') and (SenderRingBufferPacketSlotSet = '0')) then
-                    if(lSenderFilledSlots /= 0) then                        
+                    if (lSenderFilledSlots /= 0) then
                         lSenderFilledSlots <= lSenderFilledSlots - 1;
                     end if;
                 else
@@ -856,28 +855,28 @@ begin
             ICAP_Readback              => ICAP_ReadBack
         );
 
---    ICAPPROTOCOLILAi : icapprotocolila
---        port map(
---            clk        => axis_clk,
---            probe0(0)  => SenderBusy,
---            probe1(0)  => ProtocolError,
---            probe2(0)  => ProtocolErrorClear,
---            probe3     => ProtocolErrorID,
---            probe4     => ProtocolIPIdentification,
---            probe5     => ProtocolID,
---            probe6     => ProtocolSequence,
---            probe7(0)  => ICAPWriteDone,
---            probe8(0)  => ICAPWriteResponseSent,
---            probe9(0)  => ICAP_AVAIL,
---            probe10    => ICAPIPIdentification,
---            probe11    => ICAPProtocolID,
---            probe12    => ICAPProtocolSequence,
---            probe13(0) => axis_prog_full,
---            probe14(0) => axis_prog_empty,
---            probe15    => std_logic_vector(lICAPFilledSlots),
---            probe16(0) => ICAP_PRDONE,
---            probe17(0) => ICAP_PRERROR,
---            probe18    => axis_data_count
---        );
+        --    ICAPPROTOCOLILAi : icapprotocolila
+        --        port map(
+        --            clk        => axis_clk,
+        --            probe0(0)  => SenderBusy,
+        --            probe1(0)  => ProtocolError,
+        --            probe2(0)  => ProtocolErrorClear,
+        --            probe3     => ProtocolErrorID,
+        --            probe4     => ProtocolIPIdentification,
+        --            probe5     => ProtocolID,
+        --            probe6     => ProtocolSequence,
+        --            probe7(0)  => ICAPWriteDone,
+        --            probe8(0)  => ICAPWriteResponseSent,
+        --            probe9(0)  => ICAP_AVAIL,
+        --            probe10    => ICAPIPIdentification,
+        --            probe11    => ICAPProtocolID,
+        --            probe12    => ICAPProtocolSequence,
+        --            probe13(0) => axis_prog_full,
+        --            probe14(0) => axis_prog_empty,
+        --            probe15    => std_logic_vector(lICAPFilledSlots),
+        --            probe16(0) => ICAP_PRDONE,
+        --            probe17(0) => ICAP_PRERROR,
+        --            probe18    => axis_data_count
+        --        );
 
 end architecture rtl;

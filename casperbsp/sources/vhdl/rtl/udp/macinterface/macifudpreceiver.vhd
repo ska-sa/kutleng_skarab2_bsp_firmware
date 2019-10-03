@@ -131,8 +131,8 @@ architecture rtl of macifudpreceiver is
             RxPacketSlotSet        : in  STD_LOGIC;
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RxPacketSlotType       : in  STD_LOGIC;
-    	    RxPacketSlotStatus     : out STD_LOGIC;
-	        RxPacketSlotTypeStatus : out STD_LOGIC			
+            RxPacketSlotStatus     : out STD_LOGIC;
+            RxPacketSlotTypeStatus : out STD_LOGIC
         );
     end component packetringbuffer;
 
@@ -261,8 +261,8 @@ begin
             RxPacketSlotSet        => lPacketSlotSet,
             RxPacketSlotID         => std_logic_vector(lPacketSlotID),
             RxPacketSlotType       => lPacketSlotType,
-	        RxPacketSlotStatus     => open,
-    	    RxPacketSlotTypeStatus => open
+            RxPacketSlotStatus     => open,
+            RxPacketSlotTypeStatus => open
         );
 
     SynchStateProc : process(axis_clk)
@@ -291,20 +291,20 @@ begin
                         end if;
 
                         if ((lInPacket = '1') or -- Already processing a packet
-                            (           -- First Time processing a packet or 64 byte packet
-							(lInPacket = '0') and -- First Time processing a packet or 64 byte packet 
-                            (           -- First Time processing a packet or 64 byte packet
-							(axis_rx_tvalid = '1') and -- Check the valid
-                            (axis_rx_tuser /= '1') and -- Check for errors 
-                            (lEtherType = byteswap(C_IPV4_TYPE)) and -- Check the Frame Type
-                            (lDestinationUDPPort = byteswap(std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, lDestinationUDPPort'length)))) and -- Check the UDP Port   
-                            (lDestinationIPAddress = byteswap(ReceiverIPAddress)) and -- Check the Destination IP Address   
-                            (lDestinationMACAddress = byteswap(ReceiverMACAddress)) and -- Check the Destination MAC Address   
-                            (lIPVIHL = C_IPV_IHL) and -- Check the IPV4 IHL 									 
-                            (lProtocol = C_UDP_PROTOCOL) -- Check the UDP Protocol
-							)           -- First Time processing a packet or 64 byte packet
-							)           -- First Time processing a packet or 64 byte packet 
-                            ) then
+                                (       -- First Time processing a packet or 64 byte packet
+                                    (lInPacket = '0') and -- First Time processing a packet or 64 byte packet 
+                                    (   -- First Time processing a packet or 64 byte packet
+                                        (axis_rx_tvalid = '1') and -- Check the valid
+                                        (axis_rx_tuser /= '1') and -- Check for errors 
+                                        (lEtherType = byteswap(C_IPV4_TYPE)) and -- Check the Frame Type
+                                        (lDestinationUDPPort = byteswap(std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, lDestinationUDPPort'length)))) and -- Check the UDP Port   
+                                        (lDestinationIPAddress = byteswap(ReceiverIPAddress)) and -- Check the Destination IP Address   
+                                        (lDestinationMACAddress = byteswap(ReceiverMACAddress)) and -- Check the Destination MAC Address   
+                                        (lIPVIHL = C_IPV_IHL) and -- Check the IPV4 IHL 									 
+                                        (lProtocol = C_UDP_PROTOCOL) -- Check the UDP Protocol
+                                    )   -- First Time processing a packet or 64 byte packet
+                                )       -- First Time processing a packet or 64 byte packet 
+                               ) then
                             -- Write the packet by passing the tvalid signal
                             lPacketDataWrite <= axis_rx_tvalid;
                             --Send the ARP Response

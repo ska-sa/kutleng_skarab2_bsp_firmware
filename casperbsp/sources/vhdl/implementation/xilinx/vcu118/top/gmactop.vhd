@@ -78,12 +78,12 @@ entity gmactop is
         -- QSFP+ 2
         mgt_qsfp2_clock_p : in  STD_LOGIC;
         mgt_qsfp2_clock_n : in  STD_LOGIC;
-		--RX     
-		qsfp1_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
-		qsfp1_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
-		-- TX
-		qsfp1_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
-		qsfp1_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
+        --RX     
+        qsfp1_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+        qsfp1_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+        -- TX
+        qsfp1_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+        qsfp1_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Settings
         qsfp1_modsell_ls  : out STD_LOGIC;
         qsfp1_resetl_ls   : out STD_LOGIC;
@@ -91,12 +91,12 @@ entity gmactop is
         qsfp1_intl_ls     : in  STD_LOGIC;
         qsfp1_lpmode_ls   : out STD_LOGIC;
         -- QSFP+ 2
-		--RX     
-		qsfp2_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
-		qsfp2_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
-		-- TX
-		qsfp2_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
-		qsfp2_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
+        --RX     
+        qsfp2_mgt_rx_p    : in  STD_LOGIC_VECTOR(3 downto 0);
+        qsfp2_mgt_rx_n    : in  STD_LOGIC_VECTOR(3 downto 0);
+        -- TX
+        qsfp2_mgt_tx_p    : out STD_LOGIC_VECTOR(3 downto 0);
+        qsfp2_mgt_tx_n    : out STD_LOGIC_VECTOR(3 downto 0);
         -- Settings
         qsfp2_modsell_ls  : out STD_LOGIC;
         qsfp2_resetl_ls   : out STD_LOGIC;
@@ -125,9 +125,9 @@ end entity gmactop;
 architecture rtl of gmactop is
     -- If partial reconfiguration is not desired set this variable to false.
     constant C_INCLUDE_ICAP               : boolean                          := true;
---    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";
+    --    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";
     constant C_EMAC_ADDR_2                : std_logic_vector(47 downto 0)    := X"000A_3502_4194";
---    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
+    --    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
     constant C_IP_ADDR_2                  : std_logic_vector(31 downto 0)    := X"C0A8_640F"; --192.168.100.15
     constant C_UDP_SERVER_PORT            : natural range 0 to ((2**16) - 1) := 10000;
     constant C_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 20000;
@@ -138,7 +138,7 @@ architecture rtl of gmactop is
     constant C_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
     constant C_ARP_DATA_WIDTH             : natural                          := 32;
     constant C_AXIS_DATA_WIDTH            : natural                          := 512;
-    
+
     component pciexdma_refbd_wrapper is
         port(
             GPIO2_0_tri_i    : in  STD_LOGIC_VECTOR(31 downto 0);
@@ -514,7 +514,6 @@ architecture rtl of gmactop is
         );
     end component clockgen100mhz;
 
-
     ----------------------------------------------------------------------------
     --                 Vivado logic analyser test modules                     --
     -- TODO                                                                   --
@@ -556,8 +555,6 @@ architecture rtl of gmactop is
         );
     end component resetvio;
 
-
-
     ----------------------------------------------------------------------------
     --                       LED blinker test modules                         --
     -- TODO                                                                   --
@@ -582,7 +579,6 @@ architecture rtl of gmactop is
             LED : out STD_LOGIC
         );
     end component ledflasher;
-
 
     signal RefClk100MHz    : std_logic;
     signal ICAPClk125MHz   : std_logic;
@@ -626,14 +622,14 @@ architecture rtl of gmactop is
 
     signal Enable : STD_LOGIC;
 
---    signal ICAP_PRDONE  : std_logic;
---    signal ICAP_PRERROR : std_logic;
---    signal ICAP_AVAIL   : std_logic;
---    signal ICAP_CSIB    : std_logic;
---    signal ICAP_RDWRB   : std_logic;
---    signal ICAP_DataOut : std_logic_vector(31 downto 0);
---    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
---    signal ICAP_CSI                                     : std_logic;
+    --    signal ICAP_PRDONE  : std_logic;
+    --    signal ICAP_PRERROR : std_logic;
+    --    signal ICAP_AVAIL   : std_logic;
+    --    signal ICAP_CSIB    : std_logic;
+    --    signal ICAP_RDWRB   : std_logic;
+    --    signal ICAP_DataOut : std_logic_vector(31 downto 0);
+    --    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
+    --    signal ICAP_CSI                                     : std_logic;
 
     --    signal ZERO_30_vector : std_logic_vector(29 downto 0);
     signal Sig_Vcc                                      : std_logic;
@@ -737,11 +733,11 @@ architecture rtl of gmactop is
     signal axis_streaming_data_tx_tready               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 begin
     --ZERO_30_vector   <= (others => '0');
-    Sig_Vcc          <= '1';
-    Sig_Gnd          <= '0';
+    Sig_Vcc <= '1';
+    Sig_Gnd <= '0';
     --ICAP_CSIB        <= not ICAP_CSI;
-    Reset            <= (not RefClkLocked) or lReset;
-    
+    Reset   <= (not RefClkLocked) or lReset;
+
     ----------------------------------------------------------------------------
     --             Generic QSFP28+ port configuration settings.               --
     ----------------------------------------------------------------------------
@@ -782,7 +778,7 @@ begin
             locked    => RefClkLocked,
             clk_in1_p => sysclk1_300_p,
             clk_in1_n => sysclk1_300_n
-        );    
+        );
     ----------------------------------------------------------------------------
     --                      Led flasher module                                --       
     -- This module resides on the static portion of the design.               --
@@ -818,7 +814,6 @@ begin
             Clk => ClkQSFP2,
             LED => blink_led(3)
         );
-
 
     ----------------------------------------------------------------------------
     --          QSFP28+ CMAC0 100G MAC Instance (port 1)                      --
@@ -872,7 +867,7 @@ begin
             axis_tx_tlast                => axis_rx_tlast_1,
             axis_tx_tuser                => axis_rx_tuser_1
         );
-        
+
     ----------------------------------------------------------------------------
     --                 Ethernet UDP/IP Communications module                  --
     -- The UDP/IP module resides in the static partition of the design.       --
@@ -1007,7 +1002,7 @@ begin
             axis_rx_tkeep                                => axis_rx_tkeep_1,
             axis_rx_tlast                                => axis_rx_tlast_1
         );
-        
+
     ----------------------------------------------------------------------------
     --                   Microblaze CPU Instance                              --
     -- The CPU resides in the static partition of the design.                 --
@@ -1145,7 +1140,6 @@ begin
             axis_tx_tuser                => axis_rx_tuser_2
         );
 
-
     ----------------------------------------------------------------------------
     --                 Ethernet Bandwidth test Interface                      --
     -- This module is used only for Ethernet bandwidth testing nothing more.  --
@@ -1175,7 +1169,6 @@ begin
             axis_rx_tkeep  => axis_rx_tkeep_2,
             axis_rx_tlast  => axis_rx_tlast_2
         );
-
 
     MAINAXIS_i : axisila
         port map(
@@ -1231,7 +1224,6 @@ begin
             probe_out2(0) => Enable
         );
 
-
     ----------------------------------------------------------------------------
     --                    PCIe sub system instantiation                       --
     -- The PCIe sub system with its QDMA engine is instantiated here.         --
@@ -1264,10 +1256,9 @@ begin
             I => sys_rst_n
         );
 
-
     PCIE_i : pciexdma_refbd_wrapper
         port map(
-            GPIO2_0_tri_i(31 downto 0) => ICAP_DataIn_Dummy(31 downto 0),            
+            GPIO2_0_tri_i(31 downto 0) => ICAP_DataIn_Dummy(31 downto 0),
             --GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
             --GPIO2_0_tri_i(1)           => ICAP_PRERROR,
             --GPIO2_0_tri_i(0)           => ICAP_PRDONE,
@@ -1297,11 +1288,7 @@ begin
     -- partition (PRM).                                                       --
     ----------------------------------------------------------------------------
 
-
-
     --                Transition to partial reconfigurable region             --   
-
-
 
     ----------------------------------------------------------------------------
     --                      Partial Reconfiguration Module                    --       

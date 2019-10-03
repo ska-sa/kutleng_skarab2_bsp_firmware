@@ -99,7 +99,7 @@ entity icapwritersm is
         --Inputs from AXIS bus of the MAC side
         --ICAPE3 interface
         axis_prog_full           : in  STD_LOGIC;
-        axis_data_count          : in  STD_LOGIC_VECTOR(13 downto 0);                                                
+        axis_data_count          : in  STD_LOGIC_VECTOR(13 downto 0);
         ICAP_CSIB                : out STD_LOGIC;
         ICAP_RDWRB               : out STD_LOGIC;
         ICAP_AVAIL               : in  STD_LOGIC;
@@ -140,7 +140,7 @@ architecture rtl of icapwritersm is
     signal lFrameDWORDCounter     : natural range 0 to C_DFRAME_DWORD_MAX;
     signal lCommandHeader         : std_logic_Vector(31 downto 0);
     signal lCommandSequence       : std_logic_vector(31 downto 0);
-    alias  lCommandDWORD          : std_logic_vector(31 downto 0) is RingBufferDataIn;
+    alias lCommandDWORD           : std_logic_vector(31 downto 0) is RingBufferDataIn;
     signal lRecvRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lRecvRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
     signal lICAP_CSIB             : std_logic;
@@ -196,15 +196,15 @@ begin
                 -- Do the Xilinx bitswapping on bytes, refer to
                 -- UG570(v1.9) April 2,2018,Figure 9-1,Page 140
                 --ICAP_DataIn   <= lCommandDWORD;--bitbyteswap(lCommandDWORD);
-                ICAP_DataIn   <= bitbyteswap(lCommandDWORD);
-                ICAP_CSIB <= lICAP_CSIB;
-                ICAP_RDWRB <= lICAP_RDWRB;
+                ICAP_DataIn <= bitbyteswap(lCommandDWORD);
+                ICAP_CSIB   <= lICAP_CSIB;
+                ICAP_RDWRB  <= lICAP_RDWRB;
                 case (StateVariable) is
                     when InitialiseSt =>
                         -- Wait for packet after initialization
                         StateVariable          <= CheckSlotSt;
-                        lICAP_CSIB              <= '1';
-                        lICAP_RDWRB             <= '0';
+                        lICAP_CSIB             <= '1';
+                        lICAP_RDWRB            <= '0';
                         lRecvRingBufferSlotID  <= (others => '0');
                         lRecvRingBufferAddress <= (others => '0');
 
@@ -225,7 +225,7 @@ begin
                         lRecvRingBufferAddress <= (others => '0');
                         RingBufferSlotClear    <= '0';
                         RingBufferDataRead     <= '0';
-                        lICAP_CSIB              <= '1';
+                        lICAP_CSIB             <= '1';
                         StateVariable          <= CheckSlotSt;
 
                     when ReadHeaderSt =>
@@ -254,11 +254,11 @@ begin
                             StateVariable <= ReadDWORDCommandSt;
                         else
                             -- Set ICAP to Write mode for all frames
-                            ICAP_RDWRB    <= '0';
+                            ICAP_RDWRB <= '0';
                             if (lCommandHeader(31 downto 24) = X"A5") then
                                 -- This is a FRAME
                                 -- Stop writing since the ICAP is not ready
-                                lICAP_CSIB          <= '1';
+                                lICAP_CSIB         <= '1';
                                 -- Set the read length to fixed value
                                 lframedwordcounter <= C_FRAME_DWORD_MAX;
                                 -- Wait for the ICAP to be ready
@@ -267,7 +267,7 @@ begin
                                 if (lCommandHeader(31 downto 24) = X"AD") then
                                     -- This is a DFRAME
                                     -- Stop writing since the ICAP is not ready
-                                    lICAP_CSIB          <= '1';
+                                    lICAP_CSIB         <= '1';
                                     -- Set the read length to dynamic value
                                     lframedwordcounter <= to_integer(unsigned(lCommandHeader(23 downto 16))) - 1;
                                     -- Wait for the ICAP to be ready                                    
@@ -306,7 +306,7 @@ begin
                         RingBufferDataRead <= '0';
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready issue the command
-                            lICAP_CSIB     <= '0';
+                            lICAP_CSIB    <= '0';
                             -- Done with write 
                             StateVariable <= ICAPPurgeDWORDCommandSt;
 
@@ -319,19 +319,17 @@ begin
                         -- Get the ICAP read result
                         ICAP_Readback <= ICAP_DataOut;
                         -- Disselect the ICAP
-                        lICAP_CSIB     <= '1';
+                        lICAP_CSIB    <= '1';
                         -- Change ICAP to read mode
                         --ICAP_RDWRB    <= '1';
                         StateVariable <= WaitICAPResponse;
-
-
 
                     when WriteFrameDWORDSt =>
                         if (ICAP_AVAIL = '1') then
                             -- ICAP is ready
                             -- Do actual write
                             -- Write the ICAP Data
-                            lICAP_CSIB     <= '0';
+                            lICAP_CSIB             <= '0';
                             -- Point to next frame dword
                             lRecvRingBufferAddress <= lRecvRingBufferAddress + 1;
                             if (lFrameDWORDCounter = 0) then
@@ -344,7 +342,7 @@ begin
 
                         else
                             -- Dont write the ICAP Data since ICAP is not ready
-                            lICAP_CSIB     <= '1';
+                            lICAP_CSIB    <= '1';
                             -- Wait until ICAP is ready to take data
                             StateVariable <= WriteFrameDWORDSt;
                         end if;
@@ -367,7 +365,7 @@ begin
                             StateVariable <= SendICAPResponseSt;
                         end if;
                         -- Disselect the ICAP.
-                        lICAP_CSIB          <= '1';
+                        lICAP_CSIB         <= '1';
                         -- Change ICAP to read mode
                         --ICAP_RDWRB         <= '1';
                         -- Reset the FRAME DWORD counter
@@ -386,9 +384,9 @@ begin
                     when SendICAPResponseSt =>
                         if (ICAPWriteResponseSent = '1') then
                             -- Response sent 
-                            ICAPWriteDone       <= '0';
+                            ICAPWriteDone <= '0';
                             -- Go to check the next available receiver slot
-                            StateVariable       <= ClearSlotSt;
+                            StateVariable <= ClearSlotSt;
                         else
                             -- Wait for protocol responder to send the ICAP response
                             StateVariable <= SendICAPResponseSt;

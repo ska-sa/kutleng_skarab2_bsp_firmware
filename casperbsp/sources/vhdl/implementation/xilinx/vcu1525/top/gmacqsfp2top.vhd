@@ -400,7 +400,7 @@ architecture rtl of gmacqsfp2top is
             axis_rx_tready  : out STD_LOGIC;
             axis_rx_tkeep   : in  STD_LOGIC_VECTOR(63 downto 0);
             axis_rx_tlast   : in  STD_LOGIC;
-            axis_rx_tuser   : in  STD_LOGIC;           
+            axis_rx_tuser   : in  STD_LOGIC;
             -- Outputs to AXIS bus
             axis_tx_tdata   : out STD_LOGIC_VECTOR(511 downto 0);
             axis_tx_tvalid  : out STD_LOGIC;
@@ -560,9 +560,9 @@ architecture rtl of gmacqsfp2top is
     signal tx_unsync_reg_counters_reset : std_logic;
     signal rx_sync_reg_counters_reset   : std_logic;
     signal rx_unsync_reg_counters_reset : std_logic;
-    signal laxis_tx_tlast : std_logic;
-    signal laxis_tx_tvalid : std_logic;
-    signal laxis_tx_tuser : std_logic;
+    signal laxis_tx_tlast               : std_logic;
+    signal laxis_tx_tvalid              : std_logic;
+    signal laxis_tx_tuser               : std_logic;
     -- Set core type to CPU_TX/RX_Enable := Enable
     -- Core Revision := 1.0
     -- Core Type :=5 := 100GbE   
@@ -572,18 +572,18 @@ begin
     lbus_rx_clk    <= axis_rx_clkin;
     lbus_rx_reset  <= Reset or lbus_reset;
     lbus_tx_reset  <= Reset or lbus_reset;
-    axis_tx_tlast <= laxis_tx_tlast;
+    axis_tx_tlast  <= laxis_tx_tlast;
     axis_tx_tvalid <= laxis_tx_tvalid;
-    axis_tx_tuser <= laxis_tx_tuser;
+    axis_tx_tuser  <= laxis_tx_tuser;
 
     -- We are not using the custom preamble
-    tx_preamblein       <= (others => '0');
+    tx_preamblein <= (others => '0');
     -- Tie down DRP as it is not used
-    drp_clk             <= '0';
-    drp_addr            <= (others => '0');
-    drp_di              <= (others => '0');
-    drp_en              <= '0';
-    drp_we              <= '0';
+    drp_clk       <= '0';
+    drp_addr      <= (others => '0');
+    drp_di        <= (others => '0');
+    drp_en        <= '0';
+    drp_we        <= '0';
 
     --Register MAP interface settings
     gmac_reg_core_type    <= "0000000" & Enable & "0000000" & Enable & C_CORE_TYPE;
@@ -596,50 +596,50 @@ begin
     gmac_reg_rx_packet_count     <= std_logic_vector(to_unsigned(rx_packet_counter, gmac_reg_rx_packet_count'length));
     gmac_reg_rx_valid_count      <= std_logic_vector(to_unsigned(rx_valid_counter, gmac_reg_rx_valid_count'length));
     gmac_reg_rx_bad_packet_count <= std_logic_vector(to_unsigned(rx_bad_packet_counter, gmac_reg_rx_bad_packet_count'length));
-    
-    PhySettingsProc:process(lbus_tx_clk)
-        begin
-            if rising_edge(lbus_tx_clk) then
-                if ((tx_sync_reg_counters_reset = '1') or (lbus_reset = '1') or (Reset = '1')) then
-                    -- Don't send idle frames 
-                    ctl_tx_send_idle    <= '0';
-                    -- Don't send remote fault indicators 
-                    ctl_tx_send_rfi     <= '0';
-                    -- Don't send local fault indicators       
-                    ctl_tx_send_lfi     <= '0';
-                    -- Don't set transmitter to send test patterns 
-                    ctl_tx_test_pattern <= '0';
-                    -- Don't force resynchronizations   
-                    ctl_rx_force_resync <= '0';
-                    -- Don't set receiver to test patterns
-                    ctl_rx_test_pattern <= '0';
-                    -- Set loop back to normal operation for all 4 MGTs
-                    gt_loopback_in      <= X"000";
-                else
-                    -- Don't send idle frames 
-                    ctl_tx_send_idle_unsync <= gmac_reg_phy_control_h(0);
-                    ctl_tx_send_idle    <= ctl_tx_send_idle_unsync;
-                    -- Don't send remote fault indicators 
-                    ctl_tx_send_rfi     <= ctl_tx_send_rfi_unsync;
-                    ctl_tx_send_rfi_unsync <= gmac_reg_phy_control_h(1);
-                    -- Don't send local fault indicators       
-                    ctl_tx_send_lfi     <= ctl_tx_send_lfi_unsync;
-                    ctl_tx_send_lfi_unsync <= gmac_reg_phy_control_h(2);
-                    -- Don't set transmitter to send test patterns 
-                    ctl_tx_test_pattern <= ctl_tx_test_pattern_unsync;
-                    ctl_tx_test_pattern_unsync <= gmac_reg_phy_control_h(3);
-                    -- Don't force resynchronizations   
-                    ctl_rx_force_resync <= ctl_rx_force_resync_unsync;
-                    ctl_rx_force_resync_unsync <= gmac_reg_phy_control_h(4);
-                    -- Don't set receiver to test patterns
-                    ctl_rx_test_pattern <= ctl_rx_test_pattern_unsync;
-                    ctl_rx_test_pattern_unsync <= gmac_reg_phy_control_h(5);
-                    -- Set loop back to normal operation for all 4 MGTs
-                    gt_loopback_in      <= gt_loopback_in_unsync;
-                    gt_loopback_in_unsync <= gmac_reg_phy_control_l(11 downto 0);                     
-                end if;                
+
+    PhySettingsProc : process(lbus_tx_clk)
+    begin
+        if rising_edge(lbus_tx_clk) then
+            if ((tx_sync_reg_counters_reset = '1') or (lbus_reset = '1') or (Reset = '1')) then
+                -- Don't send idle frames 
+                ctl_tx_send_idle    <= '0';
+                -- Don't send remote fault indicators 
+                ctl_tx_send_rfi     <= '0';
+                -- Don't send local fault indicators       
+                ctl_tx_send_lfi     <= '0';
+                -- Don't set transmitter to send test patterns 
+                ctl_tx_test_pattern <= '0';
+                -- Don't force resynchronizations   
+                ctl_rx_force_resync <= '0';
+                -- Don't set receiver to test patterns
+                ctl_rx_test_pattern <= '0';
+                -- Set loop back to normal operation for all 4 MGTs
+                gt_loopback_in      <= X"000";
+            else
+                -- Don't send idle frames 
+                ctl_tx_send_idle_unsync    <= gmac_reg_phy_control_h(0);
+                ctl_tx_send_idle           <= ctl_tx_send_idle_unsync;
+                -- Don't send remote fault indicators 
+                ctl_tx_send_rfi            <= ctl_tx_send_rfi_unsync;
+                ctl_tx_send_rfi_unsync     <= gmac_reg_phy_control_h(1);
+                -- Don't send local fault indicators       
+                ctl_tx_send_lfi            <= ctl_tx_send_lfi_unsync;
+                ctl_tx_send_lfi_unsync     <= gmac_reg_phy_control_h(2);
+                -- Don't set transmitter to send test patterns 
+                ctl_tx_test_pattern        <= ctl_tx_test_pattern_unsync;
+                ctl_tx_test_pattern_unsync <= gmac_reg_phy_control_h(3);
+                -- Don't force resynchronizations   
+                ctl_rx_force_resync        <= ctl_rx_force_resync_unsync;
+                ctl_rx_force_resync_unsync <= gmac_reg_phy_control_h(4);
+                -- Don't set receiver to test patterns
+                ctl_rx_test_pattern        <= ctl_rx_test_pattern_unsync;
+                ctl_rx_test_pattern_unsync <= gmac_reg_phy_control_h(5);
+                -- Set loop back to normal operation for all 4 MGTs
+                gt_loopback_in             <= gt_loopback_in_unsync;
+                gt_loopback_in_unsync      <= gmac_reg_phy_control_l(11 downto 0);
             end if;
-        end process PhySettingsProc;
+        end if;
+    end process PhySettingsProc;
 
     RxCountersProc : process(lbus_tx_clk)
     begin
@@ -732,7 +732,6 @@ begin
             end if;
         end if;
     end process TxCountersProc;
-
 
     LBUSAXIS_QSFP2_i : lbustoaxis
         port map(
