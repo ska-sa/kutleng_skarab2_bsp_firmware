@@ -63,15 +63,16 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity assymetricdualportpacketram1to64byte is
-    generic(
-        G_ADDR_WIDTH : natural := 8 + 2
+generic(
+        G_ADDR_WIDTH : natural := 8 + 2;    
+        G_SLOT_WIDTH : natural := 4
     );
     port(
         ClkA             : in  STD_LOGIC;
         ClkB             : in  STD_LOGIC;
         -- Port A
         WriteByteEnableA : in  STD_LOGIC_VECTOR(0 downto 0);
-        WriteAAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + 6) - 1 downto 0);
+        WriteAAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH) - 1 downto 0);
         EnableA          : in  STD_LOGIC;
         WriteAEnable     : in  STD_LOGIC;
         WriteAData       : in  STD_LOGIC_VECTOR(7 downto 0);
@@ -79,7 +80,7 @@ entity assymetricdualportpacketram1to64byte is
         ReadAData        : out STD_LOGIC_VECTOR(7 downto 0);
         -- Port B
         WriteByteEnableB : in  STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-        WriteBAddress    : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        WriteBAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
         EnableB          : in  STD_LOGIC;
         WriteBEnable     : in  STD_LOGIC;
         WriteBData       : in  STD_LOGIC_VECTOR(511 downto 0);
@@ -90,7 +91,7 @@ end entity assymetricdualportpacketram1to64byte;
 
 architecture rtl of assymetricdualportpacketram1to64byte is
     -- Declaration of ram signals
-    type PacketStatusRAM_t is array ((2**G_ADDR_WIDTH) - 1 downto 0) of std_logic_vector(1 downto 0);
+    type PacketStatusRAM_t is array ((2**G_ADDR_WIDTH) - 1 downto 0) of std_logic_vector(511 downto 0);
     shared variable RAMData : PacketStatusRAM_t;
 begin
 
@@ -99,9 +100,9 @@ begin
         if rising_edge(ClkA) then
             if (EnableA = '1') then
                 if (WriteAEnable = '1') then
-                    RAMData(to_integer(unsigned(WriteAAddress))) := WriteAData;
+                    RAMData(to_integer(unsigned(WriteAAddress)))(WriteAData'range) := WriteAData;
                 end if;
-                ReadAData <= RAMData(to_integer(unsigned(WriteAAddress)));
+                ReadAData <= RAMData(to_integer(unsigned(WriteAAddress)))(ReadAData'range);
             end if;
         end if;
     end process RAMPORTA;

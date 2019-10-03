@@ -130,7 +130,7 @@ architecture rtl of cpumacifudpreceiver is
             -- we use it to save TLAST
             RingBufferDataEnable   : out STD_LOGIC_VECTOR(63 downto 0);
             RingBufferDataOut      : out STD_LOGIC_VECTOR(511 downto 0);
-            RingBufferAddress      : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            RingBufferAddress      : out STD_LOGIC_VECTOR(G_ADDR_WIDTH+G_SLOT_WIDTH - 1 downto 0);
             --Inputs from AXIS bus of the MAC side
             axis_rx_tdata          : in  STD_LOGIC_VECTOR(511 downto 0);
             axis_rx_tvalid         : in  STD_LOGIC;
@@ -177,7 +177,7 @@ architecture rtl of cpumacifudpreceiver is
     signal IngressRingBufferDataEnable : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataWrite  : STD_LOGIC;
     signal IngressRingBufferDataOut    : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
-    signal IngressRingBufferAddress    : STD_LOGIC_VECTOR(G_INGRESS_ADDR_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : STD_LOGIC_VECTOR(G_INGRESS_ADDR_WIDTH + G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotSet    : STD_LOGIC;
     signal IngressRingBufferSlotID     : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : STD_LOGIC;
@@ -244,7 +244,7 @@ begin
         generic map(
             G_SLOT_WIDTH  => G_SLOT_WIDTH,
             G_ADDR_BWIDTH => G_ADDR_WIDTH,
-            G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
+            G_ADDR_AWIDTH => (G_INGRESS_ADDR_WIDTH+IngressRingBufferSlotID'length),
             G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
             G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
         )

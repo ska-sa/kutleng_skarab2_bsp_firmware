@@ -131,14 +131,15 @@ architecture rtl of cpuifsenderpacketringbuffer is
     end component packetstatusram;
     component assymetricdualportpacketram1to64byte is
         generic(
-            G_ADDR_WIDTH : natural := 8 + 2
+            G_ADDR_WIDTH : natural := 8 + 2;
+            G_SLOT_WIDTH : natural := 4
         );
         port(
             ClkA             : in  STD_LOGIC;
             ClkB             : in  STD_LOGIC;
             -- Port A
             WriteByteEnableA : in  STD_LOGIC_VECTOR(0 downto 0);
-            WriteAAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + 6) - 1 downto 0);
+            WriteAAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH) - 1 downto 0);
             EnableA          : in  STD_LOGIC;
             WriteAEnable     : in  STD_LOGIC;
             WriteAData       : in  STD_LOGIC_VECTOR(7 downto 0);
@@ -146,7 +147,7 @@ architecture rtl of cpuifsenderpacketringbuffer is
             ReadAData        : out STD_LOGIC_VECTOR(7 downto 0);
             -- Port B
             WriteByteEnableB : in  STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-            WriteBAddress    : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            WriteBAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
             EnableB          : in  STD_LOGIC;
             WriteBEnable     : in  STD_LOGIC;
             WriteBData       : in  STD_LOGIC_VECTOR(511 downto 0);
@@ -215,18 +216,19 @@ begin
     -- Separate enables and data to avoid problems on data output stage
     DataBuffer_i : assymetricdualportpacketram1to64byte
         generic map(
-            G_ADDR_WIDTH => (G_DATA_AWIDTH + RxPacketSlotID'length)
+            G_ADDR_WIDTH => RxPacketReadAddress'length,
+            G_SLOT_WIDTH => RxPacketSlotID'length
         )
         port map(
             ClkA             => RxClk,
             ClkB             => TxClk,
             -- Port A
-            WriteByteEnableA => RxPacketWriteByteEnable,
+            WriteByteEnableA => RxPacketWriteByteEnable(0 downto 0),
             WriteAAddress    => lRxPacketAddress,
             EnableA          => RxPacketDataRead,
             WriteAEnable     => RxPacketDataWrite,
             WriteAData       => RxPacketDataIn,
-            ReadByteEnableA  => RxPacketReadByteEnable,
+            ReadByteEnableA  => RxPacketReadByteEnable(0 downto 0),
             ReadAData        => RxPacketDataOut,
             -- Port B
             WriteByteEnableB => GND_EnableDwidth,
