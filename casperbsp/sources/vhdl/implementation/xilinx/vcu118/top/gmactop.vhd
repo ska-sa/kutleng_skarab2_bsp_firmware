@@ -186,7 +186,7 @@ architecture rtl of gmactop is
             axis_reset                                   : in  STD_LOGIC;
             ------------------------------------------------------------------------
             -- AXILite slave Interface                                            --
-            -- This interface is for register access as the the Ethernet Core     --
+            -- This interface is for register access as per CASPER Ethernet Core  --
             -- memory map, this core has mac & phy registers, arp cache and also  --
             -- cpu transmit and receive buffers                                   --
             ------------------------------------------------------------------------
@@ -872,6 +872,7 @@ begin
             axis_tx_tlast                => axis_rx_tlast_1,
             axis_tx_tuser                => axis_rx_tuser_1
         );
+        
     ----------------------------------------------------------------------------
     --                 Ethernet UDP/IP Communications module                  --
     -- The UDP/IP module resides in the static partition of the design.       --
@@ -1006,6 +1007,7 @@ begin
             axis_rx_tkeep                                => axis_rx_tkeep_1,
             axis_rx_tlast                                => axis_rx_tlast_1
         );
+        
     ----------------------------------------------------------------------------
     --                   Microblaze CPU Instance                              --
     -- The CPU resides in the static partition of the design.                 --
@@ -1313,7 +1315,7 @@ begin
     -- TODO                                                                   --
     --    Add your partial reconfiguration module code here.                  --       
     --    Hint:                                                               --       
-    --        For the initial bitstream put an very tiny placeholder RM and   --
+    --        For the initial bitstream put a very tiny placeholder RM and    --
     --        use bitstream compression for loading the bitstream to flash.   --
     --        In that way you can have a very tiny bitstream that will enable --
     --        the FPGA to be initially configured within 5ms needed for PCIe  --
