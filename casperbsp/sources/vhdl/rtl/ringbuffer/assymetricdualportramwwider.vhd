@@ -52,6 +52,7 @@
 -- Tool Versions    : N/A                                                      -
 -- Description      : This module is used to infer a simple dual block write   -
 --                    first ram.                                               -
+--                    This is taken from Xilinx UG901 with minor modifications.-
 -- Dependencies     : N/A                                                      -
 -- Revision History : V1.0 - Initial design                                    -
 --------------------------------------------------------------------------------
@@ -80,8 +81,7 @@ entity assymetricdualportramwwider is
         diB   : in  std_logic_vector(WIDTHB - 1 downto 0);
         doA   : out std_logic_vector(WIDTHA - 1 downto 0)
     );
-
-end assymetricdualportramwwider;
+end entity assymetricdualportramwwider;
 architecture rtl of assymetricdualportramwwider is
     function max(L, R : INTEGER) return INTEGER is
     begin

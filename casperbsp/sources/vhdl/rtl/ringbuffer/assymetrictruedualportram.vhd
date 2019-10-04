@@ -81,8 +81,7 @@ entity assymetrictruedualportram is
         diB   : in  std_logic_vector(WIDTHB - 1 downto 0);
         doA   : out std_logic_vector(WIDTHA - 1 downto 0)
     );
-
-end assymetrictruedualportram;
+end entity assymetrictruedualportram;
 architecture rtl of assymetrictruedualportram is
     function max(L, R : INTEGER) return INTEGER is
     begin

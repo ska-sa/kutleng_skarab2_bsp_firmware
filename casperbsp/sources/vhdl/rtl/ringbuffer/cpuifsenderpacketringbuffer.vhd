@@ -146,11 +146,8 @@ architecture rtl of cpuifsenderpacketringbuffer is
             ReadByteEnableA  : out STD_LOGIC_VECTOR(0 downto 0);
             ReadAData        : out STD_LOGIC_VECTOR(7 downto 0);
             -- Port B
-            WriteByteEnableB : in  STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-            WriteBAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
+            ReadBAddress     : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
             EnableB          : in  STD_LOGIC;
-            WriteBEnable     : in  STD_LOGIC;
-            WriteBData       : in  STD_LOGIC_VECTOR(511 downto 0);
             ReadByteEnableB  : out STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
             ReadBData        : out STD_LOGIC_VECTOR(511 downto 0)
         );
@@ -231,11 +228,8 @@ begin
             ReadByteEnableA  => RxPacketReadByteEnable(0 downto 0),
             ReadAData        => RxPacketDataOut,
             -- Port B
-            WriteByteEnableB => GND_EnableDwidth,
-            WriteBAddress    => lTxPacketAddress,
+            ReadBAddress     => lTxPacketAddress,
             EnableB          => TxPacketDataRead,
-            WriteBEnable     => GND_onebit,
-            WriteBData       => GND_DWidth,
             ReadByteEnableB  => TxPacketByteEnable,
             ReadBData        => TxPacketData
         );

@@ -139,15 +139,10 @@ architecture rtl of cpuifreceiverpacketringbuffer is
             EnableA          : in  STD_LOGIC;
             WriteAEnable     : in  STD_LOGIC;
             WriteAData       : in  STD_LOGIC_VECTOR(511 downto 0);
-            ReadByteEnableA  : out STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-            ReadAData        : out STD_LOGIC_VECTOR(511 downto 0);
             -- Port B
-            WriteByteEnableB : in  STD_LOGIC_VECTOR(0 downto 0);
-            WriteBAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH) - 1 downto 0);
+            ReadBAddress     : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH) - 1 downto 0);
             EnableB          : in  STD_LOGIC;
-            WriteBEnable     : in  STD_LOGIC;
-            WriteBData       : in  STD_LOGIC_VECTOR(7 downto 0);
-            ReadByteEnableB  : out STD_LOGIC_VECTOR(0 downto 0);
+            ReadByteEnableB  : out STD_LOGIC_VECTOR(1 downto 0);
             ReadBData        : out STD_LOGIC_VECTOR(7 downto 0)
         );
     end component assymetricdualportpacketram64to1byte;
@@ -160,7 +155,6 @@ architecture rtl of cpuifreceiverpacketringbuffer is
     signal GND_onebit       : std_logic;
     signal GND_twobit       : std_logic_vector(1 downto 0);
     signal GND_dwidth       : std_logic_vector(TxPacketDataOut'length - 1 downto 0);
-    signal GND_EnableDwidth : std_logic_vector(TxPacketReadByteEnable'length - 1 downto 0);
     signal SlotStatusUnused : std_logic;
 
 begin
@@ -220,15 +214,10 @@ begin
             EnableA          => RxPacketDataWrite,
             WriteAEnable     => RxPacketDataWrite,
             WriteAData       => RxPacketData,
-            ReadByteEnableA  => open,
-            ReadAData        => open,
             -- Port B
-            WriteByteEnableB => GND_EnableDwidth(0 downto 0),
-            WriteBAddress    => lTxPacketAddress,
+            ReadBAddress     => lTxPacketAddress,
             EnableB          => TxPacketDataRead,
-            WriteBEnable     => GND_onebit,
-            WriteBData       => GND_DWidth,
-            ReadByteEnableB  => TxPacketReadByteEnable(0 downto 0),
+            ReadByteEnableB  => TxPacketReadByteEnable(1 downto 0),
             ReadBData        => TxPacketDataOut
         );
 

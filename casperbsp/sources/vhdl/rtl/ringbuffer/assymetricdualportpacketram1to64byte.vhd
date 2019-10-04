@@ -63,8 +63,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity assymetricdualportpacketram1to64byte is
-generic(
-        G_ADDR_WIDTH : natural := 8 + 2;    
+    generic(
+        G_ADDR_WIDTH : natural := 8 + 2;
         G_SLOT_WIDTH : natural := 4
     );
     port(
@@ -79,53 +79,83 @@ generic(
         ReadByteEnableA  : out STD_LOGIC_VECTOR(0 downto 0);
         ReadAData        : out STD_LOGIC_VECTOR(7 downto 0);
         -- Port B
-        WriteByteEnableB : in  STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-        WriteBAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
+        ReadBAddress     : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 5) - 1 downto 0);
         EnableB          : in  STD_LOGIC;
-        WriteBEnable     : in  STD_LOGIC;
-        WriteBData       : in  STD_LOGIC_VECTOR(511 downto 0);
         ReadByteEnableB  : out STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
         ReadBData        : out STD_LOGIC_VECTOR(511 downto 0)
     );
 end entity assymetricdualportpacketram1to64byte;
 
 architecture rtl of assymetricdualportpacketram1to64byte is
-    -- Declaration of ram signals
-    type PacketDataRAM_t is array ((2**(G_ADDR_WIDTH+G_SLOT_WIDTH)) - 1 downto 0) of std_logic_vector(7 downto 0);
-    type PacketEnableRAM_t is array ((2**(G_ADDR_WIDTH+G_SLOT_WIDTH)) - 1 downto 0) of std_logic;
-    shared variable RAMData : PacketDataRAM_t;
-    shared variable RAMEnableData : PacketEnableRAM_t;
+    component assymetrictruedualportram is
+        generic(
+            WIDTHA     : integer := 4;
+            SIZEA      : integer := 1024;
+            ADDRWIDTHA : integer := 10;
+            WIDTHB     : integer := 16;
+            SIZEB      : integer := 256;
+            ADDRWIDTHB : integer := 8
+        );
+        port(
+            clkA  : in  std_logic;
+            clkB  : in  std_logic;
+            enA   : in  std_logic;
+            enB   : in  std_logic;
+            weB   : in  std_logic;
+            addrA : in  std_logic_vector(ADDRWIDTHA - 1 downto 0);
+            addrB : in  std_logic_vector(ADDRWIDTHB - 1 downto 0);
+            doB   : out std_logic_vector(WIDTHB - 1 downto 0);
+            diB   : in  std_logic_vector(WIDTHB - 1 downto 0);
+            doA   : out std_logic_vector(WIDTHA - 1 downto 0)
+        );
+    end component assymetrictruedualportram;
 begin
 
-    RAMPORTA : process(ClkA)
-    begin
-        if rising_edge(ClkA) then
-            if (EnableA = '1') then
-                if (WriteAEnable = '1') then
-                    RAMData(to_integer(unsigned(WriteAAddress))) := WriteAData;
-                    RAMEnableData(to_integer(unsigned(WriteAAddress))) := WriteByteEnableA(0);                    
-                end if;
-                ReadAData <= RAMData(to_integer(unsigned(WriteAAddress)));
-                ReadByteEnableA(0) <= RAMEnableData(to_integer(unsigned(WriteAAddress)));
-            end if;
-        end if;
-    end process RAMPORTA;
+    -- Split the RAMS into sub blocks that are less than 256bits as this is the limit
+    -- for generic inference.
+    -- We need bit lengths of about 512 wide.
+    RAMAi : assymetrictruedualportram
+        generic map(
+            WIDTHA     => 4,
+            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
+            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
+            WIDTHB     => 256,
+            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
+            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH)
+        )
+        port map(
+            clkA  => ClkB,
+            clkB  => ClkA,
+            enA   => EnableB,
+            enB   => EnableA,
+            weB   => WriteAEnable,
+            addrB => WriteAAddress,
+            addrA => ReadBAddress,
+            diB   => WriteAData(3 downto 0),
+            doB   => ReadAData(3 downto 0),
+            doA   => ReadBData(255 downto 0)
+        );
 
-    RAMPORTB : process(ClkB)
-    begin
-        if rising_edge(ClkB) then
-            if (EnableB = '1') then
-                    for i in 0 to 63
-                    loop
-                        if (WriteBEnable = '1') then
-                            RAMData(to_integer(unsigned(WriteBAddress))+i) := WriteBData((i*8)+7 downto (i*8)+0);
-                            RAMEnableData(to_integer(unsigned(WriteBAddress))+i) := WriteByteEnableB(i);                    
-                        end if;
-                        ReadBData((i*8)+7 downto (i*8)+0) <= RAMData(to_integer(unsigned(WriteBAddress))+i);
-                       ReadByteEnableB(i) <= RAMEnableData(to_integer(unsigned(WriteBAddress))+i);
-                end loop;
-            end if;
-        end if;
-    end process RAMPORTB;
+    RAMBi : assymetrictruedualportram
+        generic map(
+            WIDTHA     => 4,
+            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
+            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
+            WIDTHB     => 256,
+            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
+            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH)
+        )
+        port map(
+            clkA  => ClkB,
+            clkB  => ClkA,
+            enA   => EnableB,
+            enB   => EnableA,
+            weB   => WriteAEnable,
+            addrB => WriteAAddress,
+            addrA => ReadBAddress,
+            diB   => WriteAData(7 downto 4),
+            doB   => ReadAData(7 downto 4),
+            doA   => ReadBData(511 downto 256)
+        );
 
 end architecture rtl;
