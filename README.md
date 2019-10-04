@@ -3,7 +3,7 @@ The vivado firmware for the skarab2
 
 This is the initial work for the port of the 100G Ethernet to the VCU118 board.
 
-The Vivado version being used is Vivado 2018.1
+The Vivado version being used is Vivado 2018.1/2018.3/2019.1
 
 Added Git tag v1.0
 
@@ -22,9 +22,9 @@ vivado
 
 #on my machine it is as follows
 
-source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/ethmacvcu118pr.tcl
+source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/ethmacvcu118.tcl
 
-#Yours maybe source ethmacvcu118pr.tcl
+#Yours maybe source ethmacvcu118.tcl
 
 #You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/} folder
 
@@ -56,8 +56,5 @@ Tagging this to V1.1
 
 Updated code on this branch to work with partial reconfiguration.
 
-ICAP based PR still being tested.
-JTAG based PR working on VCU1525 (to be confirmed on VCU118 but it should work).
-
-Need to add a timing ignore constraint for the 95MHz ICAP clock, at the moment it is causing a lot of timing errors which can be ignored due to CDC.
+For the partial reconfiguration build replace ethmacvcu1525.tcl with ethmacvcu1525pr.tcl and ethmacvcu118.tcl with ethmacvcu118pr.tcl
 
