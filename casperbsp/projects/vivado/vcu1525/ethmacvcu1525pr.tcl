@@ -93,6 +93,8 @@ add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetramsp.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetramdp.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetringbuffer.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetstatusram.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportramwwider.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetrictruedualportram.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpacketram1to64byte.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpacketram64to1byte.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpuifreceiverpacketringbuffer.vhd
