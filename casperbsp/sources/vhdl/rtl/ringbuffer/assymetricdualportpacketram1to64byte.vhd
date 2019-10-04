@@ -91,8 +91,10 @@ end entity assymetricdualportpacketram1to64byte;
 
 architecture rtl of assymetricdualportpacketram1to64byte is
     -- Declaration of ram signals
-    type PacketStatusRAM_t is array ((2**G_ADDR_WIDTH) - 1 downto 0) of std_logic_vector(511 downto 0);
-    shared variable RAMData : PacketStatusRAM_t;
+    type PacketDataRAM_t is array ((2**(G_ADDR_WIDTH+G_SLOT_WIDTH)) - 1 downto 0) of std_logic_vector(7 downto 0);
+    type PacketEnableRAM_t is array ((2**(G_ADDR_WIDTH+G_SLOT_WIDTH)) - 1 downto 0) of std_logic;
+    shared variable RAMData : PacketDataRAM_t;
+    shared variable RAMEnableData : PacketEnableRAM_t;
 begin
 
     RAMPORTA : process(ClkA)
@@ -100,9 +102,11 @@ begin
         if rising_edge(ClkA) then
             if (EnableA = '1') then
                 if (WriteAEnable = '1') then
-                    RAMData(to_integer(unsigned(WriteAAddress)))(WriteAData'range) := WriteAData;
+                    RAMData(to_integer(unsigned(WriteAAddress))) := WriteAData;
+                    RAMEnableData(to_integer(unsigned(WriteAAddress))) := WriteByteEnableA(0);                    
                 end if;
-                ReadAData <= RAMData(to_integer(unsigned(WriteAAddress)))(ReadAData'range);
+                ReadAData <= RAMData(to_integer(unsigned(WriteAAddress)));
+                ReadByteEnableA(0) <= RAMEnableData(to_integer(unsigned(WriteAAddress)));
             end if;
         end if;
     end process RAMPORTA;
@@ -111,10 +115,15 @@ begin
     begin
         if rising_edge(ClkB) then
             if (EnableB = '1') then
-                if (WriteBEnable = '1') then
-                    RAMData(to_integer(unsigned(WriteBAddress))) := WriteBData;
-                end if;
-                ReadBData <= RAMData(to_integer(unsigned(WriteBAddress)));
+                    for i in 0 to 63
+                    loop
+                        if (WriteBEnable = '1') then
+                            RAMData(to_integer(unsigned(WriteBAddress))+i) := WriteBData((i*8)+7 downto (i*8)+0);
+                            RAMEnableData(to_integer(unsigned(WriteBAddress))+i) := WriteByteEnableB(i);                    
+                        end if;
+                        ReadBData((i*8)+7 downto (i*8)+0) <= RAMData(to_integer(unsigned(WriteBAddress))+i);
+                       ReadByteEnableB(i) <= RAMEnableData(to_integer(unsigned(WriteBAddress))+i);
+                end loop;
             end if;
         end if;
     end process RAMPORTB;
