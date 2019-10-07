@@ -129,6 +129,7 @@ add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/macifudpreceive
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/macifudpsender.vhd
 
 #UDP Server (Partial Reconfiguration Module)
+add_files $origin_dir/../../../sources/vhdl/implementation/xilinx/general/icapdecoupler.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/icapwritersm.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/protocolchecksumprconfigsm.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/protocolresponderprconfigsm.vhd
