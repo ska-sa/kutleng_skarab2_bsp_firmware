@@ -64,8 +64,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-library unisim;
-use unisim.vcomponents.all;
 
 entity udpipinterfacepr is
     generic(
@@ -529,6 +527,24 @@ architecture rtl of udpipinterfacepr is
         );
     end component axistwoportfabricmultiplexer;
 
+    component icapdecoupler is
+        port(
+            axis_clk        : in  STD_LOGIC;
+            axis_reset      : in  STD_LOGIC;
+            axis_prog_full  : out STD_LOGIC;
+            axis_prog_empty : out STD_LOGIC;
+            axis_data_count : out std_logic_vector(13 downto 0);
+            ICAPClk125MHz   : in  STD_LOGIC;
+            ICAP_AVAIL      : out STD_LOGIC;
+            ICAP_DataOut    : out STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_PRDONE     : out STD_LOGIC;
+            ICAP_PRERROR    : out STD_LOGIC;
+            ICAP_CSIB       : in  STD_LOGIC;
+            ICAP_DataIn     : in  STD_LOGIC_VECTOR(31 downto 0);
+            ICAP_RDWRB      : in  STD_LOGIC
+        );
+    end component icapdecoupler;
+
     constant C_MAX_PACKET_BLOCKS_SIZE : natural := 64;
     constant C_PRIORITY_WIDTH         : natural := 4;
 
@@ -768,21 +784,21 @@ begin
                 ICAP_DataIn       => ICAP_DataIn
             );
 
-        ICAPE3_i : ICAPE3
-            generic map(
-                DEVICE_ID         => X"03628093",
-                ICAP_AUTO_SWITCH  => "DISABLE",
-                SIM_CFG_FILE_NAME => "NONE"
-            )
+        ICAPE3_i : icapdecoupler
             port map(
-                AVAIL   => ICAP_AVAIL,
-                O       => ICAP_DataOut,
-                PRDONE  => ICAP_PRDONE,
-                PRERROR => ICAP_PRERROR,
-                CLK     => icap_clk,
-                CSIB    => ICAP_CSIB,
-                I       => ICAP_DataIn,
-                RDWRB   => ICAP_RDWRB
+                axis_clk        => axis_clk,
+                axis_reset      => axis_reset,
+                axis_prog_full  => axis_prog_full,
+                axis_prog_empty => axis_prog_empty,
+                axis_data_count => axis_data_count,
+                ICAPClk125MHz   => icap_clk,
+                ICAP_PRDONE     => ICAP_PRDONE,
+                ICAP_PRERROR    => ICAP_PRERROR,
+                ICAP_AVAIL      => ICAP_AVAIL,
+                ICAP_CSIB       => ICAP_CSIB,
+                ICAP_RDWRB      => ICAP_RDWRB,
+                ICAP_DataOut    => ICAP_DataOut,
+                ICAP_DataIn     => ICAP_DataIn
             );
 
         AXISMUX_i : axisthreeportfabricmultiplexer
