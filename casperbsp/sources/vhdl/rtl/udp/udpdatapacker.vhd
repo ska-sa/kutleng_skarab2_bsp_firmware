@@ -162,6 +162,8 @@ architecture rtl of udpdatapacker is
     constant C_RESPONSE_FLAGS_OFFSET  : std_logic_vector(15 downto 0) := X"4000";
     constant C_RESPONSE_TIME_TO_LEAVE : std_logic_vector(7 downto 0)  := X"40";
     constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
+    constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0) := X"0008";
+    constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0) := X"0014";
 
     -- Tuples registers
     signal lPacketData : std_logic_vector(511 downto 0);
@@ -478,27 +480,27 @@ begin
                                     end if;
                                 end if;
                             else
-                                -- Packet Addressing not yet done
-                                -- Pause the frame transfer from the upstream device
+                                -- Packet Addressing not yet done.
+                                -- Pause the frame transfer from the upstream device.
                                 axis_tready   <= '0';
-                                -- Go to do addressing lookup
+                                -- Go to do addressing lookup.
                                 StateVariable <= GenerateIPAddressesSt;
                             end if;
-                            -- Enable all data output
-                            -- Mask the data fields using the source mask
+                            -- Enable all data output.
+                            -- Mask the data fields using the source mask.
                             lPacketByteEnable(63 downto 42) <= axis_tkeep(63 downto 42);
-                            -- Enable all other data fields
+                            -- Enable all other data fields.
                             lPacketByteEnable(41 downto 0)  <= (others => '1');
-                            --------------------------------------------------------
-                            --                  Ethernet Header                    -
-                            --------------------------------------------------------                        
+                            ----------------------------------------------------
+                            --                  Ethernet Header               --
+                            ----------------------------------------------------                        
                             -- Swap the source and destination MACS
                             lDestinationMACAddress          <= byteswap(lClientMACAddress);
                             lSourceMACAddress               <= byteswap(lServerMACAddress);
                             lEtherType                      <= byteswap(C_RESPONSE_ETHER_TYPE);
-                            --------------------------------------------------------
-                            --                   IPV4 Header                       -
-                            --------------------------------------------------------                         
+                            ----------------------------------------------------
+                            --                   IPV4 Header                  --
+                            ----------------------------------------------------                         
                             lIPVIHL                         <= C_RESPONSE_IPV4IHL;
                             lDSCPECN                        <= C_RESPONSE_DSCPECN;
                             lTotalLength                    <= byteswap(C_RESPONSE_IPV4_LENGTH);
@@ -530,7 +532,7 @@ begin
                         end if;
 
                     when GenerateIPAddressesSt =>
-                        -- Check the addressing range         244                                        239     
+                        -- Check the addressing range               244                                               239     
                         if ((DestinationIPAddress(31 downto 24) >= X"F4") and (DestinationIPAddress(31 downto 24) <= X"EF")) then
                             -- If the target IP address is multicast, send data to the multicast IP.
                             -- i.e. target IP is 224.0.0.0–239.255.255.255 F4.00.00.00-EF.FF.FF.FF
@@ -551,6 +553,10 @@ begin
                                 SourceIPAddress <= gateway_ip_address;
                             end if;
                         end if;
+                        
+                        -- Save the length framing information
+                        C_RESPONSE_IPV4_LENGTH <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH + C_IP_HEADER_LENGTH);
+                        C_RESPONSE_UDP_LENGTH  <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH);
                         StateVariable <= ARPTableLookUpSt;
 
                     when ARPTableLookUpSt =>
