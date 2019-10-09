@@ -52,7 +52,7 @@
 -- Tool Versions    : N/A                                                      -
 -- Description      : This module performs data streaming over UDP             -
 --                                                                             -
--- Dependencies     : macifudpserver,udpdatastripper,udpdatapacker             -
+-- Dependencies     : dualportpacketringbuffer                                 -
 -- Revision History : V1.0 - Initial design                                    -
 --------------------------------------------------------------------------------
 library ieee;
@@ -96,7 +96,7 @@ entity udpdatapacker is
         SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         SenderRingBufferData           : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         SenderRingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-        --
+        -- 
         destination_ip                 : in  STD_LOGIC_VECTOR(31 downto 0);
         destination_udp_port           : in  STD_LOGIC_VECTOR(15 downto 0);
         udp_packet_length              : in  STD_LOGIC_VECTOR(15 downto 0);
@@ -162,8 +162,8 @@ architecture rtl of udpdatapacker is
     constant C_RESPONSE_FLAGS_OFFSET  : std_logic_vector(15 downto 0) := X"4000";
     constant C_RESPONSE_TIME_TO_LEAVE : std_logic_vector(7 downto 0)  := X"40";
     constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
-    constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0) := X"0008";
-    constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0) := X"0014";
+    constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
+    constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
 
     -- Tuples registers
     signal lPacketData : std_logic_vector(511 downto 0);
@@ -381,7 +381,13 @@ begin
                 lClientUDPPortChanged <= '1';
             end if;
 
-            lAddressingChanged <= lClientUDPPortChanged or lClientIPAddressChanged or lClientMACAddressChanged or lServerUDPPortChanged or lServerIPAddressChanged or lServerMACAddressChanged or lUDPPacketLengthChanged;
+            lAddressingChanged <= lClientUDPPortChanged -- Client UDP port changed 
+                                  or lClientIPAddressChanged -- IP Address changed
+                                  or lClientMACAddressChanged -- MAC address changed
+                                  or lServerUDPPortChanged -- Server UDP port changed 
+                                  or lServerIPAddressChanged -- Server IP address changed 
+                                  or lServerMACAddressChanged -- server MAC address changed 
+                                  or lUDPPacketLengthChanged;
 
         end if;
     end process AddressingChangeProc;
@@ -553,11 +559,11 @@ begin
                                 SourceIPAddress <= gateway_ip_address;
                             end if;
                         end if;
-                        
+
                         -- Save the length framing information
                         C_RESPONSE_IPV4_LENGTH <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH + C_IP_HEADER_LENGTH);
                         C_RESPONSE_UDP_LENGTH  <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH);
-                        StateVariable <= ARPTableLookUpSt;
+                        StateVariable          <= ARPTableLookUpSt;
 
                     when ARPTableLookUpSt =>
                         -- Read the ARP entry for the target IP from the ARP cache
@@ -616,6 +622,8 @@ begin
                         end if;
 
                         case (lCheckSumCounter) is
+                            -- IPV4 checksum calculation according to RFC 791 
+                            -- https://tools.ietf.org/html/rfc791
                             when 0 =>
                                 lPreIPHDRCheckSum <= '0' & '0' & unsigned(byteswap(lDestinationIPAddress(15 downto 0)));
 
