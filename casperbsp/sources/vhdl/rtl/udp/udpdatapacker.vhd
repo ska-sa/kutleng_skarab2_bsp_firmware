@@ -63,7 +63,7 @@ entity udpdatapacker is
     generic(
         G_SLOT_WIDTH      : natural := 4;
         G_AXIS_DATA_WIDTH : natural := 512;
-        G_ARP_CACHE_ASIZE : natural := 13;
+        G_ARP_CACHE_ASIZE : natural := 9;
         G_ARP_DATA_WIDTH  : natural := 32; -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH      : natural := 5
     );
@@ -73,9 +73,10 @@ entity udpdatapacker is
         axis_reset                     : in  STD_LOGIC;
         mac_address                    : in  STD_LOGIC_VECTOR(47 downto 0);
         local_ip_address               : in  STD_LOGIC_VECTOR(31 downto 0);
+        local_ip_netmask               : in  STD_LOGIC_VECTOR(31 downto 0);
         gateway_ip_address             : in  STD_LOGIC_VECTOR(31 downto 0);
         multicast_ip_address           : in  STD_LOGIC_VECTOR(31 downto 0);
-        multicast_ip_mask              : in  STD_LOGIC_VECTOR(31 downto 0);
+        multicast_ip_netmask           : in  STD_LOGIC_VECTOR(31 downto 0);
         mac_enable                     : in  STD_LOGIC;
         tx_overflow_count              : out STD_LOGIC_VECTOR(31 downto 0);
         tx_afull_count                 : out STD_LOGIC_VECTOR(31 downto 0);
@@ -153,8 +154,8 @@ architecture rtl of udpdatapacker is
     signal StateVariable : UDPDataPackerSM_t := InitialiseSt;
     constant C_DWORD_MAX : natural           := (16 - 1);
 
-    signal C_RESPONSE_UDP_LENGTH      : std_logic_vector(15 downto 0) := X"0012";-- Always 8 bytes more than data size 
-    signal C_RESPONSE_IPV4_LENGTH     : std_logic_vector(15 downto 0) := X"0026";-- Always 20 more than UDP length
+    signal C_RESPONSE_UDP_LENGTH      : std_logic_vector(15 downto 0) := X"0012"; -- Always 8 bytes more than data size 
+    signal C_RESPONSE_IPV4_LENGTH     : std_logic_vector(15 downto 0) := X"0026"; -- Always 20 more than UDP length
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
     constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)  := X"45";
     constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)  := X"00";
@@ -185,6 +186,7 @@ architecture rtl of udpdatapacker is
 
     signal lIPHDRCheckSum           : unsigned(16 downto 0);
     alias IPHeaderCheckSum          : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
+    signal ServerMACAddress         : std_logic_vector(47 downto 0);
     signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
     signal lServerMACAddress        : std_logic_vector(47 downto 0);
     signal lServerMACAddressChanged : std_logic;
@@ -196,6 +198,7 @@ architecture rtl of udpdatapacker is
     signal lClientMACAddressChanged : std_logic;
     signal lClientIPAddress         : std_logic_vector(31 downto 0);
     signal SourceIPAddress          : std_logic_vector(31 downto 0);
+    signal DestinationIPAddress     : std_logic_vector(31 downto 0);
     signal lClientIPAddressChanged  : std_logic;
     signal lClientUDPPort           : std_logic_vector(15 downto 0);
     signal lClientUDPPortChanged    : std_logic;
@@ -215,6 +218,7 @@ architecture rtl of udpdatapacker is
     signal lPacketAddressingDone    : boolean;
     signal laxis_ptlast             : std_logic;
     signal laxis_ptuser             : std_logic;
+    signal lDestinationIPMulticast  : std_logic;
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in unsigned)
@@ -332,7 +336,7 @@ begin
                 lUDPPacketLengthChanged <= '1';
             end if;
 
-            if (lServerMACAddress = mac_address) then
+            if (lServerMACAddress = ServerMACAddress) then
                 lServerMACAddressChanged <= '0';
             else
                 -- Flag the change of MAC address
@@ -400,10 +404,9 @@ begin
     --        asserted and the last 4 bytes also contain valid data, as in    --
     --        these cases an FCS wrap around on the LBUS will occur.          --
     ---------------------------------------------------------------------------- 
-    
+
     SynchStateProc : process(axis_app_clk)
     begin
-        
         if rising_edge(axis_app_clk) then
             if (axis_reset = '1') then
 
@@ -414,23 +417,26 @@ begin
                     when InitialiseSt =>
 
                         -- Wait for packet after initialization
-                        StateVariable         <= BeginOrProcessUDPPacketStreamSt;
-                        lPacketSlotID         <= (others => '0');
-                        lPacketAddress        <= (others => '0');
+                        StateVariable           <= BeginOrProcessUDPPacketStreamSt;
+                        lPacketSlotID           <= (others => '0');
+                        lPacketAddress          <= (others => '0');
                         -- Disable all data output
-                        lPacketByteEnable     <= (others => '0');
+                        lPacketByteEnable       <= (others => '0');
                         -- Reset the packet data to null
-                        lPacketData           <= (others => '0');
-                        lPacketDataWrite      <= '0';
-                        lPacketSlotSet        <= '0';
-                        lPacketSlotType       <= '0';
-                        lProtocolErrorStatus  <= '0';
-                        lCheckSumCounter      <= 0;
+                        lPacketData             <= (others => '0');
+                        lPacketDataWrite        <= '0';
+                        lPacketSlotSet          <= '0';
+                        lPacketSlotType         <= '0';
+                        lProtocolErrorStatus    <= '0';
+                        lCheckSumCounter        <= 0;
                         -- alert the upstream device we ready to accept packet data
-                        axis_tready           <= '1';
-                        laxis_ptlast          <= '0';
-                        laxis_ptuser          <= '0';
-                        lPacketAddressingDone <= false;
+                        axis_tready             <= '1';
+                        laxis_ptlast            <= '0';
+                        laxis_ptuser            <= '0';
+                        lPacketAddressingDone   <= false;
+                        ARPReadDataEnable       <= '0';
+                        ARPReadAddress          <= (others => '0');
+                        lDestinationIPMulticast <= '0';
 
                     when BeginOrProcessUDPPacketStreamSt =>
                         -- Reset the packet address
@@ -439,11 +445,11 @@ begin
                         lCheckSumCounter <= 0;
                         -- Save the state of the previous tlast
                         laxis_ptlast     <= axis_tlast;
-                        laxis_ptuser <= axis_tuser;
+                        laxis_ptuser     <= axis_tuser;
                         -- Default slot set to null
                         lPacketSlotSet   <= '0';
-                        if (axis_tvalid = '1') then
-                            -- Got the tvalid                                                       
+                        if ((axis_tvalid = '1') and (mac_enable = '1')) then
+                            -- Got the tvalid  and the mac is enabled                                                     
                             if (lPacketAddressingDone = true) then
                                 -- Packet Addressing is done
                                 -- Then process the packet
@@ -464,7 +470,7 @@ begin
                                             lPacketSlotID  <= lPacketSlotID + 1;
                                         end if;
                                         -- Process it and go to get next one again
-                                        StateVariable  <= BeginOrProcessUDPPacketStreamSt;
+                                        StateVariable <= BeginOrProcessUDPPacketStreamSt;
                                     else
                                         -- This is a longer packet 
                                         -- Go to finish processing the rest of the packet
@@ -480,42 +486,42 @@ begin
                             end if;
                             -- Enable all data output
                             -- Mask the data fields using the source mask
-                            lPacketByteEnable(63 downto 42)          <= axis_tkeep(63 downto 42);
+                            lPacketByteEnable(63 downto 42) <= axis_tkeep(63 downto 42);
                             -- Enable all other data fields
-                            lPacketByteEnable(41 downto 0)           <= (others => '1');
+                            lPacketByteEnable(41 downto 0)  <= (others => '1');
                             --------------------------------------------------------
                             --                  Ethernet Header                    -
                             --------------------------------------------------------                        
                             -- Swap the source and destination MACS
-                            lDestinationMACAddress      <= byteswap(lClientMACAddress);
-                            lSourceMACAddress           <= byteswap(lServerMACAddress);
-                            lEtherType                  <= byteswap(C_RESPONSE_ETHER_TYPE);
+                            lDestinationMACAddress          <= byteswap(lClientMACAddress);
+                            lSourceMACAddress               <= byteswap(lServerMACAddress);
+                            lEtherType                      <= byteswap(C_RESPONSE_ETHER_TYPE);
                             --------------------------------------------------------
                             --                   IPV4 Header                       -
                             --------------------------------------------------------                         
-                            lIPVIHL                     <= C_RESPONSE_IPV4IHL;
-                            lDSCPECN                    <= C_RESPONSE_DSCPECN;
-                            lTotalLength                <= byteswap(C_RESPONSE_IPV4_LENGTH);
-                            lIdentification             <= byteswap(std_logic_vector(lIPIdentification));
-                            lFlagsOffset                <= byteswap(C_RESPONSE_FLAGS_OFFSET);
-                            lTimeToLeave                <= C_RESPONSE_TIME_TO_LEAVE;
-                            lProtocol                   <= C_RESPONSE_UDP_PROTOCOL;
+                            lIPVIHL                         <= C_RESPONSE_IPV4IHL;
+                            lDSCPECN                        <= C_RESPONSE_DSCPECN;
+                            lTotalLength                    <= byteswap(C_RESPONSE_IPV4_LENGTH);
+                            lIdentification                 <= byteswap(std_logic_vector(lIPIdentification));
+                            lFlagsOffset                    <= byteswap(C_RESPONSE_FLAGS_OFFSET);
+                            lTimeToLeave                    <= C_RESPONSE_TIME_TO_LEAVE;
+                            lProtocol                       <= C_RESPONSE_UDP_PROTOCOL;
                             -- The checksum must change now
-                            lIPHeaderChecksum           <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                            lIPHeaderChecksum               <= byteswap(std_logic_vector(IPHeaderCheckSum));
                             -- Swap the IP Addresses
-                            lDestinationIPAddress       <= byteswap(lClientIPAddress);
-                            lSourceIPAddress            <= byteswap(lServerIPAddress);
+                            lDestinationIPAddress           <= byteswap(lClientIPAddress);
+                            lSourceIPAddress                <= byteswap(lServerIPAddress);
                             -- Swap the ports
-                            lDestinationUDPPort         <= byteswap(lClientUDPPort);
-                            lSourceUDPPort              <= byteswap(lServerUDPPort);
-                            lUDPDataStreamLength        <= byteswap(C_RESPONSE_UDP_LENGTH);
+                            lDestinationUDPPort             <= byteswap(lClientUDPPort);
+                            lSourceUDPPort                  <= byteswap(lServerUDPPort);
+                            lUDPDataStreamLength            <= byteswap(C_RESPONSE_UDP_LENGTH);
                             -- The UDP Checksum must change or can put to zero
-                            lUDPCheckSum                <= (others => '0');
+                            lUDPCheckSum                    <= (others => '0');
                             -- These three will be overwritten later
                             -- Passthrough the rest of data (18-22 bytes) 
                             -- The upstream device must always align the first data to Ethernet/IP/UDP framing
                             -- where the first 42 bytes of data are always reserved for Ethernet/IP/UDP framing
-                            lPacketData(511 downto 336) <= axis_tdata(511 downto 336);
+                            lPacketData(511 downto 336)     <= axis_tdata(511 downto 336);
                         else
                             -- Disable all data output
                             lPacketByteEnable <= (others => '0');
@@ -524,24 +530,75 @@ begin
                         end if;
 
                     when GenerateIPAddressesSt =>
-                        StateVariable <= ARPTableLookUpSt;
-                    when ARPTableLookUpSt =>
-                        StateVariable <= ProcessARPTableLookUpSt;
-                    when ProcessARPTableLookUpSt =>
-                        StateVariable <= ProcessAddressingChangesSt;
-                    when ProcessAddressingChangesSt =>
-
-                        if (lAddressingChanged = '1') then
-                            -- Save the new addressing as it has changed.
-                            lServerMACAddress <= byteswap(mac_address);
-                            lServerIPAddress  <= byteswap(SourceIPAddress);
-                            lServerUDPPort    <= byteswap(source_udp_port);
-                            lClientMACAddress <= byteswap(lClientMACAddress);
-                            lClientIPAddress  <= byteswap(destination_ip);
-                            lClientUDPPort    <= byteswap(destination_udp_port);
-                            StateVariable     <= PrecomputeHeaderCheckSumSt;
-
+                        -- Check the addressing range         244                                        239     
+                        if ((DestinationIPAddress(31 downto 24) >= X"F4") and (DestinationIPAddress(31 downto 24) <= X"EF")) then
+                            -- If the target IP address is multicast, send data to the multicast IP.
+                            -- i.e. target IP is 224.0.0.0–239.255.255.255 F4.00.00.00-EF.FF.FF.FF
+                            -- also use the Multicast source address and Multicast Ethernet MAC address
+                            lDestinationIPMulticast <= '1';
+                            SourceIPAddress         <= multicast_ip_address;
+                            -- User Source Multicast Ethernet MAC address
+                            -- TODO change this to multcast MAC address
+                            ServerMACAddress        <= mac_address;
+                        else
+                            lDestinationIPMulticast <= '0';
+                            ServerMACAddress        <= mac_address;
+                            if ((local_ip_address and local_ip_netmask) = X"00000000") then
+                                -- If the target IP address is within the IP netmask,send data to that IP address.
+                                SourceIPAddress <= local_ip_address;
+                            else
+                                -- If the target IP address is outside of the netmask, send data to the gateway IP.
+                                SourceIPAddress <= gateway_ip_address;
+                            end if;
                         end if;
+                        StateVariable <= ARPTableLookUpSt;
+
+                    when ARPTableLookUpSt =>
+                        -- Read the ARP entry for the target IP from the ARP cache
+                        ARPReadAddress    <= lDestinationIPMulticast & ServerMACAddress(7 downto 0);
+                        ARPReadDataEnable <= '1';
+                        StateVariable     <= ProcessARPTableLookUpSt;
+
+                    when ProcessARPTableLookUpSt =>
+                        -- Save the ARP MAC address entry from the ARP table
+                        ServerMACAddress  <= ARPReadData(47 downto 0);
+                        ARPReadDataEnable <= '0';
+                        StateVariable     <= ProcessAddressingChangesSt;
+
+                    when ProcessAddressingChangesSt =>
+                        -- Save the new addressing as it has changed.
+                        lServerMACAddress      <= byteswap(ServerMACAddress);
+                        lServerIPAddress       <= byteswap(SourceIPAddress);
+                        lServerUDPPort         <= byteswap(source_udp_port);
+                        lClientMACAddress      <= byteswap(lClientMACAddress);
+                        lClientIPAddress       <= byteswap(DestinationIPAddress);
+                        lClientUDPPort         <= byteswap(destination_udp_port);
+                        -- Swap the source and destination MACS
+                        lDestinationMACAddress <= byteswap(lClientMACAddress);
+                        lSourceMACAddress      <= byteswap(lServerMACAddress);
+                        lEtherType             <= byteswap(C_RESPONSE_ETHER_TYPE);
+                        --------------------------------------------------------
+                        --                   IPV4 Header                       -
+                        --------------------------------------------------------                         
+                        lIPVIHL                <= C_RESPONSE_IPV4IHL;
+                        lDSCPECN               <= C_RESPONSE_DSCPECN;
+                        lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
+                        lIdentification        <= byteswap(std_logic_vector(lIPIdentification));
+                        lFlagsOffset           <= byteswap(C_RESPONSE_FLAGS_OFFSET);
+                        lTimeToLeave           <= C_RESPONSE_TIME_TO_LEAVE;
+                        lProtocol              <= C_RESPONSE_UDP_PROTOCOL;
+                        -- The checksum must change now
+                        lIPHeaderChecksum      <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                        -- Swap the IP Addresses
+                        lDestinationIPAddress  <= byteswap(lClientIPAddress);
+                        lSourceIPAddress       <= byteswap(lServerIPAddress);
+                        -- Swap the ports
+                        lDestinationUDPPort    <= byteswap(lClientUDPPort);
+                        lSourceUDPPort         <= byteswap(lServerUDPPort);
+                        lUDPDataStreamLength   <= byteswap(C_RESPONSE_UDP_LENGTH);
+                        -- The UDP Checksum must change or can put to zero
+                        lUDPCheckSum           <= (others => '0');
+                        StateVariable          <= PrecomputeHeaderCheckSumSt;
 
                     when PreComputeHeaderCheckSumSt =>
                         if (lCheckSumCounter = 10) then
@@ -597,24 +654,16 @@ begin
                         end case;
 
                     when ProcessUDPPacketStreamSt =>
-                        -- Set the transmitter slot
-                        lPacketSlotSet    <= '1';
-                        lPacketSlotType   <= '1';
-                        -- Write the response packet to the Ringbuffer                        
-                        lPacketDataWrite  <= '1';
-                        -- Go to the next slots so that the system
-                        -- can progress on the systems slots
-                        if (axis_tlast = '1') then
+                        -- This was a 64 byte packet
+                        if (laxis_ptlast = '1') then
                             lPacketSlotID  <= lPacketSlotID + 1;
                             lPacketSlotSet <= '1';
                             StateVariable  <= BeginOrProcessUDPPacketStreamSt;
-
                         else
-                            -- Keep processing the lengthy packet
-                             
+                            -- Keep processing the lengthy packet                             
                             -- Pass the packet byte enables
-                            lPacketByteEnable <= axis_tkeep;                            
-                            StateVariable <= ProcessUDPPacketStreamSt;
+                            lPacketByteEnable <= axis_tkeep;
+                            StateVariable     <= ProcessUDPPacketStreamSt;
                         end if;
 
                     when others =>
