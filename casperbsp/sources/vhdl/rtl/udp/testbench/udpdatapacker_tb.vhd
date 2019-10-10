@@ -162,7 +162,7 @@ begin
     destination_ip       <= X"C0A8_6496"; --192.168.100.150
     destination_udp_port <= X"d6a6";
     source_udp_port      <= X"2710";
-    udp_packet_length    <= X"0008";
+    udp_packet_length    <= X"000A";
     axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad200b1200a6d610279664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
     axis_tkeep           <= X"0fffffffffffffff";
     DSRBi : udpdatapacker
