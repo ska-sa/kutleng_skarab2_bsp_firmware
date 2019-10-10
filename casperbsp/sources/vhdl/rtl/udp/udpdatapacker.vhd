@@ -166,61 +166,60 @@ architecture rtl of udpdatapacker is
     constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
 
     -- Tuples registers
-    signal lPacketData : std_logic_vector(511 downto 0);
-
-    alias lDestinationMACAddress : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
-    alias lSourceMACAddress      : std_logic_vector(47 downto 0) is lPacketData(95 downto 48);
-    alias lEtherType             : std_logic_vector(15 downto 0) is lPacketData(111 downto 96);
-    alias lIPVIHL                : std_logic_vector(7  downto 0) is lPacketData(119 downto 112);
-    alias lDSCPECN               : std_logic_vector(7  downto 0) is lPacketData(127 downto 120);
-    alias lTotalLength           : std_logic_vector(15 downto 0) is lPacketData(143 downto 128);
-    alias lIdentification        : std_logic_vector(15 downto 0) is lPacketData(159 downto 144);
-    alias lFlagsOffset           : std_logic_vector(15 downto 0) is lPacketData(175 downto 160);
-    alias lTimeToLeave           : std_logic_vector(7  downto 0) is lPacketData(183 downto 176);
-    alias lProtocol              : std_logic_vector(7  downto 0) is lPacketData(191 downto 184);
-    alias lIPHeaderChecksum      : std_logic_vector(15 downto 0) is lPacketData(207 downto 192);
-    alias lSourceIPAddress       : std_logic_vector(31 downto 0) is lPacketData(239 downto 208);
-    alias lDestinationIPAddress  : std_logic_vector(31 downto 0) is lPacketData(271 downto 240);
-    alias lSourceUDPPort         : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
-    alias lDestinationUDPPort    : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
-    alias lUDPDataStreamLength   : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
-    alias lUDPCheckSum           : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
-
-    signal lIPHDRCheckSum           : unsigned(16 downto 0);
-    alias IPHeaderCheckSum          : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
-    signal ServerMACAddress         : std_logic_vector(47 downto 0);
-    signal lPreIPHDRCheckSum        : unsigned(17 downto 0);
-    signal lServerMACAddress        : std_logic_vector(47 downto 0);
-    signal lServerMACAddressChanged : std_logic;
-    signal lServerIPAddress         : std_logic_vector(31 downto 0);
-    signal lServerIPAddressChanged  : std_logic;
-    signal lServerUDPPort           : std_logic_vector(15 downto 0);
-    signal lServerUDPPortChanged    : std_logic;
-    signal lClientMACAddress        : std_logic_vector(47 downto 0);
-    signal lClientMACAddressChanged : std_logic;
-    signal lClientIPAddress         : std_logic_vector(31 downto 0);
-    signal SourceIPAddress          : std_logic_vector(31 downto 0);
-    signal DestinationIPAddress     : std_logic_vector(31 downto 0);
-    signal lClientIPAddressChanged  : std_logic;
-    signal lClientUDPPort           : std_logic_vector(15 downto 0);
-    signal lClientUDPPortChanged    : std_logic;
-    signal lUDPPacketLengthChanged  : std_logic;
-    signal lAddressingChanged       : std_logic;
-    signal lProtocolErrorStatus     : std_logic;
-    signal lIPIdentification        : unsigned(15 downto 0);
-    signal lCheckSumCounter         : natural range 0 to C_DWORD_MAX;
-    signal lPacketByteEnable        : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
-    signal lPacketDataWrite         : STD_LOGIC;
-    signal lPacketAddress           : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    signal lPacketSlotSet           : STD_LOGIC;
-    signal lPacketSlotID            : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lPacketSlotType          : STD_LOGIC;
-    signal lPacketSlotStatus        : STD_LOGIC;
-    signal lPacketSlotTypeStatus    : STD_LOGIC;
-    signal lPacketAddressingDone    : boolean;
-    signal laxis_ptlast             : std_logic;
-    signal laxis_ptuser             : std_logic;
-    signal lDestinationIPMulticast  : std_logic;
+    signal lPacketData               : std_logic_vector(511 downto 0);
+    alias lDestinationMACAddress     : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
+    alias lSourceMACAddress          : std_logic_vector(47 downto 0) is lPacketData(95 downto 48);
+    alias lEtherType                 : std_logic_vector(15 downto 0) is lPacketData(111 downto 96);
+    alias lIPVIHL                    : std_logic_vector(7  downto 0) is lPacketData(119 downto 112);
+    alias lDSCPECN                   : std_logic_vector(7  downto 0) is lPacketData(127 downto 120);
+    alias lTotalLength               : std_logic_vector(15 downto 0) is lPacketData(143 downto 128);
+    alias lIdentification            : std_logic_vector(15 downto 0) is lPacketData(159 downto 144);
+    alias lFlagsOffset               : std_logic_vector(15 downto 0) is lPacketData(175 downto 160);
+    alias lTimeToLeave               : std_logic_vector(7  downto 0) is lPacketData(183 downto 176);
+    alias lProtocol                  : std_logic_vector(7  downto 0) is lPacketData(191 downto 184);
+    alias lIPHeaderChecksum          : std_logic_vector(15 downto 0) is lPacketData(207 downto 192);
+    alias lSourceIPAddress           : std_logic_vector(31 downto 0) is lPacketData(239 downto 208);
+    alias lDestinationIPAddress      : std_logic_vector(31 downto 0) is lPacketData(271 downto 240);
+    alias lSourceUDPPort             : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
+    alias lDestinationUDPPort        : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
+    alias lUDPDataStreamLength       : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
+    alias lUDPCheckSum               : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
+    signal lIPHDRCheckSum            : unsigned(16 downto 0);
+    alias IPHeaderCheckSum           : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
+    signal ServerMACAddress          : std_logic_vector(47 downto 0);
+    signal lPreIPHDRCheckSum         : unsigned(17 downto 0);
+    signal lServerMACAddress         : std_logic_vector(47 downto 0);
+    signal lServerMACAddressChanged  : std_logic;
+    signal lServerIPAddress          : std_logic_vector(31 downto 0);
+    signal lServerIPAddressChanged   : std_logic;
+    signal lServerUDPPort            : std_logic_vector(15 downto 0);
+    signal lServerUDPPortChanged     : std_logic;
+    signal lClientMACAddress         : std_logic_vector(47 downto 0);
+    signal lClientMACAddressChanged  : std_logic;
+    signal lClientIPAddress          : std_logic_vector(31 downto 0);
+    signal SourceIPAddress           : std_logic_vector(31 downto 0);
+    signal DestinationIPAddress      : std_logic_vector(31 downto 0);
+    signal lClientIPAddressChanged   : std_logic;
+    signal lClientUDPPort            : std_logic_vector(15 downto 0);
+    signal lClientUDPPortChanged     : std_logic;
+    signal lUDPPacketLengthChanged   : std_logic;
+    signal lAddressingChanged        : std_logic;
+    signal lProtocolErrorStatus      : std_logic;
+    signal lIPIdentification         : unsigned(15 downto 0);
+    signal lCheckSumCounter          : natural range 0 to C_DWORD_MAX;
+    signal lPacketByteEnable         : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal lPacketDataWrite          : STD_LOGIC;
+    signal lPacketAddress            : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    signal lPacketSlotSet            : STD_LOGIC;
+    signal lPacketSlotID             : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lPacketSlotType           : STD_LOGIC;
+    signal lPacketSlotStatus         : STD_LOGIC;
+    signal lPacketSlotTypeStatus     : STD_LOGIC;
+    signal lPacketAddressingDone     : boolean;
+    signal lWasDoingPacketAddressing : boolean;
+    signal laxis_ptlast              : std_logic;
+    signal laxis_ptuser              : std_logic;
+    signal lDestinationIPMulticast   : std_logic;
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in unsigned)
@@ -367,7 +366,7 @@ begin
                 lClientMACAddressChanged <= '1';
             end if;
             -- Destination IP maybe the raw Ip or the gateway
-            if (lClientIPAddress = destination_ip) then
+            if (DestinationIPAddress = destination_ip) then
                 lClientIPAddressChanged <= '0';
             else
                 -- Flag the change of IP address
@@ -396,14 +395,14 @@ begin
     --                   Packet Forwarding State Machine                      --   
     ----------------------------------------------------------------------------
     -- This module is a line rate data packetising and forwarding statemachine--
-    -- The module only requires only twelve (16) clock cycles (waste of 1024  --
+    -- The module requires only sixteen (16) clock cycles (waste of about 1024--
     -- byte slots) to calculate or recalculate IP framing checksum and        --
     -- construct framing header from input parameters.                        --
-    -- The module will only recalculate the framing if only the addressing    --
-    -- and packet length information has changed.                             --
-    -- During normal operation the module expects the first data to be less   --
-    -- than 22 bytes long and the first 42 bytes to be empty in order to put  --
-    -- the Ethernet/IP/UDP framming data on the initial 42 bytes.             --       
+    -- The module will recalculate the framing if only the addressing or the  --
+    -- packet length information has changed.                                 --
+    -- During operation the module expects the first data to be less than 22  --
+    -- bytes long and the first 42 bytes to be empty in order to put the      --
+    -- Ethernet/IP/UDP framming data on the initial 42 bytes.                 --       
     --    Hint:                                                               --       
     --        When sending 19,20,21,22 byte packets the CMAC will be over     --  
     --        saturated and will have to throttle the tready signal downstream--  
@@ -425,37 +424,40 @@ begin
                     when InitialiseSt =>
 
                         -- Wait for packet after initialization
-                        StateVariable           <= BeginOrProcessUDPPacketStreamSt;
-                        lPacketSlotID           <= (others => '0');
-                        lPacketAddress          <= (others => '0');
+                        StateVariable             <= BeginOrProcessUDPPacketStreamSt;
+                        lPacketSlotID             <= (others => '0');
+                        lPacketAddress            <= (others => '0');
                         -- Disable all data output
-                        lPacketByteEnable       <= (others => '0');
+                        lPacketByteEnable         <= (others => '0');
                         -- Reset the packet data to null
-                        lPacketData             <= (others => '0');
-                        lPacketDataWrite        <= '0';
-                        lPacketSlotSet          <= '0';
-                        lPacketSlotType         <= '0';
-                        lProtocolErrorStatus    <= '0';
-                        lCheckSumCounter        <= 0;
+                        lPacketData               <= (others => '0');
+                        lPacketDataWrite          <= '0';
+                        lPacketSlotSet            <= '0';
+                        lPacketSlotType           <= '0';
+                        lProtocolErrorStatus      <= '0';
+                        lCheckSumCounter          <= 0;
                         -- alert the upstream device we ready to accept packet data
-                        axis_tready             <= '1';
-                        laxis_ptlast            <= '0';
-                        laxis_ptuser            <= '0';
-                        lPacketAddressingDone   <= false;
-                        ARPReadDataEnable       <= '0';
-                        ARPReadAddress          <= (others => '0');
-                        lDestinationIPMulticast <= '0';
+                        axis_tready               <= '1';
+                        laxis_ptlast              <= '0';
+                        laxis_ptuser              <= '0';
+                        lPacketAddressingDone     <= false;
+                        ARPReadDataEnable         <= '0';
+                        ARPReadAddress            <= (others => '0');
+                        lDestinationIPMulticast   <= '0';
+                        lWasDoingPacketAddressing <= false;
 
                     when BeginOrProcessUDPPacketStreamSt =>
+                        -- Disable the status of doing packet addressing
+                        lWasDoingPacketAddressing <= false;
                         -- Reset the packet address
-                        lPacketAddress   <= (others => '0');
+                        lPacketAddress            <= (others => '0');
                         -- Reset the checksum counter
-                        lCheckSumCounter <= 0;
+                        lCheckSumCounter          <= 0;
                         -- Save the state of the previous tlast
-                        laxis_ptlast     <= axis_tlast;
-                        laxis_ptuser     <= axis_tuser;
+                        laxis_ptlast              <= axis_tlast;
+                        laxis_ptuser              <= axis_tuser;
                         -- Default slot set to null
-                        lPacketSlotSet   <= '0';
+                        lPacketSlotSet            <= '0';
                         if ((axis_tvalid = '1') and (mac_enable = '1')) then
                             -- Got the tvalid  and the mac is enabled                                                     
                             if (lPacketAddressingDone = true) then
@@ -463,10 +465,13 @@ begin
                                 -- Then process the packet
                                 if (lAddressingChanged = '1') then
                                     -- The packet addressing has changed
+                                    -- Save the destination IP Address
+                                    DestinationIPAddress <= destination_ip;
+                                    ServerMACAddress     <= mac_address;
                                     -- Pause the frame transfer from the upstream device
-                                    axis_tready   <= '0';
+                                    axis_tready          <= '0';
                                     -- Go to do addressing lookup
-                                    StateVariable <= GenerateIPAddressesSt;
+                                    StateVariable        <= GenerateIPAddressesSt;
                                 else
                                     if (axis_tlast = '1') then
                                         -- This is a 64byte Ethernet frame packet
@@ -487,16 +492,21 @@ begin
                                 end if;
                             else
                                 -- Packet Addressing not yet done.
+                                -- Save the destination IP Address
+                                DestinationIPAddress <= destination_ip;
                                 -- Pause the frame transfer from the upstream device.
-                                axis_tready   <= '0';
+                                axis_tready          <= '0';
                                 -- Go to do addressing lookup.
-                                StateVariable <= GenerateIPAddressesSt;
+                                StateVariable        <= GenerateIPAddressesSt;
                             end if;
-                            -- Enable all data output.
+                            -- Write the packet data
+                            lPacketDataWrite                <= '1';
                             -- Mask the data fields using the source mask.
                             lPacketByteEnable(63 downto 42) <= axis_tkeep(63 downto 42);
                             -- Enable all other data fields.
-                            lPacketByteEnable(41 downto 0)  <= (others => '1');
+                            -- enable(0) is special for TLAST mapping
+                            lPacketByteEnable(0)            <= axis_tlast;
+                            lPacketByteEnable(41 downto 1)  <= (others => '1');
                             ----------------------------------------------------
                             --                  Ethernet Header               --
                             ----------------------------------------------------                        
@@ -538,6 +548,8 @@ begin
                         end if;
 
                     when GenerateIPAddressesSt =>
+                        -- Save the new hardware source MAC address
+                        ServerMACAddress <= mac_address;
                         -- Check the addressing range               244                                               239     
                         if ((DestinationIPAddress(31 downto 24) >= X"F4") and (DestinationIPAddress(31 downto 24) <= X"EF")) then
                             -- If the target IP address is multicast, send data to the multicast IP.
@@ -545,12 +557,8 @@ begin
                             -- also use the Multicast source address and Multicast Ethernet MAC address
                             lDestinationIPMulticast <= '1';
                             SourceIPAddress         <= multicast_ip_address;
-                            -- User Source Multicast Ethernet MAC address
-                            -- TODO change this to multcast MAC address
-                            ServerMACAddress        <= mac_address;
                         else
                             lDestinationIPMulticast <= '0';
-                            ServerMACAddress        <= mac_address;
                             if ((local_ip_address and local_ip_netmask) = X"00000000") then
                                 -- If the target IP address is within the IP netmask,send data to that IP address.
                                 SourceIPAddress <= local_ip_address;
@@ -613,9 +621,14 @@ begin
                         StateVariable          <= PrecomputeHeaderCheckSumSt;
 
                     when PreComputeHeaderCheckSumSt =>
+
                         if (lCheckSumCounter = 10) then
-                            lCheckSumCounter <= 0;
-                            StateVariable    <= ProcessUDPPacketStreamSt;
+                            lCheckSumCounter          <= 0;
+                            -- Alert the state machine that packet addressing has been done.
+                            lPacketAddressingDone     <= true;
+                            lWasDoingPacketAddressing <= true;
+                            -- Process the current UDP packet
+                            StateVariable             <= ProcessUDPPacketStreamSt;
                         else
                             lCheckSumCounter <= lCheckSumCounter + 1;
                             StateVariable    <= PrecomputeHeaderCheckSumSt;
@@ -668,16 +681,101 @@ begin
                         end case;
 
                     when ProcessUDPPacketStreamSt =>
+                        -- Resume packet consumption
+                        axis_tready               <= '1';
+                        -- Write the packet addressing data
+                        lPacketDataWrite          <= '1';
+                        -- Disable the status of doing packet processing.
+                        lWasDoingPacketAddressing <= false;
                         -- This was a 64 byte packet
-                        if (laxis_ptlast = '1') then
-                            lPacketSlotID  <= lPacketSlotID + 1;
-                            lPacketSlotSet <= '1';
-                            StateVariable  <= BeginOrProcessUDPPacketStreamSt;
+                        if ((laxis_ptlast = '1') and (lWasDoingPacketAddressing = true)) then
+                            laxis_ptlast           <= '0';
+                            laxis_ptuser           <= '0';
+                            -- This is a 64byte Ethernet frame packet
+                            -- or 32 byte UDP Frame packet
+                            if (laxis_ptuser = '0') then
+                                -- Only process packets who have no errors 
+                                lPacketSlotSet <= '1';
+                                -- Point to next slot ID
+                                lPacketSlotID  <= lPacketSlotID + 1;
+                            end if;
+                            ----------------------------------------------------
+                            --         Ethernet Header Addressing             --
+                            ----------------------------------------------------                        
+                            -- Swap the source and destination MACS
+                            lDestinationMACAddress <= byteswap(lClientMACAddress);
+                            lSourceMACAddress      <= byteswap(lServerMACAddress);
+                            ----------------------------------------------------
+                            --            IPV4 Header Addressing              --
+                            ----------------------------------------------------                         
+                            lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
+                            lIdentification        <= byteswap(std_logic_vector(lIPIdentification));
+                            -- The checksum must change now
+                            lIPHeaderChecksum      <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                            -- Swap the IP Addresses
+                            lDestinationIPAddress  <= byteswap(lClientIPAddress);
+                            lSourceIPAddress       <= byteswap(lServerIPAddress);
+                            -- Swap the ports
+                            lDestinationUDPPort    <= byteswap(lClientUDPPort);
+                            lSourceUDPPort         <= byteswap(lServerUDPPort);
+                            lUDPDataStreamLength   <= byteswap(C_RESPONSE_UDP_LENGTH);
+                            StateVariable          <= BeginOrProcessUDPPacketStreamSt;
                         else
-                            -- Keep processing the lengthy packet                             
-                            -- Pass the packet byte enables
-                            lPacketByteEnable <= axis_tkeep;
-                            StateVariable     <= ProcessUDPPacketStreamSt;
+                            if (lWasDoingPacketAddressing = true) then
+                                -- This is the first packet
+                                -- Pass through the new addressing 
+                                ------------------------------------------------
+                                --       Ethernet Header Addressing           --
+                                ------------------------------------------------                        
+                                -- Swap the source and destination MACS
+                                lDestinationMACAddress         <= byteswap(lClientMACAddress);
+                                lSourceMACAddress              <= byteswap(lServerMACAddress);
+                                ------------------------------------------------
+                                --          IPV4 Header Addressing            --
+                                ------------------------------------------------                         
+                                lTotalLength                   <= byteswap(C_RESPONSE_IPV4_LENGTH);
+                                lIdentification                <= byteswap(std_logic_vector(lIPIdentification));
+                                -- The checksum must change now
+                                lIPHeaderChecksum              <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                                -- Swap the IP Addresses
+                                lDestinationIPAddress          <= byteswap(lClientIPAddress);
+                                lSourceIPAddress               <= byteswap(lServerIPAddress);
+                                -- Swap the ports
+                                lDestinationUDPPort            <= byteswap(lClientUDPPort);
+                                lSourceUDPPort                 <= byteswap(lServerUDPPort);
+                                lUDPDataStreamLength           <= byteswap(C_RESPONSE_UDP_LENGTH);
+                                -- Keep processing the lengthy packet                             
+                                -- Pass the packet byte enables
+                                lPacketByteEnable(0)           <= '0';
+                                lPacketByteEnable(63 downto 1) <= axis_tkeep(63 downto 1);
+                                StateVariable                  <= ProcessUDPPacketStreamSt;
+                            else
+                                -- This is a continuation of the other packet frames
+                                -- Passthrough the data                                
+                                lPacketData                    <= axis_tdata;
+                                -- Pass through the packet enable (tkeep)
+                                -- Enable(0) is special for TLAST mapping
+                                lPacketByteEnable(0)           <= axis_tlast;
+                                lPacketByteEnable(63 downto 1) <= axis_tkeep(63 downto 1);
+                                -- Point to next address when data is valid from source
+                                if (axis_tvalid = '1') then
+                                    lPacketAddress <= lPacketAddress + 1;
+                                end if;
+                                -- Terminate the transaction on tlast;
+                                if (axis_tlast <= '1') then
+                                    if (axis_tuser = '0') then
+                                        -- Only process packets who have no errors 
+                                        lPacketSlotSet <= '1';
+                                        -- Point to next slot ID
+                                        lPacketSlotID  <= lPacketSlotID + 1;
+                                    end if;
+                                    -- Search for new packets
+                                    StateVariable <= BeginOrProcessUDPPacketStreamSt;
+                                else
+                                    -- Continue processing the long packet stream
+                                    StateVariable <= ProcessUDPPacketStreamSt;
+                                end if;
+                            end if;
                         end if;
 
                     when others =>
