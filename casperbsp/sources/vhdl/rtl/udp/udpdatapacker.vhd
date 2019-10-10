@@ -90,7 +90,7 @@ entity udpdatapacker is
         SenderRingBufferSlotStatus     : out STD_LOGIC;
         SenderRingBufferSlotTypeStatus : out STD_LOGIC;
         SenderRingBufferSlotsFilled    : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-        SenderRingBufferDataRead       : out STD_LOGIC;
+        SenderRingBufferDataRead       : in  STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
         SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
