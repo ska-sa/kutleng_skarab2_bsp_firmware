@@ -151,7 +151,7 @@ architecture rtl of udpdatapacker_tb is
 begin
     axis_clk             <= not axis_clk after C_CLK_PERIOD / 2;
     axis_reset           <= '1', '0' after C_CLK_PERIOD * 10;
-    local_ip_address     <= X"C0A8_640A"; --192.168.100.10
+    local_ip_address     <= X"C0A8_640A"; --192.168.100.10/24
     local_ip_netmask     <= X"FFFF_FF00"; --255.255.255.0
     gateway_ip_address   <= X"C0A8_6401"; --192.168.100.1
     multicast_ip_address <= X"EFA8_640A"; --239.168.100.10/16
@@ -159,12 +159,7 @@ begin
     mac_address          <= X"000A_3502_4192";
     mac_enable           <= '1';
     ARPReadData          <= X"0000_506b_4bc3_fbac";
-    destination_ip       <= X"C0A8_6496"; --192.168.100.150
-    destination_udp_port <= X"d6a6";
-    source_udp_port      <= X"2710";
-    udp_packet_length    <= X"000A";
-    axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad200b1200a6d610279664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
-    axis_tkeep           <= X"0fffffffffffffff";
+    destination_ip       <= X"C0A8_6496"; --192.168.100.150 (within netmask)
     DSRBi : udpdatapacker
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
@@ -213,13 +208,181 @@ begin
     SimProcProc : process
     begin
         wait until axis_tready = '1';
-        axis_tvalid <= '1';
-        axis_tlast  <= '1';
-        axis_tuser  <= '0';
-        wait for C_CLK_PERIOD * 2;
-        axis_tuser  <= '0';
-        axis_tvalid <= '0';
-        axis_tlast  <= '0';
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        destination_udp_port <= X"d6a6";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"000A";
+        axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tuser           <= '0';
+        axis_tvalid          <= '0';
+        axis_tlast           <= '0';
+        wait for C_CLK_PERIOD;
+        wait until axis_tready = '1';
+        -- Packet to send 978 bytes
+        destination_udp_port <= X"ba49";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"03d2";
+        axis_tdata           <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0fc68114000401184ee0300450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"ffff0000ffffffff0020ffffffff0000ffffffff0020ffffffff0000ffffffff0020ffffffff0000ffffffff0020ffffffff0000ffffffff0020ffffffff0000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"0020200000000000200000000020200000000000aa9955660020ffffffff0000ffffffff0020112200440000000000bb0020ffffffff0000ffffffff0020ffff";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"20000000002020000000070020000000003020000000000020000000002020000000000020000000002020000000000020000000002020000000000020000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"0000ffff20000000ffff20000000ffff20000000ffff20000000ffff20000000ffff20000000ffff20000000ffff20000000ffff20000000ffff2000000000c0";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"002020000000000020000000002020000000000020000000002020000000000020000000002020000000ffff20000000ffff20000000bb0020000000ffff2000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"20000000002020000000000020000000002020000000000020000000002020000000000020000000002020000000000020000000002020000000000020000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"00000000200000000020200000000000200000000020200000000000200000000020200000000000200000000020200000000000200000000020200000000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"00202000000000002000000000202000000000002000000000202000000000002000000000202000000000002000000000202000000000002000000000202000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"20000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000000020000000002020000000000020000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"000000002000ffff0000ffffffff0000ffff000000000000ffff0000adf300000000200000000000200000000000200000000000200000000000200000000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"000000002000ffff0000ffffffff0000ffff000000000000ffff0000adf300000000200000000000200000000000200000000000200000000000200000000000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"0000ffffffff0000ffff000000002000ffff0000ffffffff0000ffff000000002000ffff0000ffffffff0000ffff000000002000ffff0000ffffffff0000ffff";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"0000000000002000bb000000ffffffff0000ffff000000002000ffff0000ffffffff0000ffff000000002000ffff0000ffffffff0000ffff000000002000ffff";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"0000000000000020000000200000000020000000000000000020000099aa00000000200066550000ffffffff0000ffff000000002000ffff0000440022110000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"00000020000000002000000000000000002000000020000000002000000000000000002000000020000000002000000000000000002000000020000000002000";
+        axis_tkeep           <= X"ffffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '0';
+        axis_tuser           <= '0';
+        wait until axis_tready = '1';
+        axis_tdata           <= X"243a993e00000000002000000020ffff0000ffff000000000000002000000020c000000020000000000000000020000000200007000030000000000000000020";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tuser           <= '0';
+        axis_tvalid          <= '0';
+        axis_tlast           <= '0';
+        wait for C_CLK_PERIOD * 10;
+        -- Send 4 back to back 64byte packets
+        wait until axis_tready = '1';
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        destination_udp_port <= X"d6a6";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"000A";
+        axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        wait until axis_tready = '1';
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        destination_udp_port <= X"d6a6";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"000A";
+        axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        wait until axis_tready = '1';
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        destination_udp_port <= X"d6a6";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"000A";
+        axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        wait until axis_tready = '1';
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        destination_udp_port <= X"d6a6";
+        source_udp_port      <= X"2710";
+        udp_packet_length    <= X"000A";
+        axis_tdata           <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        axis_tkeep           <= X"0fffffffffffffff";
+        axis_tvalid          <= '1';
+        axis_tlast           <= '1';
+        axis_tuser           <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tuser           <= '0';
+        axis_tvalid          <= '0';
+        axis_tlast           <= '0';
+        -- Terminate the simulation
+        wait;
     end process SimProcProc;
 
 end architecture rtl;
