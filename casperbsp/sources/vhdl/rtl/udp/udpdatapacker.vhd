@@ -71,16 +71,16 @@ entity udpdatapacker is
         axis_clk                       : in  STD_LOGIC;
         axis_app_clk                   : in  STD_LOGIC;
         axis_reset                     : in  STD_LOGIC;
-        mac_address                    : in  STD_LOGIC_VECTOR(47 downto 0);
-        local_ip_address               : in  STD_LOGIC_VECTOR(31 downto 0);
-        local_ip_netmask               : in  STD_LOGIC_VECTOR(31 downto 0);
-        gateway_ip_address             : in  STD_LOGIC_VECTOR(31 downto 0);
-        multicast_ip_address           : in  STD_LOGIC_VECTOR(31 downto 0);
-        multicast_ip_netmask           : in  STD_LOGIC_VECTOR(31 downto 0);
-        mac_enable                     : in  STD_LOGIC;
+        EthernetMACAddress             : in  STD_LOGIC_VECTOR(47 downto 0);
+        LocalIPAddress                 : in  STD_LOGIC_VECTOR(31 downto 0);
+        LocalIPNetmask                 : in  STD_LOGIC_VECTOR(31 downto 0);
+        GatewayIPAddress               : in  STD_LOGIC_VECTOR(31 downto 0);
+        MulticastIPAddress             : in  STD_LOGIC_VECTOR(31 downto 0);
+        MulticastIPNetmask             : in  STD_LOGIC_VECTOR(31 downto 0);
+        EthernetMACEnable              : in  STD_LOGIC;
         tx_overflow_count              : out STD_LOGIC_VECTOR(31 downto 0);
         tx_afull_count                 : out STD_LOGIC_VECTOR(31 downto 0);
-        source_udp_port                : in  STD_LOGIC_VECTOR(15 downto 0);
+        ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
         ARPReadDataEnable              : out STD_LOGIC;
         ARPReadData                    : in  STD_LOGIC_VECTOR((G_ARP_DATA_WIDTH * 2) - 1 downto 0);
         ARPReadAddress                 : out STD_LOGIC_VECTOR(G_ARP_CACHE_ASIZE - 1 downto 0);
@@ -97,9 +97,9 @@ entity udpdatapacker is
         SenderRingBufferData           : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         SenderRingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         -- 
-        destination_ip                 : in  STD_LOGIC_VECTOR(31 downto 0);
-        destination_udp_port           : in  STD_LOGIC_VECTOR(15 downto 0);
-        udp_packet_length              : in  STD_LOGIC_VECTOR(15 downto 0);
+        ClientIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+        ClientUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
+        UDPPacketLength                : in  STD_LOGIC_VECTOR(15 downto 0);
         axis_tuser                     : in  STD_LOGIC;
         axis_tdata                     : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_tvalid                    : in  STD_LOGIC;
@@ -164,6 +164,7 @@ architecture rtl of udpdatapacker is
     constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
     constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
     constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
+    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"0014";
 
     -- Tuples registers
     signal lPacketData               : std_logic_vector(511 downto 0);
@@ -204,8 +205,11 @@ architecture rtl of udpdatapacker is
     signal lClientUDPPortChanged     : std_logic;
     signal lUDPPacketLengthChanged   : std_logic;
     signal lAddressingChanged        : std_logic;
+    signal lSourceIPNetmaskChanged   : std_logic;
+    signal lGatewayIPAddressChanged  : std_logic;
+    signal lMulticastIPAddressChanged : std_logic;
     signal lProtocolErrorStatus      : std_logic;
-    signal lIPIdentification         : unsigned(15 downto 0);
+    
     signal lCheckSumCounter          : natural range 0 to C_DWORD_MAX;
     signal lPacketByteEnable         : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal lPacketDataWrite          : STD_LOGIC;
@@ -220,6 +224,11 @@ architecture rtl of udpdatapacker is
     signal laxis_ptlast              : std_logic;
     signal laxis_ptuser              : std_logic;
     signal lDestinationIPMulticast   : std_logic;
+    signal lLocalIPAddress           : std_logic_vector(31 downto 0);
+    signal lLocalIPNetmask           : std_logic_vector(31 downto 0);
+    signal lGatewayIPAddress         : std_logic_vector(31 downto 0);
+    signal lMulticastIPAddress       : std_logic_vector(31 downto 0);
+    signal lUDPPacketLength          : std_logic_vector(15 downto 0);
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in unsigned)
@@ -330,29 +339,49 @@ begin
     begin
         if (rising_edge(axis_app_clk)) then
 
-            if (C_RESPONSE_UDP_LENGTH = udp_packet_length) then
+            if (lUDPPacketLength = UDPPacketLength) then
                 lUDPPacketLengthChanged <= '0';
             else
                 -- Flag the change of UDP packet length
                 lUDPPacketLengthChanged <= '1';
             end if;
 
-            if (lServerMACAddress = ServerMACAddress) then
+            if (lServerMACAddress = EthernetMACAddress) then
                 lServerMACAddressChanged <= '0';
             else
                 -- Flag the change of MAC address
                 lServerMACAddressChanged <= '1';
             end if;
-            -- Source IP adress my be local IP or multicast IP,
-            -- Depending on the destination IP
-            if (lServerIPAddress = SourceIPAddress) then
+
+            if (lLocalIPAddress = LocalIPAddress) then
                 lServerIPAddressChanged <= '0';
             else
                 -- Flag the change of IP address
                 lServerIPAddressChanged <= '1';
             end if;
 
-            if (lServerUDPPort = source_udp_port) then
+            if (lLocalIPNetmask = LocalIPNetmask) then
+                lSourceIPNetmaskChanged <= '0';
+            else
+                -- Flag the change of IP Netmask address
+                lSourceIPNetmaskChanged <= '1';
+            end if;
+
+            if (lGatewayIPAddress = GatewayIPAddress) then
+                lGatewayIPAddressChanged <= '0';
+            else
+                -- Flag the change of Gateway IP address
+                lGatewayIPAddressChanged <= '1';
+            end if;
+
+            if (lMulticastIPAddress = MulticastIPAddress) then
+                lMulticastIPAddressChanged <= '0';
+            else
+                -- Flag the change of the Multicast IP  address
+                lMulticastIPAddressChanged <= '1';
+            end if;
+
+            if (lServerUDPPort = ServerUDPPort) then
                 lServerUDPPortChanged <= '0';
             else
                 -- Flag the change of port
@@ -366,14 +395,14 @@ begin
                 lClientMACAddressChanged <= '1';
             end if;
             -- Destination IP maybe the raw Ip or the gateway
-            if (DestinationIPAddress = destination_ip) then
+            if (DestinationIPAddress = ClientIPAddress) then
                 lClientIPAddressChanged <= '0';
             else
                 -- Flag the change of IP address
                 lClientIPAddressChanged <= '1';
             end if;
 
-            if (lClientUDPPort = destination_udp_port) then
+            if (lClientUDPPort = ClientUDPPort) then
                 lClientUDPPortChanged <= '0';
             else
                 -- Flag the change of port
@@ -385,8 +414,11 @@ begin
                                   or lClientMACAddressChanged -- MAC address changed
                                   or lServerUDPPortChanged -- Server UDP port changed 
                                   or lServerIPAddressChanged -- Server IP address changed 
-                                  or lServerMACAddressChanged -- server MAC address changed 
-                                  or lUDPPacketLengthChanged;
+                                  or lServerMACAddressChanged -- server MAC address changed                                   
+                                  or lUDPPacketLengthChanged -- UDP packetlength changed
+                                  or lMulticastIPAddressChanged -- Multicast IP Adres changed
+                                  or lGatewayIPAddressChanged -- Gateway IP Adress changed
+                                  or lSourceIPNetmaskChanged; -- Source Netmask changed
 
         end if;
     end process AddressingChangeProc;
@@ -458,16 +490,25 @@ begin
                         laxis_ptuser              <= axis_tuser;
                         -- Default slot set to null
                         lPacketSlotSet            <= '0';
-                        if ((axis_tvalid = '1') and (mac_enable = '1')) then
+                        if ((axis_tvalid = '1') and (EthernetMACEnable = '1')) then
                             -- Got the tvalid  and the mac is enabled                                                     
                             if (lPacketAddressingDone = true) then
                                 -- Packet Addressing is done
                                 -- Then process the packet
                                 if (lAddressingChanged = '1') then
                                     -- The packet addressing has changed
-                                    -- Save the destination IP Address
-                                    DestinationIPAddress <= destination_ip;
-                                    ServerMACAddress     <= mac_address;
+                                    -- Save all parameters here that are variable 
+                                    -- and needed for addressing
+                                    -- Save the new addressing as it has changed.
+                                    DestinationIPAddress <= ClientIPAddress;
+                                    lServerMACAddress    <= EthernetMACAddress;
+                                    lServerUDPPort       <= ServerUDPPort;
+                                    lClientUDPPort       <= ClientUDPPort;
+                                    lLocalIPAddress      <= LocalIPAddress;
+                                    lLocalIPNetmask      <= LocalIPNetmask;
+                                    lGatewayIPAddress    <= GatewayIPAddress;
+                                    lMulticastIPAddress  <= MulticastIPAddress;
+                                    lUDPPacketLength     <= UDPPacketLength;
                                     -- Pause the frame transfer from the upstream device
                                     axis_tready          <= '0';
                                     -- Go to do addressing lookup
@@ -492,12 +533,22 @@ begin
                                 end if;
                             else
                                 -- Packet Addressing not yet done.
-                                -- Save the destination IP Address
-                                DestinationIPAddress <= destination_ip;
+                                -- Save all parameters here that are variable 
+                                -- and needed for addressing
+                                DestinationIPAddress <= ClientIPAddress;
+                                lServerMACAddress    <= EthernetMACAddress;
+                                lServerUDPPort       <= ServerUDPPort;
+                                lClientUDPPort       <= ClientUDPPort;
+                                lLocalIPAddress      <= LocalIPAddress;
+                                lLocalIPNetmask      <= LocalIPNetmask;
+                                lGatewayIPAddress    <= GatewayIPAddress;
+                                lMulticastIPAddress  <= MulticastIPAddress;
+                                lUDPPacketLength     <= UDPPacketLength;
+
                                 -- Pause the frame transfer from the upstream device.
-                                axis_tready          <= '0';
+                                axis_tready   <= '0';
                                 -- Go to do addressing lookup.
-                                StateVariable        <= GenerateIPAddressesSt;
+                                StateVariable <= GenerateIPAddressesSt;
                             end if;
                             -- Write the packet data
                             lPacketDataWrite                <= '1';
@@ -520,7 +571,7 @@ begin
                             lIPVIHL                         <= C_RESPONSE_IPV4IHL;
                             lDSCPECN                        <= C_RESPONSE_DSCPECN;
                             lTotalLength                    <= byteswap(C_RESPONSE_IPV4_LENGTH);
-                            lIdentification                 <= byteswap(std_logic_vector(lIPIdentification));
+                            lIdentification                 <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                             lFlagsOffset                    <= byteswap(C_RESPONSE_FLAGS_OFFSET);
                             lTimeToLeave                    <= C_RESPONSE_TIME_TO_LEAVE;
                             lProtocol                       <= C_RESPONSE_UDP_PROTOCOL;
@@ -549,50 +600,45 @@ begin
 
                     when GenerateIPAddressesSt =>
                         -- Save the new hardware source MAC address
-                        ServerMACAddress <= mac_address;
+                        ServerMACAddress <= EthernetMACAddress;
                         -- Check the addressing range               244                                               239     
                         if ((DestinationIPAddress(31 downto 24) >= X"F4") and (DestinationIPAddress(31 downto 24) <= X"EF")) then
                             -- If the target IP address is multicast, send data to the multicast IP.
                             -- i.e. target IP is 224.0.0.0–239.255.255.255 F4.00.00.00-EF.FF.FF.FF
                             -- also use the Multicast source address and Multicast Ethernet MAC address
                             lDestinationIPMulticast <= '1';
-                            SourceIPAddress         <= multicast_ip_address;
+                            SourceIPAddress         <= lMulticastIPAddress;
                         else
                             lDestinationIPMulticast <= '0';
-                            if ((local_ip_address and local_ip_netmask) = X"00000000") then
+                            if ((lLocalIPAddress and lLocalIPNetmask) = X"00000000") then
                                 -- If the target IP address is within the IP netmask,send data to that IP address.
-                                SourceIPAddress <= local_ip_address;
+                                SourceIPAddress <= lLocalIPAddress;
                             else
                                 -- If the target IP address is outside of the netmask, send data to the gateway IP.
-                                SourceIPAddress <= gateway_ip_address;
+                                SourceIPAddress <= lGatewayIPAddress;
                             end if;
                         end if;
 
                         -- Save the length framing information
-                        C_RESPONSE_IPV4_LENGTH <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH + C_IP_HEADER_LENGTH);
-                        C_RESPONSE_UDP_LENGTH  <= std_logic_vector(unsigned(udp_packet_length) + C_UDP_HEADER_LENGTH);
+                        C_RESPONSE_IPV4_LENGTH <= std_logic_vector(unsigned(lUDPPacketLength) + C_UDP_HEADER_LENGTH + C_IP_HEADER_LENGTH);
+                        C_RESPONSE_UDP_LENGTH  <= std_logic_vector(unsigned(lUDPPacketLength) + C_UDP_HEADER_LENGTH);
                         StateVariable          <= ARPTableLookUpSt;
 
                     when ARPTableLookUpSt =>
+                        lServerIPAddress  <= SourceIPAddress;
+                        lClientIPAddress  <= DestinationIPAddress;
                         -- Read the ARP entry for the target IP from the ARP cache
-                        ARPReadAddress    <= lDestinationIPMulticast & ServerMACAddress(7 downto 0);
+                        ARPReadAddress    <= lDestinationIPMulticast & DestinationIPAddress(7 downto 0);
                         ARPReadDataEnable <= '1';
                         StateVariable     <= ProcessARPTableLookUpSt;
 
                     when ProcessARPTableLookUpSt =>
                         -- Save the ARP MAC address entry from the ARP table
-                        ServerMACAddress  <= ARPReadData(47 downto 0);
+                        lClientMACAddress <= ARPReadData(47 downto 0);
                         ARPReadDataEnable <= '0';
                         StateVariable     <= ProcessAddressingChangesSt;
 
                     when ProcessAddressingChangesSt =>
-                        -- Save the new addressing as it has changed.
-                        lServerMACAddress      <= byteswap(ServerMACAddress);
-                        lServerIPAddress       <= byteswap(SourceIPAddress);
-                        lServerUDPPort         <= byteswap(source_udp_port);
-                        lClientMACAddress      <= byteswap(lClientMACAddress);
-                        lClientIPAddress       <= byteswap(DestinationIPAddress);
-                        lClientUDPPort         <= byteswap(destination_udp_port);
                         -- Swap the source and destination MACS
                         lDestinationMACAddress <= byteswap(lClientMACAddress);
                         lSourceMACAddress      <= byteswap(lServerMACAddress);
@@ -603,7 +649,7 @@ begin
                         lIPVIHL                <= C_RESPONSE_IPV4IHL;
                         lDSCPECN               <= C_RESPONSE_DSCPECN;
                         lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
-                        lIdentification        <= byteswap(std_logic_vector(lIPIdentification));
+                        lIdentification        <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                         lFlagsOffset           <= byteswap(C_RESPONSE_FLAGS_OFFSET);
                         lTimeToLeave           <= C_RESPONSE_TIME_TO_LEAVE;
                         lProtocol              <= C_RESPONSE_UDP_PROTOCOL;
@@ -662,7 +708,7 @@ begin
                                 lPreIPHDRCheckSum(16 downto 0) <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_RESPONSE_IPV4IHL) & unsigned(C_RESPONSE_DSCPECN)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 8 =>
-                                lIPHDRCheckSum <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(lIPIdentification)) + lPreIPHDRCheckSum(17 downto 16);
+                                lIPHDRCheckSum <= ('0' & lPreIPHDRCheckSum(15 downto 0)) + ('0' & unsigned(C_IP_IDENTIFICATION)) + lPreIPHDRCheckSum(17 downto 16);
 
                             when 9 =>
                                 if (lIPHDRCheckSum(16) = '1') then
@@ -709,7 +755,7 @@ begin
                             --            IPV4 Header Addressing              --
                             ----------------------------------------------------                         
                             lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
-                            lIdentification        <= byteswap(std_logic_vector(lIPIdentification));
+                            lIdentification        <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                             -- The checksum must change now
                             lIPHeaderChecksum      <= byteswap(std_logic_vector(IPHeaderCheckSum));
                             -- Swap the IP Addresses
@@ -734,7 +780,7 @@ begin
                                 --          IPV4 Header Addressing            --
                                 ------------------------------------------------                         
                                 lTotalLength                   <= byteswap(C_RESPONSE_IPV4_LENGTH);
-                                lIdentification                <= byteswap(std_logic_vector(lIPIdentification));
+                                lIdentification                <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                                 -- The checksum must change now
                                 lIPHeaderChecksum              <= byteswap(std_logic_vector(IPHeaderCheckSum));
                                 -- Swap the IP Addresses
