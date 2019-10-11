@@ -151,9 +151,8 @@ architecture rtl of udpdatapacker is
         PreComputeHeaderCheckSumSt,
         ProcessUDPPacketStreamSt
     );
-    signal StateVariable : UDPDataPackerSM_t := InitialiseSt;
-    constant C_DWORD_MAX : natural           := (16 - 1);
-
+    signal StateVariable              : UDPDataPackerSM_t             := InitialiseSt;
+    constant C_DWORD_MAX              : natural                       := (16 - 1);
     signal C_RESPONSE_UDP_LENGTH      : std_logic_vector(15 downto 0) := X"0012"; -- Always 8 bytes more than data size 
     signal C_RESPONSE_IPV4_LENGTH     : std_logic_vector(15 downto 0) := X"0026"; -- Always 20 more than UDP length
     constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
@@ -165,70 +164,67 @@ architecture rtl of udpdatapacker is
     constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
     constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
     constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"0014";
-
     -- Tuples registers
-    signal lPacketData               : std_logic_vector(511 downto 0);
-    alias lDestinationMACAddress     : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
-    alias lSourceMACAddress          : std_logic_vector(47 downto 0) is lPacketData(95 downto 48);
-    alias lEtherType                 : std_logic_vector(15 downto 0) is lPacketData(111 downto 96);
-    alias lIPVIHL                    : std_logic_vector(7  downto 0) is lPacketData(119 downto 112);
-    alias lDSCPECN                   : std_logic_vector(7  downto 0) is lPacketData(127 downto 120);
-    alias lTotalLength               : std_logic_vector(15 downto 0) is lPacketData(143 downto 128);
-    alias lIdentification            : std_logic_vector(15 downto 0) is lPacketData(159 downto 144);
-    alias lFlagsOffset               : std_logic_vector(15 downto 0) is lPacketData(175 downto 160);
-    alias lTimeToLeave               : std_logic_vector(7  downto 0) is lPacketData(183 downto 176);
-    alias lProtocol                  : std_logic_vector(7  downto 0) is lPacketData(191 downto 184);
-    alias lIPHeaderChecksum          : std_logic_vector(15 downto 0) is lPacketData(207 downto 192);
-    alias lSourceIPAddress           : std_logic_vector(31 downto 0) is lPacketData(239 downto 208);
-    alias lDestinationIPAddress      : std_logic_vector(31 downto 0) is lPacketData(271 downto 240);
-    alias lSourceUDPPort             : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
-    alias lDestinationUDPPort        : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
-    alias lUDPDataStreamLength       : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
-    alias lUDPCheckSum               : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
-    signal lIPHDRCheckSum            : unsigned(16 downto 0);
-    alias IPHeaderCheckSum           : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
-    signal ServerMACAddress          : std_logic_vector(47 downto 0);
-    signal lPreIPHDRCheckSum         : unsigned(17 downto 0);
-    signal lServerMACAddress         : std_logic_vector(47 downto 0);
-    signal lServerMACAddressChanged  : std_logic;
-    signal lServerIPAddress          : std_logic_vector(31 downto 0);
-    signal lServerIPAddressChanged   : std_logic;
-    signal lServerUDPPort            : std_logic_vector(15 downto 0);
-    signal lServerUDPPortChanged     : std_logic;
-    signal lClientMACAddress         : std_logic_vector(47 downto 0);
-    signal lClientMACAddressChanged  : std_logic;
-    signal lClientIPAddress          : std_logic_vector(31 downto 0);
-    signal SourceIPAddress           : std_logic_vector(31 downto 0);
-    signal DestinationIPAddress      : std_logic_vector(31 downto 0);
-    signal lClientIPAddressChanged   : std_logic;
-    signal lClientUDPPort            : std_logic_vector(15 downto 0);
-    signal lClientUDPPortChanged     : std_logic;
-    signal lUDPPacketLengthChanged   : std_logic;
-    signal lAddressingChanged        : std_logic;
-    signal lSourceIPNetmaskChanged   : std_logic;
-    signal lGatewayIPAddressChanged  : std_logic;
+    signal lPacketData                : std_logic_vector(511 downto 0);
+    alias lDestinationMACAddress      : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
+    alias lSourceMACAddress           : std_logic_vector(47 downto 0) is lPacketData(95 downto 48);
+    alias lEtherType                  : std_logic_vector(15 downto 0) is lPacketData(111 downto 96);
+    alias lIPVIHL                     : std_logic_vector(7  downto 0) is lPacketData(119 downto 112);
+    alias lDSCPECN                    : std_logic_vector(7  downto 0) is lPacketData(127 downto 120);
+    alias lTotalLength                : std_logic_vector(15 downto 0) is lPacketData(143 downto 128);
+    alias lIdentification             : std_logic_vector(15 downto 0) is lPacketData(159 downto 144);
+    alias lFlagsOffset                : std_logic_vector(15 downto 0) is lPacketData(175 downto 160);
+    alias lTimeToLeave                : std_logic_vector(7  downto 0) is lPacketData(183 downto 176);
+    alias lProtocol                   : std_logic_vector(7  downto 0) is lPacketData(191 downto 184);
+    alias lIPHeaderChecksum           : std_logic_vector(15 downto 0) is lPacketData(207 downto 192);
+    alias lSourceIPAddress            : std_logic_vector(31 downto 0) is lPacketData(239 downto 208);
+    alias lDestinationIPAddress       : std_logic_vector(31 downto 0) is lPacketData(271 downto 240);
+    alias lSourceUDPPort              : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
+    alias lDestinationUDPPort         : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
+    alias lUDPDataStreamLength        : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
+    alias lUDPCheckSum                : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
+    signal lIPHDRCheckSum             : unsigned(16 downto 0);
+    alias IPHeaderCheckSum            : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
+    signal ServerMACAddress           : std_logic_vector(47 downto 0);
+    signal lPreIPHDRCheckSum          : unsigned(17 downto 0);
+    signal lServerMACAddress          : std_logic_vector(47 downto 0);
+    signal lServerMACAddressChanged   : std_logic;
+    signal lServerIPAddress           : std_logic_vector(31 downto 0);
+    signal lServerIPAddressChanged    : std_logic;
+    signal lServerUDPPort             : std_logic_vector(15 downto 0);
+    signal lServerUDPPortChanged      : std_logic;
+    signal lClientMACAddress          : std_logic_vector(47 downto 0);
+    signal lClientIPAddress           : std_logic_vector(31 downto 0);
+    signal SourceIPAddress            : std_logic_vector(31 downto 0);
+    signal DestinationIPAddress       : std_logic_vector(31 downto 0);
+    signal lClientIPAddressChanged    : std_logic;
+    signal lClientUDPPort             : std_logic_vector(15 downto 0);
+    signal lClientUDPPortChanged      : std_logic;
+    signal lUDPPacketLengthChanged    : std_logic;
+    signal lAddressingChanged         : std_logic;
+    signal lSourceIPNetmaskChanged    : std_logic;
+    signal lGatewayIPAddressChanged   : std_logic;
     signal lMulticastIPAddressChanged : std_logic;
-    signal lProtocolErrorStatus      : std_logic;
-    
-    signal lCheckSumCounter          : natural range 0 to C_DWORD_MAX;
-    signal lPacketByteEnable         : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
-    signal lPacketDataWrite          : STD_LOGIC;
-    signal lPacketAddress            : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    signal lPacketSlotSet            : STD_LOGIC;
-    signal lPacketSlotID             : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lPacketSlotType           : STD_LOGIC;
-    signal lPacketSlotStatus         : STD_LOGIC;
-    signal lPacketSlotTypeStatus     : STD_LOGIC;
-    signal lPacketAddressingDone     : boolean;
-    signal lWasDoingPacketAddressing : boolean;
-    signal laxis_ptlast              : std_logic;
-    signal laxis_ptuser              : std_logic;
-    signal lDestinationIPMulticast   : std_logic;
-    signal lLocalIPAddress           : std_logic_vector(31 downto 0);
-    signal lLocalIPNetmask           : std_logic_vector(31 downto 0);
-    signal lGatewayIPAddress         : std_logic_vector(31 downto 0);
-    signal lMulticastIPAddress       : std_logic_vector(31 downto 0);
-    signal lUDPPacketLength          : std_logic_vector(15 downto 0);
+    signal lProtocolErrorStatus       : std_logic;
+    signal lCheckSumCounter           : natural range 0 to C_DWORD_MAX;
+    signal lPacketByteEnable          : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal lPacketDataWrite           : STD_LOGIC;
+    signal lPacketAddress             : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    signal lPacketSlotSet             : STD_LOGIC;
+    signal lPacketSlotID              : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lPacketSlotType            : STD_LOGIC;
+    signal lPacketSlotStatus          : STD_LOGIC;
+    signal lPacketSlotTypeStatus      : STD_LOGIC;
+    signal lPacketAddressingDone      : boolean;
+    signal lWasDoingPacketAddressing  : boolean;
+    signal laxis_ptlast               : std_logic;
+    signal laxis_ptuser               : std_logic;
+    signal lDestinationIPMulticast    : std_logic;
+    signal lLocalIPAddress            : std_logic_vector(31 downto 0);
+    signal lLocalIPNetmask            : std_logic_vector(31 downto 0);
+    signal lGatewayIPAddress          : std_logic_vector(31 downto 0);
+    signal lMulticastIPAddress        : std_logic_vector(31 downto 0);
+    signal lUDPPacketLength           : std_logic_vector(15 downto 0);
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in unsigned)
@@ -388,12 +384,6 @@ begin
                 lServerUDPPortChanged <= '1';
             end if;
 
-            if (lClientMACAddress = lClientMACAddress) then
-                lClientMACAddressChanged <= '0';
-            else
-                -- Flag the change of MAC address
-                lClientMACAddressChanged <= '1';
-            end if;
             -- Destination IP maybe the raw Ip or the gateway
             if (DestinationIPAddress = ClientIPAddress) then
                 lClientIPAddressChanged <= '0';
@@ -411,7 +401,6 @@ begin
 
             lAddressingChanged <= lClientUDPPortChanged -- Client UDP port changed 
                                   or lClientIPAddressChanged -- IP Address changed
-                                  or lClientMACAddressChanged -- MAC address changed
                                   or lServerUDPPortChanged -- Server UDP port changed 
                                   or lServerIPAddressChanged -- Server IP address changed 
                                   or lServerMACAddressChanged -- server MAC address changed                                   
@@ -544,11 +533,10 @@ begin
                                 lGatewayIPAddress    <= GatewayIPAddress;
                                 lMulticastIPAddress  <= MulticastIPAddress;
                                 lUDPPacketLength     <= UDPPacketLength;
-
                                 -- Pause the frame transfer from the upstream device.
-                                axis_tready   <= '0';
+                                axis_tready          <= '0';
                                 -- Go to do addressing lookup.
-                                StateVariable <= GenerateIPAddressesSt;
+                                StateVariable        <= GenerateIPAddressesSt;
                             end if;
                             -- Write the packet data
                             lPacketDataWrite                <= '1';
