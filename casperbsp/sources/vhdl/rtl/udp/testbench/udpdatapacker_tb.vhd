@@ -215,8 +215,8 @@ begin
         -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
         ClientUDPPort   <= X"d6a6";
         ServerUDPPort   <= X"2710";
-        UDPPacketLength <= X"000A";
-        axis_tdata      <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c00a64a8c03d0e1140004098e2260000450008924102350a00acfbc34b6b50";
+        UDPPacketLength <= X"000A";--                                                                          CKSM PR TL FOSS  IDE LEN DSC VIHL                       
+        axis_tdata      <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c0_0a64a8c0_3d0e_11_40_0040_98e2_2600_00_45_0008924102350a00acfbc34b6b50";
         axis_tkeep      <= X"0fffffffffffffff";
         axis_tvalid     <= '1';
         axis_tlast      <= '1';
@@ -232,8 +232,8 @@ begin
         -- Packet to send 978 bytes
         ClientUDPPort   <= X"ba49";
         ServerUDPPort   <= X"2710";
-        UDPPacketLength <= X"03d2";
-        axis_tdata      <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0fc68114000401184ee0300450008924102350a00acfbc34b6b50";
+        UDPPacketLength <= X"03d2";--                                                                          CKSM PR TL FOSS  IDE LEN DSC VIHL
+        axis_tdata      <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";
         axis_tkeep      <= X"ffffffffffffffff";
         axis_tvalid     <= '1';
         axis_tlast      <= '0';
