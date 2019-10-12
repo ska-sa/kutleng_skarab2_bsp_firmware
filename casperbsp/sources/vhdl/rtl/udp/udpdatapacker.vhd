@@ -78,8 +78,8 @@ entity udpdatapacker is
         MulticastIPAddress             : in  STD_LOGIC_VECTOR(31 downto 0);
         MulticastIPNetmask             : in  STD_LOGIC_VECTOR(31 downto 0);
         EthernetMACEnable              : in  STD_LOGIC;
-        tx_overflow_count              : out STD_LOGIC_VECTOR(31 downto 0);
-        tx_afull_count                 : out STD_LOGIC_VECTOR(31 downto 0);
+        TXOverflowCount                : out STD_LOGIC_VECTOR(31 downto 0);
+        TXAFullCount                   : out STD_LOGIC_VECTOR(31 downto 0);
         ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
         ARPReadDataEnable              : out STD_LOGIC;
         ARPReadData                    : in  STD_LOGIC_VECTOR((G_ARP_DATA_WIDTH * 2) - 1 downto 0);
@@ -163,7 +163,7 @@ architecture rtl of udpdatapacker is
     constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
     constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
     constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
-    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"8411";--X"8413";--X"8411";--X"e298";--
+    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"8411"; --X"8413";--X"8411";--X"e298";--
     -- Tuples registers
     signal lPacketData                : std_logic_vector(511 downto 0);
     alias lDestinationMACAddress      : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
@@ -226,6 +226,8 @@ architecture rtl of udpdatapacker is
     signal lGatewayIPAddress          : std_logic_vector(31 downto 0);
     signal lMulticastIPAddress        : std_logic_vector(31 downto 0);
     signal lUDPPacketLength           : std_logic_vector(15 downto 0);
+    signal lTXOverflowCount           : unsigned(31 downto 0);
+    signal lTXAFullCount              : unsigned(31 downto 0);
 
     -- The left over is 22 bytes
     function byteswap(DataIn : in unsigned)
@@ -300,7 +302,66 @@ architecture rtl of udpdatapacker is
         end if;
     end byteswap;
 
+    signal lFilledSlots     : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotClearBuffer : STD_LOGIC_VECTOR(1 downto 0);
+    signal lSlotClear       : STD_LOGIC;
+    signal lSlotSetBuffer   : STD_LOGIC_VECTOR(1 downto 0);
+    signal lSlotSet         : STD_LOGIC;
+
 begin
+    TXOverflowCount <= std_logic_vector(lTXOverflowCount);
+    TXAFullCount    <= std_logic_vector(lTXAFullCount);
+    -- These slot clear and set operations are slow and must be spaced atleast
+    -- 2 clock cycles apart for a conflict not to exist
+    -- These will work well for long packets (not the case where only 64 byte packets are sent)
+    SlotSetClearProc : process(axis_clk)
+    begin
+        if rising_edge(axis_clk) then
+            if (axis_reset = '1') then
+                lSlotClear <= '0';
+                lSlotSet   <= '0';
+            else
+                lSlotSetBuffer   <= lSlotSetBuffer(1) & lPacketSlotSet;
+                lSlotClearBuffer <= lSlotClearBuffer(1) & SenderRingBufferSlotClear;
+                -- Slot clear is late processed
+                if (lSlotClearBuffer = B"10") then
+                    lSlotClear <= '1';
+                else
+                    lSlotClear <= '0';
+                end if;
+                -- Slot set is early processed
+                if (lSlotSetBuffer = B"01") then
+                    lSlotSet <= '1';
+                else
+                    lSlotSet <= '0';
+                end if;
+
+            end if;
+        end if;
+    end process SlotSetClearProc;
+
+    --Generate the number of slots filled using the axis_clk
+    --Synchronize it with the slow Ingress slot set
+    -- Send the number of slots filled to the CPU for status update
+    SenderRingBufferSlotsFilled <= std_logic_vector(lFilledSlots);
+
+    FilledSlotCounterProc : process(axis_clk)
+    begin
+        if rising_edge(axis_clk) then
+            if (axis_reset = '1') then
+                lFilledSlots <= (others => '0');
+            else
+                if ((lSlotClear = '0') and (lSlotSet = '1')) then
+                    lFilledSlots <= lFilledSlots + 1;
+                elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
+                    lFilledSlots <= lFilledSlots - 1;
+                else
+                    -- Its a neutral operation
+                    lFilledSlots <= lFilledSlots;
+                end if;
+            end if;
+        end if;
+    end process FilledSlotCounterProc;
 
     DSRBi : dualportpacketringbuffer
         generic map(
@@ -468,6 +529,8 @@ begin
                         lDestinationIPMulticast   <= '0';
                         lWasDoingPacketAddressing <= false;
                         iIPHeaderChecksum         <= (others => '0');
+                        lTXOverflowCount          <= (others => '0');
+                        lTXAFullCount             <= (others => '0');
 
                     when BeginOrProcessUDPPacketStreamSt =>
                         -- Disable the status of doing packet addressing
@@ -511,6 +574,10 @@ begin
                                         if (axis_tuser = '0') then
                                             -- Only process packets who have no errors 
                                             lPacketSlotSet <= '1';
+                                            if (lPacketSlotStatus = '1') then
+                                                lTXOverflowCount <= lTXOverflowCount + 1;
+                                                lTXAFullCount    <= lTXAFullCount + 1;
+                                            end if;
                                             -- Point to next slot ID
                                             lPacketSlotID  <= lPacketSlotID + 1;
                                         end if;
@@ -730,6 +797,10 @@ begin
                             if (laxis_ptuser = '0') then
                                 -- Only process packets who have no errors 
                                 lPacketSlotSet <= '1';
+                                if (lPacketSlotStatus = '1') then
+                                    lTXOverflowCount <= lTXOverflowCount + 1;
+                                    lTXAFullCount    <= lTXAFullCount + 1;
+                                end if;
                                 -- Point to next slot ID
                                 lPacketSlotID  <= lPacketSlotID + 1;
                             end if;
@@ -743,7 +814,7 @@ begin
                             --            IPV4 Header Addressing              --
                             ----------------------------------------------------        
                             -- The checksum must change now
-                            lIPHeaderChecksum      <= (std_logic_vector(iIPHeaderChecksum));                                                                                             
+                            lIPHeaderChecksum      <= (std_logic_vector(iIPHeaderChecksum));
                             lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
                             lIdentification        <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                             -- Swap the IP Addresses
@@ -796,10 +867,14 @@ begin
                                     lPacketAddress <= lPacketAddress + 1;
                                 end if;
                                 -- Terminate the transaction on tlast;
-                                if (axis_tlast = '1') then
+                                if ((axis_tlast = '1') and (axis_tvalid = '1')) then
                                     if (axis_tuser = '0') then
                                         -- Only process packets who have no errors 
                                         lPacketSlotSet <= '1';
+                                        if (lPacketSlotStatus = '1') then
+                                            lTXOverflowCount <= lTXOverflowCount + 1;
+                                            lTXAFullCount    <= lTXAFullCount + 1;
+                                        end if;
                                         -- Point to next slot ID
                                         lPacketSlotID  <= lPacketSlotID + 1;
                                     end if;
