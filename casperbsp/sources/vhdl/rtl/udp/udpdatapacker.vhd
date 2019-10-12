@@ -163,7 +163,7 @@ architecture rtl of udpdatapacker is
     constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
     constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
     constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
-    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"0014";
+    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"8411";--X"8413";--X"8411";--X"e298";--
     -- Tuples registers
     signal lPacketData                : std_logic_vector(511 downto 0);
     alias lDestinationMACAddress      : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
@@ -184,6 +184,7 @@ architecture rtl of udpdatapacker is
     alias lUDPDataStreamLength        : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
     alias lUDPCheckSum                : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
     signal lIPHDRCheckSum             : unsigned(16 downto 0);
+    signal iIPHeaderChecksum          : std_logic_vector(15 downto 0);
     alias IPHeaderCheckSum            : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
     signal ServerMACAddress           : std_logic_vector(47 downto 0);
     signal lPreIPHDRCheckSum          : unsigned(17 downto 0);
@@ -466,6 +467,7 @@ begin
                         ARPReadAddress            <= (others => '0');
                         lDestinationIPMulticast   <= '0';
                         lWasDoingPacketAddressing <= false;
+                        iIPHeaderChecksum         <= (others => '0');
 
                     when BeginOrProcessUDPPacketStreamSt =>
                         -- Disable the status of doing packet addressing
@@ -564,7 +566,7 @@ begin
                             lTimeToLeave                    <= C_RESPONSE_TIME_TO_LEAVE;
                             lProtocol                       <= C_RESPONSE_UDP_PROTOCOL;
                             -- The checksum must change now
-                            lIPHeaderChecksum               <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                            lIPHeaderChecksum               <= (std_logic_vector(iIPHeaderChecksum));
                             -- Swap the IP Addresses
                             lDestinationIPAddress           <= byteswap(lClientIPAddress);
                             lSourceIPAddress                <= byteswap(lServerIPAddress);
@@ -598,7 +600,7 @@ begin
                             SourceIPAddress         <= lMulticastIPAddress;
                         else
                             lDestinationIPMulticast <= '0';
-                            if ((lLocalIPAddress and lLocalIPNetmask) = X"00000000") then
+                            if ((DestinationIPAddress and lLocalIPNetmask) = (lLocalIPAddress and lLocalIPNetmask)) then
                                 -- If the target IP address is within the IP netmask,send data to that IP address.
                                 SourceIPAddress <= lLocalIPAddress;
                             else
@@ -641,8 +643,6 @@ begin
                         lFlagsOffset           <= byteswap(C_RESPONSE_FLAGS_OFFSET);
                         lTimeToLeave           <= C_RESPONSE_TIME_TO_LEAVE;
                         lProtocol              <= C_RESPONSE_UDP_PROTOCOL;
-                        -- The checksum must change now
-                        lIPHeaderChecksum      <= byteswap(std_logic_vector(IPHeaderCheckSum));
                         -- Swap the IP Addresses
                         lDestinationIPAddress  <= byteswap(lClientIPAddress);
                         lSourceIPAddress       <= byteswap(lServerIPAddress);
@@ -705,9 +705,9 @@ begin
 
                             when 10 =>
                                 if (lIPHDRCheckSum(15 downto 0) /= X"FFFF") then
-                                    lIPHeaderChecksum <= not (byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0))));
+                                    iIPHeaderChecksum <= not (byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0))));
                                 else
-                                    lIPHeaderChecksum <= byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0)));
+                                    iIPHeaderChecksum <= byteswap(std_logic_vector(lIPHDRCheckSum(15 downto 0)));
                                 end if;
 
                             when others =>
@@ -741,11 +741,11 @@ begin
                             lSourceMACAddress      <= byteswap(lServerMACAddress);
                             ----------------------------------------------------
                             --            IPV4 Header Addressing              --
-                            ----------------------------------------------------                         
+                            ----------------------------------------------------        
+                            -- The checksum must change now
+                            lIPHeaderChecksum      <= (std_logic_vector(iIPHeaderChecksum));                                                                                             
                             lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
                             lIdentification        <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
-                            -- The checksum must change now
-                            lIPHeaderChecksum      <= byteswap(std_logic_vector(IPHeaderCheckSum));
                             -- Swap the IP Addresses
                             lDestinationIPAddress  <= byteswap(lClientIPAddress);
                             lSourceIPAddress       <= byteswap(lServerIPAddress);
@@ -770,7 +770,7 @@ begin
                                 lTotalLength                   <= byteswap(C_RESPONSE_IPV4_LENGTH);
                                 lIdentification                <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                                 -- The checksum must change now
-                                lIPHeaderChecksum              <= byteswap(std_logic_vector(IPHeaderCheckSum));
+                                lIPHeaderChecksum              <= (std_logic_vector(IPHeaderCheckSum));
                                 -- Swap the IP Addresses
                                 lDestinationIPAddress          <= byteswap(lClientIPAddress);
                                 lSourceIPAddress               <= byteswap(lServerIPAddress);
@@ -796,7 +796,7 @@ begin
                                     lPacketAddress <= lPacketAddress + 1;
                                 end if;
                                 -- Terminate the transaction on tlast;
-                                if (axis_tlast <= '1') then
+                                if (axis_tlast = '1') then
                                     if (axis_tuser = '0') then
                                         -- Only process packets who have no errors 
                                         lPacketSlotSet <= '1';
