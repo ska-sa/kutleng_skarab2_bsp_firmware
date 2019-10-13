@@ -201,13 +201,13 @@ begin
                 lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 1 downto 1) & IngressRingBufferSlotSet;
                 lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 1 downto 1) & ringbuffer_slot_clear;
                 -- Slot clear is late processed
-                if (lSlotClearBuffer = X"1100") then
+                if (lSlotClearBuffer = b"1100") then
                     lSlotClear <= '1';
                 else
                     lSlotClear <= '0';
                 end if;
                 -- Slot set is early processed
-                if (lSlotSetBuffer = X"0001") then
+                if (lSlotSetBuffer = b"0001") then
                     lSlotSet <= '1';
                 else
                     lSlotSet <= '0';

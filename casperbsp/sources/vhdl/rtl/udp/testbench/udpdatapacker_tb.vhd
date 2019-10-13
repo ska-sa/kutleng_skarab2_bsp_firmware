@@ -520,7 +520,54 @@ begin
         axis_tvalid     <= '0';
         axis_tlast      <= '0';
         wait for C_CLK_PERIOD * 10;
-        
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;
+        -- Send a 64 byte transfer
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '1';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;        
+        -- Send a 64 byte transfer
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '1';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;        
+        -- Send a 64 byte transfer
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '1';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;        
 
 
         --        

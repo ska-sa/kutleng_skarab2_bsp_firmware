@@ -99,6 +99,7 @@ add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpac
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpacketram64to1byte.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpuifreceiverpacketringbuffer.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpuifsenderpacketringbuffer.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/dualportpacketringbuffer.vhd
 
 
 #L-BUS <=> AXIS
@@ -135,6 +136,13 @@ add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/protocolchecksumprconf
 add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/protocolresponderprconfigsm.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/preconfig/prconfigcontroller.vhd 
 
+#UDP Streaming Yellowblock Interface
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpdatastripper.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpdatapacker.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpstreamingapp.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpstreamingapps.vhd
+
+
 #CPU Interface Module (APP Module)
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/cpuinterface/cpumacifudpreceiver.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/cpuinterface/cpumacifudpsender.vhd
@@ -151,8 +159,12 @@ add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/axisthreeportfa
 #IP Interconnect
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/testcomms.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpipinterfacepr.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpstreamingapp.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpstreamingapps.vhd
+
+
+#Auxillary modules (Not needed for Synthesis but examples for Yellowblock creation)
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/casper100gethernetblock.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/vethernetmac.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/udp/casperpcievethernetblock.vhd
 
 
 # Add Xilinx IP Blocks
