@@ -185,7 +185,6 @@ architecture rtl of udpdatapacker is
     alias lUDPCheckSum                : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
     signal lIPHDRCheckSum             : unsigned(16 downto 0);
     signal iIPHeaderChecksum          : std_logic_vector(15 downto 0);
-    alias IPHeaderCheckSum            : unsigned(15 downto 0) is lIPHDRCheckSum(15 downto 0);
     signal ServerMACAddress           : std_logic_vector(47 downto 0);
     signal lPreIPHDRCheckSum          : unsigned(17 downto 0);
     signal lServerMACAddress          : std_logic_vector(47 downto 0);
@@ -195,6 +194,7 @@ architecture rtl of udpdatapacker is
     signal lServerUDPPort             : std_logic_vector(15 downto 0);
     signal lServerUDPPortChanged      : std_logic;
     signal lClientMACAddress          : std_logic_vector(47 downto 0);
+    signal ClientMACAddress           : std_logic_vector(47 downto 0);
     signal lClientIPAddress           : std_logic_vector(31 downto 0);
     signal SourceIPAddress            : std_logic_vector(31 downto 0);
     signal DestinationIPAddress       : std_logic_vector(31 downto 0);
@@ -206,6 +206,7 @@ architecture rtl of udpdatapacker is
     signal lSourceIPNetmaskChanged    : std_logic;
     signal lGatewayIPAddressChanged   : std_logic;
     signal lMulticastIPAddressChanged : std_logic;
+    signal lClientMACAddresschanged   : std_logic;
     signal lProtocolErrorStatus       : std_logic;
     signal lCheckSumCounter           : natural range 0 to C_DWORD_MAX;
     signal lPacketByteEnable          : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
@@ -398,7 +399,15 @@ begin
     begin
         if (rising_edge(axis_app_clk)) then
             lDPacketSlotID <= lPacketSlotID;
-
+            ClientMACAddress <= ARPReadData(47 downto 0);
+            
+            
+            if (lClientMACAddress = ClientMACAddress) then
+                lClientMACAddresschanged <= '0';
+            else
+                lClientMACAddresschanged <= '1';
+            end if;
+                
             if (lUDPPacketLength = UDPPacketLength) then
                 lUDPPacketLengthChanged <= '0';
             else
@@ -465,6 +474,7 @@ begin
 
             lAddressingChanged <= lClientUDPPortChanged -- Client UDP port changed 
                                   or lClientIPAddressChanged -- IP Address changed
+                                  or lClientMACAddresschanged -- Client MAC address changed from ARP Cache
                                   or lServerUDPPortChanged -- Server UDP port changed 
                                   or lServerIPAddressChanged -- Server IP address changed 
                                   or lServerMACAddressChanged -- server MAC address changed                                   
