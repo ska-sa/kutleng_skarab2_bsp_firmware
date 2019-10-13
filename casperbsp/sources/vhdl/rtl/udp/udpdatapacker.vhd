@@ -633,7 +633,7 @@ begin
                             lTimeToLeave                    <= C_RESPONSE_TIME_TO_LEAVE;
                             lProtocol                       <= C_RESPONSE_UDP_PROTOCOL;
                             -- The checksum must change now
-                            lIPHeaderChecksum               <= (std_logic_vector(iIPHeaderChecksum));
+                            lIPHeaderChecksum               <= iIPHeaderChecksum;
                             -- Swap the IP Addresses
                             lDestinationIPAddress           <= byteswap(lClientIPAddress);
                             lSourceIPAddress                <= byteswap(lServerIPAddress);
@@ -814,7 +814,7 @@ begin
                             --            IPV4 Header Addressing              --
                             ----------------------------------------------------        
                             -- The checksum must change now
-                            lIPHeaderChecksum      <= (std_logic_vector(iIPHeaderChecksum));
+                            lIPHeaderChecksum      <= iIPHeaderChecksum;
                             lTotalLength           <= byteswap(C_RESPONSE_IPV4_LENGTH);
                             lIdentification        <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                             -- Swap the IP Addresses
@@ -841,7 +841,7 @@ begin
                                 lTotalLength                   <= byteswap(C_RESPONSE_IPV4_LENGTH);
                                 lIdentification                <= byteswap(std_logic_vector(C_IP_IDENTIFICATION));
                                 -- The checksum must change now
-                                lIPHeaderChecksum              <= (std_logic_vector(IPHeaderCheckSum));
+                                lIPHeaderChecksum              <= iIPHeaderChecksum;
                                 -- Swap the IP Addresses
                                 lDestinationIPAddress          <= byteswap(lClientIPAddress);
                                 lSourceIPAddress               <= byteswap(lServerIPAddress);
