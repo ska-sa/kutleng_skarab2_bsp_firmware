@@ -233,9 +233,10 @@ begin
         -- Packet to send 978 bytes
         ClientUDPPort   <= X"ba49";
         ServerUDPPort   <= X"2710";
-        UDPPacketLength <= X"03da";     --                                                                          CKSM PR TL FOSS  IDE LEN DSC VIHL
-        --        axis_tdata      <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";
-        axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        --UDPPacketLength <= X"03da";--                                                                         CKSM PR TL FOSS  IDE LEN DSC VIHL
+        UDPPacketLength <= X"03d2";--                                                                       CKSM PR TL FOSS  IDE LEN DSC VIHL
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
         axis_tkeep      <= X"ffffffffffffffff";
         axis_tvalid     <= '1';
         axis_tlast      <= '0';
@@ -359,6 +360,169 @@ begin
         axis_tvalid     <= '0';
         axis_tlast      <= '0';
         wait for C_CLK_PERIOD * 10;
+
+
+
+
+        -- Packet to send 10 bytes (The Ethernet MAC will zeropad the 10byte data to make the packet 64 bytes)
+        --        ClientUDPPort   <= X"d6a6";
+        --        ServerUDPPort   <= X"2710";
+        --        UDPPacketLength <= X"000A";--                                                                        CKSM PR TL FOSS  IDE LEN DSC VIHL                       
+        --        axis_tdata      <= X"883be4970000000000000000ffffffff0000000001ad_200b_1200_a6d6_1027_9664a8c0_0a64a8c0_3d0e_11_40_0040_98e2_2600_00_45_0008924102350a00acfbc34b6b50";
+        --        axis_tkeep      <= X"0fffffffffffffff";
+        --        axis_tvalid     <= '1';
+        --        axis_tlast      <= '1';
+        --        axis_tuser      <= '0';
+        --        wait for C_CLK_PERIOD;
+
+        --        wait until axis_tready = '1';
+        -- Packet to send 978 bytes
+        --ClientUDPPort   <= X"ba49";
+        --ServerUDPPort   <= X"2710";
+        --UDPPacketLength <= X"03da";--                                                                         CKSM PR TL FOSS  IDE LEN DSC VIHL
+        --UDPPacketLength <= X"03d2";--                                                                       CKSM PR TL FOSS  IDE LEN DSC VIHL
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000aa0200000000003000000000012000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"eaae00003000000100000004580d0000300020010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000040000000000000004000000000000000000040000000003000405d000000045a0d000030002001000020000000000000000001000030008001000078ce";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000000000400000000000000040000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000004000000000000000400000000000000000004000000000000000400000000000000000004000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"000044040000000004040000000000000000000000000000000000000000000000000d5a00000000003000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000200000000adf500000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"0000000000000000000000000000000000000000000002aa00003000000000000000000000000000200100000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '0';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        --wait until axis_tready = '1';
+        axis_tdata      <= X"00000000000000000000000000000000891272630000000000000000000000000000000000000000000000000000000000000000000000008912726300000000";
+        axis_tkeep      <= X"000000000000000f";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '1';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD;
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;
+        -- Send 8 back to back 64 byte transfers
+        axis_tdata    <= X"ffffffff0020ffffffff0000ffffffff00000000f3ad_0033_da03_49ba_1027_9664a8c00a64a8c0_fc68_11_40_0040_1184_ee03_00_45_0008924102350a00acfbc34b6b50";       
+        --axis_tdata      <= X"0000000000000000000000000000000002000000f5ad_bbd2_e203_49ba_1027_9664a8c00a64a8c0_f268_11_40_0040_1384_f603_00_45_0008924102350a00acfbc34b6b50";
+        axis_tkeep      <= X"ffffffffffffffff";
+        axis_tvalid     <= '1';
+        axis_tlast      <= '1';
+        axis_tuser      <= '0';
+        wait for C_CLK_PERIOD*8;
+        axis_tdata      <= (others => '0');
+        axis_tkeep      <= (others => '0');
+        axis_tuser      <= '0';
+        axis_tvalid     <= '0';
+        axis_tlast      <= '0';
+        wait for C_CLK_PERIOD * 10;
+        
+
+
         --        
         --        
         --        

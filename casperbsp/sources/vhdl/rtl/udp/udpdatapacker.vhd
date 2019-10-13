@@ -213,6 +213,7 @@ architecture rtl of udpdatapacker is
     signal lPacketAddress             : unsigned(G_ADDR_WIDTH - 1 downto 0);
     signal lPacketSlotSet             : STD_LOGIC;
     signal lPacketSlotID              : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lDPacketSlotID             : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal lPacketSlotType            : STD_LOGIC;
     signal lPacketSlotStatus          : STD_LOGIC;
     signal lPacketSlotTypeStatus      : STD_LOGIC;
@@ -387,7 +388,7 @@ begin
             RxPacketData           => lPacketData,
             RxPacketAddress        => std_logic_vector(lPacketAddress),
             RxPacketSlotSet        => lPacketSlotSet,
-            RxPacketSlotID         => std_logic_vector(lPacketSlotID),
+            RxPacketSlotID         => std_logic_vector(lDPacketSlotID),
             RxPacketSlotType       => lPacketSlotType,
             RxPacketSlotStatus     => lPacketSlotStatus,
             RxPacketSlotTypeStatus => lPacketSlotTypeStatus
@@ -396,6 +397,7 @@ begin
     AddressingChangeProc : process(axis_app_clk)
     begin
         if (rising_edge(axis_app_clk)) then
+            lDPacketSlotID <= lPacketSlotID;
 
             if (lUDPPacketLength = UDPPacketLength) then
                 lUDPPacketLengthChanged <= '0';
@@ -649,6 +651,8 @@ begin
                             -- where the first 42 bytes of data are always reserved for Ethernet/IP/UDP framing
                             lPacketData(511 downto 336)     <= axis_tdata(511 downto 336);
                         else
+                            -- Disable all data write
+                            lPacketDataWrite  <= '0';
                             -- Disable all data output
                             lPacketByteEnable <= (others => '0');
                             -- Keep searching for a valid packet
