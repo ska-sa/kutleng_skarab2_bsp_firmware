@@ -72,7 +72,7 @@ entity udpipinterfacepr is
         G_SLOT_WIDTH                 : natural                          := 4;
         -- Number of UDP Streaming Data Server Modules 
         G_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
-        G_ARP_CACHE_ASIZE            : natural                          := 13;
+        G_ARP_CACHE_ASIZE            : natural                          := 10;
         G_ARP_DATA_WIDTH             : natural                          := 32;
         G_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 13;
         G_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 13;
@@ -359,9 +359,9 @@ architecture rtl of udpipinterfacepr is
             aximm_gmac_reg_rx_almost_full_count         : out STD_LOGIC_VECTOR(31 downto 0);
             -- ARP Cache Read Interface for IP transmit mapping                   --
             ------------------------------------------------------------------------ 
-            ARPReadDataEnable                           : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-            ARPReadData                                 : out STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_ARP_DATA_WIDTH * 2)) - 1 downto 0);
-            ARPReadAddress                              : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * G_ARP_CACHE_ASIZE) - 1 downto 0);
+            ARPReadDataEnable                           : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            ARPReadData                                 : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_ARP_DATA_WIDTH * 2)) - 1 downto 0);
+            ARPReadAddress                              : out STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * G_ARP_CACHE_ASIZE) - 1 downto 0);
             ------------------------------------------------------------------------
             -- Yellow Block Data Interface                                        --
             -- These can be many AXIS interfaces denoted by axis_data{n}_tx/rx    --
