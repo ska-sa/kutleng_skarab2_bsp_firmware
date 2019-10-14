@@ -68,7 +68,6 @@ use ieee.numeric_std.all;
 entity macifudpserver is
     generic(
         G_SLOT_WIDTH      : natural                          := 4;
-        G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
         -- The address width is log2(2048/(512/8))=5 bits wide
         G_ADDR_WIDTH      : natural                          := 5
     );
@@ -78,6 +77,7 @@ entity macifudpserver is
         -- Setup information
         ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
         ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+        ServerUDPort                   : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Readout in addressed bus format
         RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -160,7 +160,6 @@ architecture rtl of macifudpserver is
     component macifudpreceiver is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
-            G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH      : natural                          := 5
         );
@@ -170,6 +169,7 @@ architecture rtl of macifudpserver is
             -- Setup information
             ReceiverMACAddress       : in  STD_LOGIC_VECTOR(47 downto 0);
             ReceiverIPAddress        : in  STD_LOGIC_VECTOR(31 downto 0);
+            ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Readout in addressed bus format
             RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RingBufferSlotClear      : in  STD_LOGIC;
@@ -221,7 +221,6 @@ begin
     UDPReceiver_i : macifudpreceiver
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
-            G_UDP_SERVER_PORT => G_UDP_SERVER_PORT,
             G_ADDR_WIDTH      => G_ADDR_WIDTH
         )
         port map(
@@ -229,6 +228,7 @@ begin
             axis_reset               => axis_reset,
             ReceiverMACAddress       => ServerMACAddress,
             ReceiverIPAddress        => ServerIPAddress,
+            ReceiverUDPPort          => ServerUDPort,
             RingBufferSlotID         => RecvRingBufferSlotID,
             RingBufferSlotClear      => RecvRingBufferSlotClear,
             RingBufferSlotStatus     => RecvRingBufferSlotStatus,

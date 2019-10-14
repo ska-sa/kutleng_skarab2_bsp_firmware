@@ -118,7 +118,7 @@ entity udpstreamingapps is
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR((2*G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -195,7 +195,7 @@ architecture rtl of udpstreamingapps is
             axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR(15 downto 0);
             axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_streaming_data_tx_tvalid               : in  STD_LOGIC;
-            axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(1 downto 0);
+            axis_streaming_data_tx_tuser                : in  STD_LOGIC;
             axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_streaming_data_tx_tlast                : in  STD_LOGIC;
             axis_streaming_data_tx_tready               : out STD_LOGIC;
@@ -344,7 +344,7 @@ begin
                 axis_streaming_data_tx_source_udp_port      => axis_streaming_data_tx_source_udp_port(((i + 1) * 16) - 1 downto ((i) * 16)),
                 axis_streaming_data_tx_tdata                => axis_streaming_data_tx_tdata(((i + 1) * G_AXIS_DATA_WIDTH) - 1 downto ((i) * G_AXIS_DATA_WIDTH)),
                 axis_streaming_data_tx_tvalid               => axis_streaming_data_tx_tvalid(i),
-                axis_streaming_data_tx_tuser                => axis_streaming_data_tx_tuser(((i + 1)*2)-1  downto (i*1)),
+                axis_streaming_data_tx_tuser                => axis_streaming_data_tx_tuser(i),
                 axis_streaming_data_tx_tkeep                => axis_streaming_data_tx_tkeep(((i + 1) * (G_AXIS_DATA_WIDTH / 8)) - 1 downto ((i) * (G_AXIS_DATA_WIDTH / 8))),
                 axis_streaming_data_tx_tlast                => axis_streaming_data_tx_tlast(i),
                 axis_streaming_data_tx_tready               => axis_streaming_data_tx_tready(i),

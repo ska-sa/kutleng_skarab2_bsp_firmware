@@ -67,7 +67,6 @@ use ieee.numeric_std.all;
 entity macifudpreceiver is
     generic(
         G_SLOT_WIDTH      : natural                          := 4;
-        G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
         -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
         -- The address width is log2(2048/(512/8))=5 bits wide
         -- 1 x (16KBRAM) per slot = 1 x 4 = 4 (16K BRAMS)/ 2 (32K BRAMS)   
@@ -83,6 +82,7 @@ entity macifudpreceiver is
         -- Setup information
         ReceiverMACAddress       : in  STD_LOGIC_VECTOR(47 downto 0);
         ReceiverIPAddress        : in  STD_LOGIC_VECTOR(31 downto 0);
+        ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Readout in addressed bus format
         RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferSlotClear      : in  STD_LOGIC;
@@ -297,7 +297,7 @@ begin
                                         (axis_rx_tvalid = '1') and -- Check the valid
                                         (axis_rx_tuser /= '1') and -- Check for errors 
                                         (lEtherType = byteswap(C_IPV4_TYPE)) and -- Check the Frame Type
-                                        (lDestinationUDPPort = byteswap(std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, lDestinationUDPPort'length)))) and -- Check the UDP Port   
+                                        (lDestinationUDPPort = byteswap(ReceiverUDPPort)) and -- Check the UDP Port   
                                         (lDestinationIPAddress = byteswap(ReceiverIPAddress)) and -- Check the Destination IP Address   
                                         (lDestinationMACAddress = byteswap(ReceiverMACAddress)) and -- Check the Destination MAC Address   
                                         (lIPVIHL = C_IPV_IHL) and -- Check the IPV4 IHL 									 

@@ -119,12 +119,13 @@ entity udpstreamingapp is
         -- The source server port (must be unique for each and every streaming app
         -- unless it is a bandwidth agregation app
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR(15 downto 0);
+        axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR(15 downto 0);
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC;
         -- TUSER(0) is for dropping an error packet
         -- TSUER(1) functions like Start of Frame to load
         -- IP addressing
-        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(1 downto 0);
+        axis_streaming_data_tx_tuser                : in  STD_LOGIC;
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC;
         axis_streaming_data_tx_tready               : out STD_LOGIC;
@@ -152,7 +153,6 @@ architecture rtl of udpstreamingapp is
     component macifudpserver is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
-            G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
             -- The address width is log2(2048/(512/8))=5 bits wide
             G_ADDR_WIDTH      : natural                          := 5
         );
@@ -162,6 +162,7 @@ architecture rtl of udpstreamingapp is
             -- Setup information
             ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
             ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+            ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -212,10 +213,10 @@ architecture rtl of udpstreamingapp is
             axis_clk                     : in  STD_LOGIC;
             axis_app_clk                 : in  STD_LOGIC;
             axis_reset                   : in  STD_LOGIC;
-            mac_enable                   : in  STD_LOGIC;
-            mac_promiscous_mode          : in  STD_LOGIC;
-            rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
-            rx_almost_full_count         : out STD_LOGIC_VECTOR(31 downto 0);
+            EthernetMACEnable            : in  STD_LOGIC;
+            SetMACPromiscousMode         : in  STD_LOGIC;
+            RXOverFlowCount              : out STD_LOGIC_VECTOR(31 downto 0);
+            RXAlmostFullCount            : out STD_LOGIC_VECTOR(31 downto 0);
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear      : out STD_LOGIC;
@@ -249,17 +250,16 @@ architecture rtl of udpstreamingapp is
             axis_clk                       : in  STD_LOGIC;
             axis_app_clk                   : in  STD_LOGIC;
             axis_reset                     : in  STD_LOGIC;
-            mac_address                    : in  STD_LOGIC_VECTOR(47 downto 0);
-            local_ip_address               : in  STD_LOGIC_VECTOR(31 downto 0);
-            gateway_ip_address             : in  STD_LOGIC_VECTOR(31 downto 0);
-            multicast_ip_address           : in  STD_LOGIC_VECTOR(31 downto 0);
-            multicast_ip_mask              : in  STD_LOGIC_VECTOR(31 downto 0);
-            mac_enable                     : in  STD_LOGIC;
-            tx_overflow_count              : out STD_LOGIC_VECTOR(31 downto 0);
-            tx_afull_count                 : out STD_LOGIC_VECTOR(31 downto 0);
-            destination_ip                 : in  STD_LOGIC_VECTOR(31 downto 0);
-            destination_udp_port           : in  STD_LOGIC_VECTOR(15 downto 0);
-            source_udp_port                : in  STD_LOGIC_VECTOR(15 downto 0);
+            EthernetMACAddress             : in  STD_LOGIC_VECTOR(47 downto 0);
+            LocalIPAddress                 : in  STD_LOGIC_VECTOR(31 downto 0);
+            LocalIPNetmask                 : in  STD_LOGIC_VECTOR(31 downto 0);
+            GatewayIPAddress               : in  STD_LOGIC_VECTOR(31 downto 0);
+            MulticastIPAddress             : in  STD_LOGIC_VECTOR(31 downto 0);
+            MulticastIPNetmask             : in  STD_LOGIC_VECTOR(31 downto 0);
+            EthernetMACEnable              : in  STD_LOGIC;
+            TXOverflowCount                : out STD_LOGIC_VECTOR(31 downto 0);
+            TXAFullCount                   : out STD_LOGIC_VECTOR(31 downto 0);
+            ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
             ARPReadDataEnable              : out STD_LOGIC;
             ARPReadData                    : in  STD_LOGIC_VECTOR((G_ARP_DATA_WIDTH * 2) - 1 downto 0);
             ARPReadAddress                 : out STD_LOGIC_VECTOR(G_ARP_CACHE_ASIZE - 1 downto 0);
@@ -269,18 +269,21 @@ architecture rtl of udpstreamingapp is
             SenderRingBufferSlotStatus     : out STD_LOGIC;
             SenderRingBufferSlotTypeStatus : out STD_LOGIC;
             SenderRingBufferSlotsFilled    : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            SenderRingBufferDataRead       : out STD_LOGIC;
+            SenderRingBufferDataRead       : in  STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR(63 downto 0);
-            SenderRingBufferData           : out STD_LOGIC_VECTOR(511 downto 0);
+            SenderRingBufferDataEnable     : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+            SenderRingBufferData           : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             SenderRingBufferAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            --
-            axis_tuser                     : in  STD_LOGIC_VECTOR(1 downto 0);
-            axis_tdata                     : in  STD_LOGIC_VECTOR(511 downto 0);
+            -- 
+            ClientIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+            ClientUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
+            UDPPacketLength                : in  STD_LOGIC_VECTOR(15 downto 0);
+            axis_tuser                     : in  STD_LOGIC;
+            axis_tdata                     : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_tvalid                    : in  STD_LOGIC;
             axis_tready                    : out STD_LOGIC;
-            axis_tkeep                     : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_tkeep                     : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_tlast                     : in  STD_LOGIC
         );
     end component udpdatapacker;
@@ -314,10 +317,10 @@ begin
             axis_clk                     => axis_clk,
             axis_app_clk                 => axis_streaming_data_clk,
             axis_reset                   => axis_reset,
-            mac_enable                   => aximm_gmac_reg_mac_enable,
-            mac_promiscous_mode          => aximm_gmac_reg_mac_promiscous_mode,
-            rx_overflow_count            => aximm_gmac_reg_rx_overflow_count,
-            rx_almost_full_count         => aximm_gmac_reg_rx_almost_full_count,
+            EthernetMACEnable            => aximm_gmac_reg_mac_enable,
+            SetMACPromiscousMode         => aximm_gmac_reg_mac_promiscous_mode,
+            RXOverFlowCount              => aximm_gmac_reg_rx_overflow_count,
+            RXAlmostFullCount            => aximm_gmac_reg_rx_almost_full_count,
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID         => UDPRXRingBufferSlotID,
             RecvRingBufferSlotClear      => UDPRXRingBufferSlotClear,
@@ -350,14 +353,15 @@ begin
             axis_clk                       => axis_clk,
             axis_app_clk                   => axis_streaming_data_clk,
             axis_reset                     => axis_reset,
-            mac_address                    => aximm_gmac_reg_mac_address,
-            local_ip_address               => aximm_gmac_reg_local_ip_address,
-            gateway_ip_address             => aximm_gmac_reg_gateway_ip_address,
-            multicast_ip_address           => aximm_gmac_reg_multicast_ip_address,
-            multicast_ip_mask              => aximm_gmac_reg_multicast_ip_mask,
-            mac_enable                     => aximm_gmac_reg_mac_enable,
-            tx_overflow_count              => aximm_gmac_reg_tx_overflow_count,
-            tx_afull_count                 => aximm_gmac_reg_tx_afull_count,
+            EthernetMACAddress             => aximm_gmac_reg_mac_address,
+            LocalIPAddress                 => aximm_gmac_reg_local_ip_address,
+            LocalIPNetmask                 => aximm_gmac_reg_multicast_ip_mask,
+            GatewayIPAddress               => aximm_gmac_reg_gateway_ip_address,
+            MulticastIPAddress             => aximm_gmac_reg_multicast_ip_address,
+            MulticastIPNetmask             => aximm_gmac_reg_multicast_ip_mask,
+            EthernetMACEnable              => aximm_gmac_reg_mac_enable,
+            TXOverflowCount                => aximm_gmac_reg_tx_overflow_count,
+            TXAFullCount                   => aximm_gmac_reg_tx_afull_count,
             ARPReadDataEnable              => ARPReadDataEnable,
             ARPReadData                    => ARPReadData,
             ARPReadAddress                 => ARPReadAddress,
@@ -373,9 +377,10 @@ begin
             SenderRingBufferDataEnable     => UDPTXRingBufferDataEnable,
             SenderRingBufferData           => UDPTXRingBufferData,
             SenderRingBufferAddress        => UDPTXRingBufferAddress,
-            destination_ip                 => axis_streaming_data_tx_destination_ip,
-            destination_udp_port           => axis_streaming_data_tx_destination_udp_port,
-            source_udp_port                => axis_streaming_data_tx_source_udp_port,
+            ClientIPAddress                => axis_streaming_data_tx_destination_ip,
+            ClientUDPPort                  => axis_streaming_data_tx_destination_udp_port,
+            ServerUDPPort                  => axis_streaming_data_tx_source_udp_port,
+            UDPPacketLength                => axis_streaming_data_tx_packet_length,
             axis_tuser                     => axis_streaming_data_tx_tuser,
             axis_tdata                     => axis_streaming_data_tx_tdata,
             axis_tvalid                    => axis_streaming_data_tx_tvalid,
@@ -394,6 +399,7 @@ begin
             -- Setup information
             ServerMACAddress               => aximm_gmac_reg_mac_address,
             ServerIPAddress                => aximm_gmac_reg_local_ip_address,
+            ServerUDPPort                  => axis_streaming_data_tx_source_udp_port,
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           => UDPRXRingBufferSlotID,
             RecvRingBufferSlotClear        => UDPRXRingBufferSlotClear,
