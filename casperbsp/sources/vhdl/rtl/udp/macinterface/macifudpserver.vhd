@@ -77,7 +77,7 @@ entity macifudpserver is
         -- Setup information
         ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
         ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
-        ServerUDPort                   : in  STD_LOGIC_VECTOR(15 downto 0);
+        ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
         -- Packet Readout in addressed bus format
         RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -228,7 +228,7 @@ begin
             axis_reset               => axis_reset,
             ReceiverMACAddress       => ServerMACAddress,
             ReceiverIPAddress        => ServerIPAddress,
-            ReceiverUDPPort          => ServerUDPort,
+            ReceiverUDPPort          => ServerUDPPort,
             RingBufferSlotID         => RecvRingBufferSlotID,
             RingBufferSlotClear      => RecvRingBufferSlotClear,
             RingBufferSlotStatus     => RecvRingBufferSlotStatus,

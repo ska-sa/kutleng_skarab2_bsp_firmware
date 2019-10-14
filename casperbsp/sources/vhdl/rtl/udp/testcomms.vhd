@@ -63,6 +63,7 @@
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity testcomms is
     generic(
@@ -95,10 +96,9 @@ architecture rtl of testcomms is
 
     component macifudpserver is
         generic(
-            G_SLOT_WIDTH      : natural                          := 4;
-            G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+            G_SLOT_WIDTH : natural := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH      : natural                          := 5
+            G_ADDR_WIDTH : natural := 5
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -106,6 +106,7 @@ architecture rtl of testcomms is
             -- Setup information
             ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
             ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
+            ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -262,9 +263,8 @@ begin
 
     UDPDATAApp_i : macifudpserver
         generic map(
-            G_SLOT_WIDTH      => C_PRIORITY_WIDTH,
-            G_UDP_SERVER_PORT => G_UDP_SERVER_PORT,
-            G_ADDR_WIDTH      => 5
+            G_SLOT_WIDTH => C_PRIORITY_WIDTH,
+            G_ADDR_WIDTH => 5
         )
         port map(
             axis_clk                       => axis_clk,
@@ -272,6 +272,7 @@ begin
             -- Setup information
             ServerMACAddress               => G_EMAC_ADDR,
             ServerIPAddress                => G_IP_ADDR,
+            ServerUDPPort                  => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           => UDPRingBufferSlotID,
             RecvRingBufferSlotClear        => UDPRingBufferSlotClear,

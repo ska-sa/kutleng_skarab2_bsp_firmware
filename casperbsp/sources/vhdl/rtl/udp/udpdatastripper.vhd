@@ -68,10 +68,10 @@ entity udpdatastripper is
         axis_clk                     : in  STD_LOGIC;
         axis_app_clk                 : in  STD_LOGIC;
         axis_reset                   : in  STD_LOGIC;
-        mac_enable                   : in  STD_LOGIC;
-        mac_promiscous_mode          : in  STD_LOGIC;
-        rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
-        rx_almost_full_count         : out STD_LOGIC_VECTOR(31 downto 0);
+        EthernetMACEnable            : in  STD_LOGIC;
+        SetMACPromiscousMode         : in  STD_LOGIC;
+        RXOverFlowCount              : out STD_LOGIC_VECTOR(31 downto 0);
+        RXAlmostFullCount            : out STD_LOGIC_VECTOR(31 downto 0);
         -- Packet Readout in addressed bus format
         RecvRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RecvRingBufferSlotClear      : out STD_LOGIC;

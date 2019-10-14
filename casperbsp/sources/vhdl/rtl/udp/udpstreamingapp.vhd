@@ -63,7 +63,7 @@ entity udpstreamingapp is
     generic(
         G_AXIS_DATA_WIDTH : natural := 512;
         G_SLOT_WIDTH      : natural := 4;
-        G_ARP_CACHE_ASIZE : natural := 13;
+        G_ARP_CACHE_ASIZE : natural := 9;
         G_ARP_DATA_WIDTH  : natural := 32
     );
     port(
@@ -152,9 +152,9 @@ architecture rtl of udpstreamingapp is
 
     component macifudpserver is
         generic(
-            G_SLOT_WIDTH      : natural                          := 4;
+            G_SLOT_WIDTH : natural := 4;
             -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH      : natural                          := 5
+            G_ADDR_WIDTH : natural := 5
         );
         port(
             axis_clk                       : in  STD_LOGIC;
