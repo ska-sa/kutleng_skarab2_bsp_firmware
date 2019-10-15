@@ -46,27 +46,28 @@
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
 -- Design Name      : CASPER BSP                                               -
--- Module Name      : assymetricdualportpacketringbuffer - rtl                  -
+-- Module Name      : cpuifreceiverpacketringbuffer - rtl                      -
 -- Project Name     : SKARAB2                                                  -
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
--- Description      : This module is used to create a dual packet ring buffer   -
---                    for packet  buffering.                                   -
+-- Tool Versions    : N/A                                                      -
+-- Description      : This module is used to create an assymetric dual packet  -
+--                    ring buffer for CPU packet transfer.                     -
 --                    The ring buffer operates using a (2**G_SLOT_WIDTH)-1     -
 --                    buffer slots. On each slot the data size is              -
---                    ((G_DATA_WIDTH) * ((2**G_ADDR_WIDTH)-1))/8 bytes long.   -
+--                    ((G_DATA_MAX_WIDTH) * ((2**G_ADDR_MIN_WIDTH)-1))/8 bytes -
 --                    It is also desirable to provide a ringbuffer fullness    -
 --                    status, this can be used as a packet priority for        -
 --                    consumers that consume data from the ring buffer. Zero   -
 --                    fullness means the ringbuffer is empty, but when the     -
 --                    fullness approaches (2**G_SLOT_WIDTH)-1 then the         -
 --                    ringbuffer must be emptied urgently to avoid overflow.   -
---                    TODO                                                     -
---                    The ringbuffer module can carry auxiliary information on - 
---                    the slot information buffer, this can be packet          -
---                    forwarding information                                   -
--- Dependencies     : packetramsp,packetstatusram                              -
+-- Dependencies     : packetringbuffer,dualportpacketringbuffer                -
 -- Revision History : V1.0 - Initial design                                    -
+--                  : V1.1 - Changed architecure to use state machine to do the-
+--                           data resize and enable mapping.                   -
+--                           This is a better design as it saves BRAMS and LUTs-
+--                           Vivado cannot infer BRAM of 8<=>512 aspect ratio. -
 --------------------------------------------------------------------------------
 
 library ieee;
@@ -75,27 +76,27 @@ use ieee.numeric_std.all;
 
 entity cpuifreceiverpacketringbuffer is
     generic(
-        G_SLOT_WIDTH  : natural := 4;
-        G_ADDR_AWIDTH : natural := 8;
-        G_ADDR_BWIDTH : natural := 8;
-        G_DATA_AWIDTH : natural := 64;
-        G_DATA_BWIDTH : natural := 64
+        G_SLOT_WIDTH             : natural := 4;
+        constant G_RX_ADDR_WIDTH : natural := 5;
+        constant G_TX_ADDR_WIDTH : natural := 11;
+        constant G_RX_DATA_WIDTH : natural := 512;
+        constant G_TX_DATA_WIDTH : natural := 8
     );
     port(
         RxClk                  : in  STD_LOGIC;
         TxClk                  : in  STD_LOGIC;
         -- Reception port
-        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
+        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) - 1 downto 0);
         RxPacketDataWrite      : in  STD_LOGIC;
-        RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-        RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
+        RxPacketData           : in  STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+        RxPacketAddress        : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
         RxPacketSlotSet        : in  STD_LOGIC;
         RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RxPacketSlotStatus     : out STD_LOGIC;
         -- Transmission port
-        TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) downto 0);
-        TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-        TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+        TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) downto 0);
+        TxPacketDataOut        : out STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
+        TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_TX_ADDR_WIDTH - 1 downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
         TxPacketSlotClear      : in  STD_LOGIC;
         TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
@@ -104,121 +105,144 @@ entity cpuifreceiverpacketringbuffer is
 end entity cpuifreceiverpacketringbuffer;
 
 architecture rtl of cpuifreceiverpacketringbuffer is
-    component packetstatusram is
+    component packetringbuffer is
         generic(
-            G_ADDR_WIDTH : natural := 4
+            G_SLOT_WIDTH : natural := 4;
+            G_ADDR_WIDTH : natural := 5;
+            G_DATA_WIDTH : natural := 64
         );
         port(
-            ClkA          : in  STD_LOGIC;
-            ClkB          : in  STD_LOGIC;
-            -- Port A
-            EnableA       : in  STD_LOGIC;
-            WriteAEnable  : in  STD_LOGIC;
-            WriteAData    : in  STD_LOGIC_VECTOR(1 downto 0);
-            WriteAAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            ReadAData     : out STD_LOGIC_VECTOR(1 downto 0);
-            -- Port B
-            WriteBAddress : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            EnableB       : in  STD_LOGIC;
-            WriteBEnable  : in  STD_LOGIC;
-            WriteBData    : in  STD_LOGIC_VECTOR(1 downto 0);
-            ReadBData     : out STD_LOGIC_VECTOR(1 downto 0)
+            Clk                    : in  STD_LOGIC;
+            -- Transmission port
+            TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            TxPacketDataRead       : in  STD_LOGIC;
+            TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            TxPacketSlotClear      : in  STD_LOGIC;
+            TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            TxPacketSlotStatus     : out STD_LOGIC;
+            TxPacketSlotTypeStatus : out STD_LOGIC;
+            -- Reception port
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RxPacketDataWrite      : in  STD_LOGIC;
+            RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            RxPacketSlotSet        : in  STD_LOGIC;
+            RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RxPacketSlotType       : in  STD_LOGIC;
+            RxPacketSlotStatus     : out STD_LOGIC;
+            RxPacketSlotTypeStatus : out STD_LOGIC
         );
-    end component packetstatusram;
-    component assymetricdualportpacketram64to1byte is
+    end component packetringbuffer;
+    component dualportpacketringbuffer is
         generic(
-            G_ADDR_WIDTH : natural := 8 + 2;    
-            G_SLOT_WIDTH : natural := 4
+            G_SLOT_WIDTH : natural := 4;
+            G_ADDR_WIDTH : natural := 8;
+            G_DATA_WIDTH : natural := 64
         );
         port(
-            ClkA             : in  STD_LOGIC;
-            ClkB             : in  STD_LOGIC;
-            -- Port A
-            WriteByteEnableA : in  STD_LOGIC_VECTOR((512 / 8) - 1 downto 0);
-            WriteAAddress    : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH - 4) - 1 downto 0);
-            EnableA          : in  STD_LOGIC;
-            WriteAEnable     : in  STD_LOGIC;
-            WriteAData       : in  STD_LOGIC_VECTOR(511 downto 0);
-            -- Port B
-            ReadBAddress     : in  STD_LOGIC_VECTOR((G_ADDR_WIDTH + G_SLOT_WIDTH) - 1 downto 0);
-            EnableB          : in  STD_LOGIC;
-            ReadByteEnableB  : out STD_LOGIC_VECTOR(1 downto 0);
-            ReadBData        : out STD_LOGIC_VECTOR(7 downto 0)
+            RxClk                  : in  STD_LOGIC;
+            TxClk                  : in  STD_LOGIC;
+            -- Transmission port
+            TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            TxPacketDataRead       : in  STD_LOGIC;
+            TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            TxPacketSlotClear      : in  STD_LOGIC;
+            TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            TxPacketSlotStatus     : out STD_LOGIC;
+            TxPacketSlotTypeStatus : out STD_LOGIC;
+            -- Reception port
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RxPacketDataWrite      : in  STD_LOGIC;
+            RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            RxPacketSlotSet        : in  STD_LOGIC;
+            RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RxPacketSlotType       : in  STD_LOGIC;
+            RxPacketSlotStatus     : out STD_LOGIC;
+            RxPacketSlotTypeStatus : out STD_LOGIC
         );
-    end component assymetricdualportpacketram64to1byte;
+    end component dualportpacketringbuffer;
 
-    signal lRxPacketAddress : std_logic_vector((RxPacketAddress'length + RxPacketSlotID'length) - 1 downto 0);
-    signal lTxPacketAddress : std_logic_vector((TxPacketReadAddress'length + TxPacketSlotID'length) - 1 downto 0);
-    --signal lTxPacketData    : std_logic_vector((TxPacketData'length + TxPacketByteEnable'length) - 1 downto 0);
-    --signal lRxPacketData    : std_logic_vector((RxPacketData'length + RxPacketByteEnable'length) - 1 downto 0);
-    signal VCC_onebit       : std_logic;
-    signal GND_onebit       : std_logic;
-    signal GND_twobit       : std_logic_vector(1 downto 0);
-    signal GND_dwidth       : std_logic_vector(TxPacketDataOut'length - 1 downto 0);
-    signal SlotStatusUnused : std_logic;
+    signal GNDBit                      : std_logic;
+    signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
+    signal IngressRingBufferDataRead   : std_logic;
+    signal IngressRingBufferDataOut    : std_logic_vector(G_RX_DATA_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : std_logic_vector(G_RX_ADDR_WIDTH - 1 downto 0);
+    signal IngressRingBufferSlotClear  : std_logic;
+    signal IngressRingBufferSlotID     : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
+    signal IngressRingBufferSlotStatus : std_logic;
+    
+    signal EgressRingBufferDataEnable  : std_logic_vector((G_TX_DATA_WIDTH / 8) downto 0);
+    signal EgressRingBufferDataWrite   : std_logic;
+    signal EgressRingBufferData        : std_logic_vector(G_TX_DATA_WIDTH - 1 downto 0);
+    signal EgressRingBufferAddress     : std_logic_vector(G_TX_ADDR_WIDTH - 1 downto 0);
+    signal EgressRingBufferSlotSet     : std_logic;
+    signal EgressRingBufferSlotID      : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
+    signal EgressRingBufferSlotStatus  : std_logic;
 
 begin
-    VCC_onebit <= '1';
-    GND_onebit <= '0';
-    GND_twobit <= "00";
-    GND_dwidth <= (others => '0');
+    GNDBit <= '0';
 
-    packetstatusram_i : packetstatusram
+    IngressPacketBuffer_i : packetringbuffer
         generic map(
-            G_ADDR_WIDTH => G_SLOT_WIDTH
+            G_SLOT_WIDTH => G_SLOT_WIDTH,
+            G_ADDR_WIDTH => G_RX_ADDR_WIDTH,
+            G_DATA_WIDTH => G_RX_DATA_WIDTH
         )
         port map(
-            ClkA          => RxClk,
-            ClkB          => TxClk,
-            -- Port A
-            EnableA       => RxPacketSlotSet,
-            WriteAEnable  => RxPacketSlotSet,
-            WriteAData(0) => RxPacketSlotSet,
-            WriteAData(1) => RxPacketSlotSet,
-            WriteAAddress => RxPacketSlotID,
-            ReadAData     => open,
-            -- Port B
-            WriteBAddress => TxPacketSlotID,
-            EnableB       => VCC_onebit,
-            WriteBEnable  => TxPacketSlotClear,
-            WriteBData    => GND_twobit,
-            ReadBData(0)  => TxPacketSlotStatus,
-            ReadBData(1)  => SlotStatusUnused
+            Clk                    => RxClk,
+            -- Transmission port
+            TxPacketByteEnable     => IngressRingBufferDataEnable,
+            TxPacketDataRead       => IngressRingBufferDataRead,
+            TxPacketData           => IngressRingBufferDataOut,
+            TxPacketAddress        => IngressRingBufferAddress,
+            TxPacketSlotClear      => IngressRingBufferSlotClear,
+            TxPacketSlotID         => IngressRingBufferSlotID,
+            TxPacketSlotStatus     => IngressRingBufferSlotStatus,
+            TxPacketSlotTypeStatus => open,
+            RxPacketByteEnable     => RxPacketByteEnable,
+            RxPacketDataWrite      => RxPacketDataWrite,
+            RxPacketData           => RxPacketData,
+            RxPacketAddress        => RxPacketAddress,
+            RxPacketSlotSet        => RxPacketSlotSet,
+            RxPacketSlotID         => RxPacketSlotID,
+            RxPacketSlotType       => GNDBit,
+            RxPacketSlotStatus     => RxPacketSlotStatus,
+            RxPacketSlotTypeStatus => open
         );
 
-    --lRxPacketData((RxPacketByteEnable'length + RxPacketData'length) - 1 downto RxPacketData'length) <= RxPacketByteEnable;
-    --lRxPacketData(RxPacketData'length - 1 downto 0)                                                 <= RxPacketData;
-
-    lRxPacketAddress((RxPacketSlotID'length + RxPacketAddress'length) - 1 downto RxPacketAddress'length) <= RxPacketSlotID;
-    lRxPacketAddress(RxPacketAddress'length - 1 downto 0)                                                <= RxPacketAddress;
-
-    lTxPacketAddress((TxPacketSlotID'length + TxPacketReadAddress'length) - 1 downto TxPacketReadAddress'length) <= TxPacketSlotID;
-    lTxPacketAddress(TxPacketReadAddress'length - 1 downto 0)                                                    <= TxPacketReadAddress;
-
-    --TxPacketByteEnable <= lTxPacketData((TxPacketByteEnable'length + TxPacketData'length) - 1 downto TxPacketData'length);
-    --TxPacketData       <= lTxPacketData(TxPacketData'length - 1 downto 0);
-    --This is wrong and will generate mixed data
-    -- TODO
-    -- Separate enables and data to avoid problems on data output stage
-    DataBuffer_i : assymetricdualportpacketram64to1byte
+    EgressPacketBuffer_i : dualportpacketringbuffer
         generic map(
-            G_ADDR_WIDTH => TxPacketReadAddress'length,
-            G_SLOT_WIDTH => TxPacketSlotID'length            
+            G_SLOT_WIDTH => G_SLOT_WIDTH,
+            G_ADDR_WIDTH => G_TX_ADDR_WIDTH,
+            G_DATA_WIDTH => G_TX_DATA_WIDTH
         )
         port map(
-            ClkA             => RxClk,
-            ClkB             => TxClk,
-            -- Port A
-            WriteByteEnableA => RxPacketByteEnable,
-            WriteAAddress    => lRxPacketAddress,
-            EnableA          => RxPacketDataWrite,
-            WriteAEnable     => RxPacketDataWrite,
-            WriteAData       => RxPacketData,
-            -- Port B
-            ReadBAddress     => lTxPacketAddress,
-            EnableB          => TxPacketDataRead,
-            ReadByteEnableB  => TxPacketReadByteEnable(1 downto 0),
-            ReadBData        => TxPacketDataOut
+            RxClk                  => RxClk,
+            TxClk                  => TxClk,
+            -- Transmission port
+            TxPacketByteEnable     => TxPacketReadByteEnable,
+            TxPacketDataRead       => TxPacketDataRead,
+            TxPacketData           => TxPacketDataOut,
+            TxPacketAddress        => TxPacketReadAddress,
+            TxPacketSlotClear      => TxPacketSlotClear,
+            TxPacketSlotID         => TxPacketSlotID,
+            TxPacketSlotStatus     => TxPacketSlotStatus,
+            TxPacketSlotTypeStatus => open,
+            RxPacketByteEnable     => EgressRingBufferDataEnable,
+            RxPacketDataWrite      => EgressRingBufferDataWrite,
+            RxPacketData           => EgressRingBufferData,
+            RxPacketAddress        => EgressRingBufferAddress,
+            RxPacketSlotSet        => EgressRingBufferSlotSet,
+            RxPacketSlotID         => EgressRingBufferSlotID,
+            RxPacketSlotType       => GNDBit,
+            RxPacketSlotStatus     => EgressRingBufferSlotStatus,
+            RxPacketSlotTypeStatus => open
         );
-
+        
+        
+        
+        
 end architecture rtl;
