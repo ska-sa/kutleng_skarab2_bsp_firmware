@@ -25,8 +25,8 @@ create_clock -period 3.333 [get_ports sysclk1_300_n]
 set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_n]] 0.033330000000000005
 
 # UART (USB Based)
-set_property PACKAGE_PIN  BB21     [get_ports rs232_uart_txd]#
-set_property PACKAGE_PIN  AW25     [get_ports rs232_uart_rxd]#
+set_property PACKAGE_PIN  BB21     [get_ports rs232_uart_txd]
+set_property PACKAGE_PIN  AW25     [get_ports rs232_uart_rxd]
 
 # QSFP2
 set_property PACKAGE_PIN   W9  [get_ports mgt_qsfp2_clock_p]
