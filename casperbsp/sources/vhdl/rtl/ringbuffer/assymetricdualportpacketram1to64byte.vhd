@@ -116,12 +116,12 @@ begin
     -- We need bit lengths of about 512 wide.
     RAMAi : assymetrictruedualportram
         generic map(
-            WIDTHA     => 4,
-            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
-            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
-            WIDTHB     => 256,
-            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
-            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH)
+            WIDTHB     => 4,
+            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
+            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
+            WIDTHA     => 256,
+            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
+            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH)
         )
         port map(
             clkA  => ClkB,
@@ -138,12 +138,12 @@ begin
 
     RAMBi : assymetrictruedualportram
         generic map(
-            WIDTHA     => 4,
-            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
-            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
-            WIDTHB     => 256,
-            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
-            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH)
+            WIDTHB     => 4,
+            SIZEB      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH - 5)),
+            ADDRWIDTHB => (G_ADDR_WIDTH + G_SLOT_WIDTH - 5),
+            WIDTHA     => 256,
+            SIZEA      => (2**(G_ADDR_WIDTH + G_SLOT_WIDTH)),
+            ADDRWIDTHA => (G_ADDR_WIDTH + G_SLOT_WIDTH)
         )
         port map(
             clkA  => ClkB,
