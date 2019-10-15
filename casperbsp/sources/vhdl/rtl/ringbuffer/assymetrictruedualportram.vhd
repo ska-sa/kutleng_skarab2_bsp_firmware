@@ -62,12 +62,12 @@ use ieee.std_logic_arith.all;
 
 entity assymetrictruedualportram is
     generic(
-        WIDTHA     : integer := 4;
-        SIZEA      : integer := 1024;
-        ADDRWIDTHA : integer := 10;
-        WIDTHB     : integer := 16;
-        SIZEB      : integer := 256;
-        ADDRWIDTHB : integer := 8
+        WIDTHB     : integer := 4;
+        SIZEB      : integer := 8192;
+        ADDRWIDTHB : integer := 13;
+        WIDTHA     : integer := 16;
+        SIZEA      : integer := 2048;
+        ADDRWIDTHA : integer := 11
     );
     port(
         clkA  : in  std_logic;
@@ -130,9 +130,11 @@ begin
     process(clkA)
     begin
         if rising_edge(clkA) then
+            for i in 0 to RATIO - 1 loop
             if enA = '1' then
-                readA <= my_ram(conv_integer(addrA));
+                readA((i + 1) * minWIDTH - 1 downto i * minWIDTH) <= my_ram(conv_integer(addrA & conv_std_logic_vector(i, log2(RATIO))));
             end if;
+            end loop;
             regA <= readA;
         end if;
     end process;
@@ -140,17 +142,15 @@ begin
     process(clkB)
     begin
         if rising_edge(clkB) then
-            for i in 0 to RATIO - 1 loop
                 if enB = '1' then
                     if weB = '1' then
-                        my_ram(conv_integer(addrB & conv_std_logic_vector(i, log2(RATIO)))) <= diB((i + 1) * minWIDTH - 1 downto i * minWIDTH);
+                        my_ram(conv_integer(addrB)) <= diB;
                     end if;
                     -- The read statement below is placed after the write statement -- on purpose
                     -- to ensure write-first synchronization through the variable
                     -- mechanism
-                    readB((i + 1) * minWIDTH - 1 downto i * minWIDTH) <= my_ram(conv_integer(addrB & conv_std_logic_vector(i, log2(RATIO))));
+                    readB <= my_ram(conv_integer(addrB));
                 end if;
-            end loop;
             regB <= readB;
         end if;
     end process;
