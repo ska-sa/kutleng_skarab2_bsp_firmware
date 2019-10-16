@@ -109,37 +109,37 @@ architecture rtl of cpumacifudpsender is
     -- TODO
     -- Simulate enable TLAST resize mapping.
     component cpuifsenderpacketringbuffer is
-        generic(
-            G_SLOT_WIDTH  : natural := 4;
-            G_ADDR_AWIDTH : natural := 8;
-            G_ADDR_BWIDTH : natural := 8;
-            G_DATA_AWIDTH : natural := 64;
-            G_DATA_BWIDTH : natural := 64
-        );
-        port(
-            RxClk                   : in  STD_LOGIC;
-            TxClk                   : in  STD_LOGIC;
-            -- Transmission port
-            TxPacketByteEnable      : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) - 1 downto 0);
-            TxPacketDataRead        : in  STD_LOGIC;
-            TxPacketData            : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-            TxPacketAddress         : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
-            TxPacketSlotClear       : in  STD_LOGIC;
-            TxPacketSlotID          : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            TxPacketSlotStatus      : out STD_LOGIC;
-            -- Reception port
-            RxPacketReadByteEnable  : out STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) downto 0);
-            RxPacketDataOut         : out STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-            RxPacketReadAddress     : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
-            RxPacketDataRead        : in  STD_LOGIC;
-            RxPacketWriteByteEnable : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) downto 0);
-            RxPacketDataWrite       : in  STD_LOGIC;
-            RxPacketDataIn          : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-            RxPacketWriteAddress    : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
-            RxPacketSlotSet         : in  STD_LOGIC;
-            RxPacketSlotID          : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            RxPacketSlotStatus      : out STD_LOGIC
-        );
+    generic(
+        G_SLOT_WIDTH             : natural := 4;
+        constant G_RX_ADDR_WIDTH : natural := 11;
+        constant G_TX_ADDR_WIDTH : natural := 5;
+        constant G_RX_DATA_WIDTH : natural := 8;
+        constant G_TX_DATA_WIDTH : natural := 512
+    );
+    port(
+        RxClk                  : in  STD_LOGIC;
+        TxClk                  : in  STD_LOGIC;
+        -- Transmission port
+        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
+        TxPacketDataRead       : in  STD_LOGIC;
+        TxPacketData           : out STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
+        TxPacketAddress        : in  STD_LOGIC_VECTOR(G_TX_ADDR_WIDTH - 1 downto 0);
+        TxPacketSlotClear      : in  STD_LOGIC;
+        TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        TxPacketSlotStatus     : out STD_LOGIC;
+        -- Reception port
+        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
+        RxPacketData           : in  STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+        RxPacketAddress        : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
+        RxPacketDataWrite      : in  STD_LOGIC;
+        RxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
+        RxPacketDataRead       : in  STD_LOGIC;
+        RxPacketDataOut        : out STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+        RxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
+        RxPacketSlotSet        : in  STD_LOGIC;
+        RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        RxPacketSlotStatus     : out STD_LOGIC
+    );
     end component cpuifsenderpacketringbuffer;
 
     component macifudpsender is
@@ -179,7 +179,7 @@ architecture rtl of cpumacifudpsender is
     -- The egress width is 5 less the ingress width
     -- For normal MTU of 2048 ingress width = 10 (1024* 2 (16 bits))
     -- egress width  = 5 (32 * 64 (512 bits))
-    constant G_EGRESS_ADDR_WIDTH          : NATURAL := (G_ADDR_WIDTH - 5);
+    constant G_EGRESS_ADDR_WIDTH          : NATURAL := (G_ADDR_WIDTH - 6);
     signal EgressRingBufferSlotID         : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal EgressRingBufferSlotClear      : STD_LOGIC;
     signal EgressRingBufferSlotStatus     : STD_LOGIC;
@@ -252,10 +252,10 @@ begin
     TXCPURBi : cpuifsenderpacketringbuffer
         generic map(
             G_SLOT_WIDTH  => G_SLOT_WIDTH,
-            G_ADDR_AWIDTH => G_ADDR_WIDTH,
-            G_ADDR_BWIDTH => G_EGRESS_ADDR_WIDTH,
-            G_DATA_AWIDTH => G_CPU_DATA_WIDTH,
-            G_DATA_BWIDTH => G_AXIS_DATA_WIDTH
+            G_RX_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_TX_ADDR_WIDTH => G_EGRESS_ADDR_WIDTH,
+            G_RX_DATA_WIDTH => G_CPU_DATA_WIDTH,
+            G_TX_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             RxClk                   => aximm_clk,
@@ -264,10 +264,10 @@ begin
             RxPacketDataRead        => data_read_enable,
             RxPacketDataOut         => data_read_data,
             RxPacketReadAddress     => data_read_address,
-            RxPacketWriteByteEnable => data_write_byte_enable,
+            RxPacketByteEnable      => data_write_byte_enable,
             RxPacketDataWrite       => data_write_enable,
-            RxPacketDataIn          => data_write_data,
-            RxPacketWriteAddress    => data_write_address,
+            RxPacketData            => data_write_data,
+            RxPacketAddress         => data_write_address,
             RxPacketSlotSet         => ringbuffer_slot_set,
             RxPacketSlotID          => ringbuffer_slot_id,
             RxPacketSlotStatus      => ringbuffer_slot_status,
