@@ -131,9 +131,9 @@ architecture rtl of gmactop is
     constant C_IP_ADDR_2                  : std_logic_vector(31 downto 0)    := X"C0A8_640F"; --192.168.100.15
     constant C_UDP_SERVER_PORT            : natural range 0 to ((2**16) - 1) := 10000;
     constant C_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 20000;
-    constant C_ARP_CACHE_ASIZE            : natural                          := 13;
-    constant C_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 13;
-    constant C_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 13;
+    constant C_ARP_CACHE_ASIZE            : natural                          := 10;
+    constant C_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 11;
+    constant C_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 11;
     constant C_SLOT_WIDTH                 : natural                          := 4;
     constant C_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
     constant C_ARP_DATA_WIDTH             : natural                          := 32;
