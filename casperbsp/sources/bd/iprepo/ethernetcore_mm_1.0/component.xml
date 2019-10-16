@@ -1897,7 +1897,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>45dfb4b8</spirit:value>
+            <spirit:value>13861629</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1913,7 +1913,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>45dfb4b8</spirit:value>
+            <spirit:value>13861629</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -2575,7 +2575,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_ARP_CACHE_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_ARP_CACHE_ASIZE&apos;)) - 1)">9</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -2592,7 +2592,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_ARP_CACHE_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_ARP_CACHE_ASIZE&apos;)) - 1)">9</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -2703,7 +2703,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE&apos;)) - 1)">10</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -2720,7 +2720,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE&apos;)) - 1)">10</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -2891,7 +2891,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE&apos;)) - 1)">10</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -2908,7 +2908,7 @@
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
           <spirit:vector>
-            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE&apos;)) - 1)">12</spirit:left>
+            <spirit:left spirit:format="long" spirit:resolve="dependent" spirit:dependency="(spirit:decode(id(&apos;MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE&apos;)) - 1)">10</spirit:left>
             <spirit:right spirit:format="long">0</spirit:right>
           </spirit:vector>
           <spirit:wireTypeDefs>
@@ -6256,17 +6256,17 @@
       <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>C_ARP_CACHE_ASIZE</spirit:name>
         <spirit:displayName>C Arp Cache Asize</spirit:displayName>
-        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_ARP_CACHE_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_ARP_CACHE_ASIZE" spirit:minimum="0" spirit:rangeType="long">10</spirit:value>
       </spirit:modelParameter>
       <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>C_DATA_TX_BUFFER_ASIZE</spirit:name>
         <spirit:displayName>C Data Tx Buffer Asize</spirit:displayName>
-        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_DATA_TX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">11</spirit:value>
       </spirit:modelParameter>
       <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>C_DATA_RX_BUFFER_ASIZE</spirit:name>
         <spirit:displayName>C Data Rx Buffer Asize</spirit:displayName>
-        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+        <spirit:value spirit:format="long" spirit:resolve="generated" spirit:id="MODELPARAM_VALUE.C_DATA_RX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">11</spirit:value>
       </spirit:modelParameter>
       <spirit:modelParameter spirit:dataType="integer">
         <spirit:name>C_SLOT_WIDTH</spirit:name>
@@ -6334,7 +6334,7 @@
       <spirit:file>
         <spirit:name>hdl/ethernetcore_mm_v1_0.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_bb017909</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_743c4008</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -6810,17 +6810,17 @@
     <spirit:parameter>
       <spirit:name>C_ARP_CACHE_ASIZE</spirit:name>
       <spirit:displayName>C Arp Cache Asize</spirit:displayName>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_ARP_CACHE_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_ARP_CACHE_ASIZE" spirit:minimum="0" spirit:rangeType="long">10</spirit:value>
     </spirit:parameter>
     <spirit:parameter>
       <spirit:name>C_DATA_TX_BUFFER_ASIZE</spirit:name>
       <spirit:displayName>C Data Tx Buffer Asize</spirit:displayName>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_DATA_TX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_DATA_TX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">11</spirit:value>
     </spirit:parameter>
     <spirit:parameter>
       <spirit:name>C_DATA_RX_BUFFER_ASIZE</spirit:name>
       <spirit:displayName>C Data Rx Buffer Asize</spirit:displayName>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_DATA_RX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">13</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_DATA_RX_BUFFER_ASIZE" spirit:minimum="0" spirit:rangeType="long">11</spirit:value>
     </spirit:parameter>
     <spirit:parameter>
       <spirit:name>C_SLOT_WIDTH</spirit:name>
@@ -6844,11 +6844,11 @@
       <xilinx:autoFamilySupportLevel>level_0</xilinx:autoFamilySupportLevel>
       <xilinx:vendorDisplayName>Kutleng Engineering Technologies</xilinx:vendorDisplayName>
       <xilinx:vendorURL>http://www.kutleng.co.za</xilinx:vendorURL>
-      <xilinx:coreRevision>7</xilinx:coreRevision>
+      <xilinx:coreRevision>8</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>user.org:user:ethernetcore_mm:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2019-10-02T10:53:07Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2019-10-16T04:32:03Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@6810c1f6_ARCHIVE_LOCATION">/home/benjaminh/Documents/projects/ip_repo/ethernetcore_mm_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2eb7f460_ARCHIVE_LOCATION">/home/benjaminh/Documents/projects/ip_repo/ethernetcore_mm_1.0</xilinx:tag>
@@ -6950,6 +6950,32 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@618f7852_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@33b8e2e5_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@5dd5cdb1_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@38e1e95b_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1597afdd_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4546e526_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4a295f71_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@f8e76e7_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4472e762_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@60b9b271_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@59402f99_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6cf39872_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2cc184f5_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7becc7c5_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1842dd54_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a69c98c_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4eae2f37_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@723171b9_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5bc3727_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2357208e_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@79539ea0_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@35d4ee96_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@69a51f7b_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7d0efa8_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@159a88b6_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@79a57b2c_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@42a227d5_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4ed7a33f_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@351a4bd4_ARCHIVE_LOCATION">/home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/sources/bd/iprepo/ethernetcore_mm_1.0</xilinx:tag>
       </xilinx:tags>
       <xilinx:simulatorsInfo>
         <xilinx:unsupportedSimulators>
@@ -6966,10 +6992,10 @@
       <xilinx:xilinxVersion>2018.3.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="19b7d390"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="1eb2ee8c"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="c8b517ea"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="59e2636a"/>
-      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="aa312791"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="42291ff0"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="307b3cc6"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="99b8b02d"/>
+      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="beb16595"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="97933fe0"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>

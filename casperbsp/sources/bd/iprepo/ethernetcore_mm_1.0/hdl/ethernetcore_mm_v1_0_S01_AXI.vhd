@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity ethernetcore_mm_v1_0_S01_AXI is
     generic(
         -- Users to add parameters here
-        C_DATA_BUFFER_ASIZE  : natural := 13;
+        C_DATA_BUFFER_ASIZE  : natural := 11;
         -- User parameters ends
         -- Do not modify the parameters beyond this line
         -- Width of ID for for write address, write data, read address and read data

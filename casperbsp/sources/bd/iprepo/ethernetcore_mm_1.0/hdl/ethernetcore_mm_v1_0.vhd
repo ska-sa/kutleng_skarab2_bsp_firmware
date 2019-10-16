@@ -5,9 +5,9 @@ use ieee.numeric_std.all;
 entity ethernetcore_mm_v1_0 is
     generic(
         -- Users to add parameters here
-        C_ARP_CACHE_ASIZE       : natural          := 13;
-        C_DATA_TX_BUFFER_ASIZE  : natural          := 13;
-        C_DATA_RX_BUFFER_ASIZE  : natural          := 13;
+        C_ARP_CACHE_ASIZE       : natural          := 10;
+        C_DATA_TX_BUFFER_ASIZE  : natural          := 11;
+        C_DATA_RX_BUFFER_ASIZE  : natural          := 11;
         C_SLOT_WIDTH            : natural          := 4;
         -- User parameters ends
         -- Do not modify the parameters beyond this line
@@ -409,7 +409,7 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
 
     component ethernetcore_mm_v1_0_S01_AXI is
         generic(
-            C_DATA_BUFFER_ASIZE  : natural := 13;
+            C_DATA_BUFFER_ASIZE  : natural := 11;
             C_S_AXI_ID_WIDTH     : integer := 1;
             C_S_AXI_DATA_WIDTH   : integer := 32;
             C_S_AXI_ADDR_WIDTH   : integer := 10;
@@ -489,7 +489,7 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
 
     component ethernetcore_mm_v1_0_S02_AXI is
         generic(
-            C_DATA_BUFFER_ASIZE  : natural := 13;
+            C_DATA_BUFFER_ASIZE  : natural := 11;
             C_S_AXI_ID_WIDTH     : integer := 1;
             C_S_AXI_DATA_WIDTH   : integer := 32;
             C_S_AXI_ADDR_WIDTH   : integer := 10;
@@ -569,7 +569,7 @@ architecture arch_imp of ethernetcore_mm_v1_0 is
 
     component ethernetcore_mm_v1_0_S03_AXI is
         generic(
-            C_ARP_CACHE_ASIZE    : natural := 13;
+            C_ARP_CACHE_ASIZE    : natural := 10;
             C_S_AXI_ID_WIDTH     : integer := 1;
             C_S_AXI_DATA_WIDTH   : integer := 32;
             C_S_AXI_ADDR_WIDTH   : integer := 10;
