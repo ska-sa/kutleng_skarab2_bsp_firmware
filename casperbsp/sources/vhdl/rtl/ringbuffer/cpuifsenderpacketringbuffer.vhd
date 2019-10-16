@@ -84,6 +84,7 @@ entity cpuifsenderpacketringbuffer is
     port(
         RxClk                  : in  STD_LOGIC;
         TxClk                  : in  STD_LOGIC;
+        Reset                  : in  STD_LOGIC;  
         -- Transmission port
         TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
@@ -172,6 +173,17 @@ architecture rtl of cpuifsenderpacketringbuffer is
         );
     end component truedualportpacketringbuffer;
 
+    type SenderPacketRingBufferSM_t is (
+        InitialiseSt,                   -- On the reset state
+        FindPresentAndEmptySlotsSt,
+        PullIngressDataSt,
+        SaveIngressDataSt,
+        WriteEgressDataSt,
+        ClearAndSetSlotsSt
+    );
+    signal StateVariable               : SenderPacketRingBufferSM_t             := InitialiseSt;
+    constant C_BYTE_MAX                : natural                       := 64;    
+
     signal GNDBit                      : std_logic;
     signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataRead   : std_logic;
@@ -252,5 +264,50 @@ begin
             RxPacketSlotStatus     => EgressRingBufferSlotStatus,
             RxPacketSlotTypeStatus => open
         );
+
+
+    ----------------------------------------------------------------------------
+    --                     Packet Resize State Machine                        --   
+    ----------------------------------------------------------------------------
+    -- This module is a 8 to 512 aspect ratio packet forwarding statemachine. --
+    -- The module has two ring buffers Ingress (8:8) and Egress (512:512).    --
+    -- A statemachine is used to widen the transferes from 8 bits to 512 bits.--
+    -- The module does not need to be very fast as its data is supplied by a  --
+    -- slow CPU.                                                              --
+    ---------------------------------------------------------------------------- 
+
+    SynchStateProc : process(TxClk)
+    begin
+        if rising_edge(TxClk) then
+            if (Reset = '1') then
+
+                StateVariable <= InitialiseSt;
+            else
+                case (StateVariable) is
+
+                    when InitialiseSt =>
+
+                        -- Wait for packet after initialization
+                        StateVariable             <= FindPresentAndEmptySlotsSt;
+                        IngressRingBufferSlotID   <= (others => '0');
+                        EgressRingBufferSlotID    <= (others => '0');
+
+                    when FindPresentAndEmptySlotsSt =>
+                        StateVariable <= PullIngressDataSt;
+                    when PullIngressDataSt =>
+                        StateVariable <= SaveIngressDataSt;
+                    when SaveIngressDataSt =>
+                        StateVariable <= WriteEgressDataSt;
+                    when WriteEgressDataSt =>
+                        StateVariable <= ClearAndSetSlotsSt;
+                    when ClearAndSetSlotsSt =>
+                        StateVariable <= FindPresentAndEmptySlotsSt;
+                    when others =>
+                        StateVariable <= InitialiseSt;
+                end case;
+            end if;
+        end if;
+    end process SynchStateProc;
+        
 
 end architecture rtl;
