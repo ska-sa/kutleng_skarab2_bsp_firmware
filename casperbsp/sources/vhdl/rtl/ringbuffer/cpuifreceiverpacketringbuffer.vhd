@@ -134,7 +134,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
             RxPacketSlotTypeStatus : out STD_LOGIC
         );
     end component packetringbuffer;
-    component dualportpacketringbuffer is
+    component cpudualportpacketringbuffer is
         generic(
             G_SLOT_WIDTH : natural := 4;
             G_ADDR_WIDTH : natural := 8;
@@ -144,7 +144,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
             RxClk                  : in  STD_LOGIC;
             TxClk                  : in  STD_LOGIC;
             -- Transmission port
-            TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8)  downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
             TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -153,7 +153,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
             TxPacketSlotStatus     : out STD_LOGIC;
             TxPacketSlotTypeStatus : out STD_LOGIC;
             -- Reception port
-            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8)  downto 0);
             RxPacketDataWrite      : in  STD_LOGIC;
             RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -163,7 +163,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
             RxPacketSlotStatus     : out STD_LOGIC;
             RxPacketSlotTypeStatus : out STD_LOGIC
         );
-    end component dualportpacketringbuffer;
+    end component cpudualportpacketringbuffer;
 
     signal GNDBit                      : std_logic;
     signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
@@ -213,7 +213,7 @@ begin
             RxPacketSlotTypeStatus => open
         );
 
-    EgressPacketBuffer_i : dualportpacketringbuffer
+    EgressPacketBuffer_i : cpudualportpacketringbuffer
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
             G_ADDR_WIDTH => G_TX_ADDR_WIDTH,
