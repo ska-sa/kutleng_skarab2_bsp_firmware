@@ -63,6 +63,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity casperpcievethernetblock is
     generic(
@@ -127,7 +129,7 @@ entity casperpcievethernetblock is
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR((2 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0)
@@ -136,9 +138,9 @@ end entity casperpcievethernetblock;
 
 architecture rtl of casperpcievethernetblock is
     constant C_PR_SERVER_PORT           : natural range 0 to ((2**16) - 1) := 20000;
-    constant C_ARP_CACHE_ASIZE          : natural                          := 13;
-    constant C_CPU_TX_DATA_BUFFER_ASIZE : natural                          := 13;
-    constant C_CPU_RX_DATA_BUFFER_ASIZE : natural                          := 13;
+    constant C_ARP_CACHE_ASIZE          : natural                          := 10;
+    constant C_CPU_TX_DATA_BUFFER_ASIZE : natural                          := 11;
+    constant C_CPU_RX_DATA_BUFFER_ASIZE : natural                          := 11;
     constant C_SLOT_WIDTH               : natural                          := 4;
     constant C_ARP_DATA_WIDTH           : natural                          := 32;
 
@@ -149,10 +151,10 @@ architecture rtl of casperpcievethernetblock is
             G_SLOT_WIDTH                 : natural                          := 4;
             -- Number of UDP Streaming Data Server Modules 
             G_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
-            G_ARP_CACHE_ASIZE            : natural                          := 13;
+            G_ARP_CACHE_ASIZE            : natural                          := 10;
             G_ARP_DATA_WIDTH             : natural                          := 32;
-            G_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 13;
-            G_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 13;
+            G_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 11;
+            G_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 11;
             G_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 5
         );
         port(
@@ -272,7 +274,7 @@ architecture rtl of casperpcievethernetblock is
             axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((2 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
             axis_streaming_data_tx_tkeep                 : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tlast                 : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
             axis_streaming_data_tx_tready                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -407,9 +409,9 @@ architecture rtl of casperpcievethernetblock is
     component microblaze_axi_us_plus_wrapper is
         generic(
             -- Users to add parameters here
-            C_ARP_CACHE_ASIZE          : natural := 13;
-            C_CPU_TX_DATA_BUFFER_ASIZE : natural := 13;
-            C_CPU_RX_DATA_BUFFER_ASIZE : natural := 13;
+            C_ARP_CACHE_ASIZE          : natural := 10;
+            C_CPU_TX_DATA_BUFFER_ASIZE : natural := 11;
+            C_CPU_RX_DATA_BUFFER_ASIZE : natural := 11;
             C_SLOT_WIDTH               : natural := 4
         );
         port(

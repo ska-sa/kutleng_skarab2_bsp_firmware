@@ -151,10 +151,10 @@ architecture rtl of casper100gethernetblock is
             G_SLOT_WIDTH                 : natural                          := 4;
             -- Number of UDP Streaming Data Server Modules 
             G_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
-            G_ARP_CACHE_ASIZE            : natural                          := 13;
+            G_ARP_CACHE_ASIZE            : natural                          := 10;
             G_ARP_DATA_WIDTH             : natural                          := 32;
-            G_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 13;
-            G_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 13;
+            G_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 11;
+            G_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 11;
             G_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 5
         );
         port(
@@ -384,9 +384,9 @@ architecture rtl of casper100gethernetblock is
     component microblaze_axi_us_plus_wrapper is
         generic(
             -- Users to add parameters here
-            C_ARP_CACHE_ASIZE          : natural := 13;
-            C_CPU_TX_DATA_BUFFER_ASIZE : natural := 13;
-            C_CPU_RX_DATA_BUFFER_ASIZE : natural := 13;
+            C_ARP_CACHE_ASIZE          : natural := 10;
+            C_CPU_TX_DATA_BUFFER_ASIZE : natural := 11;
+            C_CPU_RX_DATA_BUFFER_ASIZE : natural := 11;
             C_SLOT_WIDTH               : natural := 4
         );
         port(
