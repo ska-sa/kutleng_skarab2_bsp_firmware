@@ -156,11 +156,11 @@ architecture rtl of cpuifsenderpacketringbuffer is
             TxPacketSlotStatus     : out STD_LOGIC;
             TxPacketSlotTypeStatus : out STD_LOGIC;
             -- Reception port
-            RxPacketReadByteEnable : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8)  downto 0);
             RxPacketDataRead       : in  STD_LOGIC;
-            RxPacketDataOut        : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            RxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
-            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8)  downto 0);
             RxPacketDataWrite      : in  STD_LOGIC;
             RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
             RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -181,7 +181,7 @@ architecture rtl of cpuifsenderpacketringbuffer is
     signal IngressRingBufferSlotID     : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : std_logic;
 
-    signal EgressRingBufferDataEnable : std_logic_vector((G_TX_DATA_WIDTH / 8) downto 0);
+    signal EgressRingBufferDataEnable : std_logic_vector((G_TX_DATA_WIDTH / 8) - 1 downto 0);
     signal EgressRingBufferDataWrite  : std_logic;
     signal EgressRingBufferData       : std_logic_vector(G_TX_DATA_WIDTH - 1 downto 0);
     signal EgressRingBufferAddress    : std_logic_vector(G_TX_ADDR_WIDTH - 1 downto 0);
