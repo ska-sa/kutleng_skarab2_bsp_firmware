@@ -91,7 +91,7 @@ entity cpumacifethernetreceiver is
         -- we use it to save TLAST
         RingBufferDataEnable   : out STD_LOGIC_VECTOR(63 downto 0);
         RingBufferDataOut      : out STD_LOGIC_VECTOR(511 downto 0);
-        RingBufferAddress      : out STD_LOGIC_VECTOR(G_ADDR_WIDTH+G_SLOT_WIDTH - 1 downto 0);
+        RingBufferAddress      : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         --Inputs from AXIS bus of the MAC side
         axis_rx_tdata          : in  STD_LOGIC_VECTOR(511 downto 0);
         axis_rx_tvalid         : in  STD_LOGIC;
