@@ -69,7 +69,7 @@ use unisim.vcomponents.all;
 entity casperpcievethernetblock is
     generic(
         -- The defaul MAC address fort he Virtual Ethernet MAC
-        G_VMAC_ADDRESS               : STD_LOGIC_VECTOR(47 downto 0);
+        G_VMAC_ADDRESS               : STD_LOGIC_VECTOR(47 downto 0) := X"000A_3502_4199";
         -- Boolean to include or not include ICAP for partial reconfiguration
         G_INCLUDE_ICAP               : boolean              := false;
         -- Streaming data size (must be 512)
