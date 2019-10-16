@@ -129,7 +129,7 @@ entity casper100gethernetblock is
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR((2 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0)
@@ -138,9 +138,9 @@ end entity casper100gethernetblock;
 
 architecture rtl of casper100gethernetblock is
     constant C_PR_SERVER_PORT           : natural range 0 to ((2**16) - 1) := 20000;
-    constant C_ARP_CACHE_ASIZE          : natural                          := 13;
-    constant C_CPU_TX_DATA_BUFFER_ASIZE : natural                          := 13;
-    constant C_CPU_RX_DATA_BUFFER_ASIZE : natural                          := 13;
+    constant C_ARP_CACHE_ASIZE          : natural                          := 10;
+    constant C_CPU_TX_DATA_BUFFER_ASIZE : natural                          := 11;
+    constant C_CPU_RX_DATA_BUFFER_ASIZE : natural                          := 11;
     constant C_SLOT_WIDTH               : natural                          := 4;
     constant C_ARP_DATA_WIDTH           : natural                          := 32;
 
@@ -274,7 +274,7 @@ architecture rtl of casper100gethernetblock is
             axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((2 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
             axis_streaming_data_tx_tkeep                 : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tlast                 : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
             axis_streaming_data_tx_tready                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
