@@ -265,11 +265,11 @@ begin
     ----------------------------------------------------------------------------
     --                     Packet Resize State Machine                        --   
     ----------------------------------------------------------------------------
-    -- This module is a 8 to 512 aspect ratio packet forwarding statemachine. --
-    -- The module has two ring buffers Ingress (8:8) and Egress (512:512).    --
-    -- A statemachine is used to widen the transferes from 8 bits to 512 bits.--
-    -- The module does not need to be very fast as its data is supplied by a  --
-    -- slow CPU.                                                              --
+    -- This module is a 512 to 8 aspect ratio packet forwarding statemachine. --
+    -- The module has two ring buffers Ingress (512:512) and Egress (8:8).    --
+    -- A statemachine is used to narrow the transferes from 512 bits to 8 bits--
+    -- The module does not need to be very fast as it captures data at line   --
+    -- rate but send it via a ring buffer to a slow CPU.                      --
     ---------------------------------------------------------------------------- 
 
     SynchStateProc : process(TxClk)
@@ -300,7 +300,7 @@ begin
                     when FindPresentSlotsSt =>
                         if (IngressRingBufferSlotStatus = '1') then
                             -- There is a packet waiting on the ring buffer
-                            -- Stat from the base address to extract the packet
+                            -- Start from the base address to extract the packet
                             EgressRingBufferAddress   <= (others => '0');
                             IngressRingBufferDataRead <= '1';
                             lFrameIndex               <= 0;
