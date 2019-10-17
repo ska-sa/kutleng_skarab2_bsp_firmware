@@ -175,32 +175,39 @@ architecture rtl of cpuifsenderpacketringbuffer is
 
     type SenderPacketRingBufferSM_t is (
         InitialiseSt,                   -- On the reset state
-        FindPresentAndEmptySlotsSt,
+        FindPresentSlotsSt,
+        IngressFramingErrorSt,
         PullIngressDataSt,
         SaveIngressDataSt,
+        OutputEgressDataSt,
         WriteEgressDataSt,
-        ClearAndSetSlotsSt
+        ClearAndSetSlotsSt,
+        NextSlotsSt
     );
     signal StateVariable               : SenderPacketRingBufferSM_t             := InitialiseSt;
-    constant C_BYTE_MAX                : natural                       := 64;    
-
+    constant C_BYTE_INDEX_MAX          : natural                      := (G_RX_DATA_WIDTH / 8) - 1;
+    constant C_FRAME_INDEX_MAX         : natural                      := (2**G_RX_ADDR_WIDTH) - 1;
+    type PayLoadArray_t is array (0 to ((G_RX_DATA_WIDTH / 8) - 1)) of std_logic_vector(7 downto 0);
+    -- Payload byte array to map bytes on 512 bit read buffer
+    signal lRingBufferData             : PayLoadArray_t;
+    signal lRingBufferDataEnable       : std_logic_vector(C_BYTE_INDEX_MAX downto 0);
     signal GNDBit                      : std_logic;
     signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataRead   : std_logic;
     signal IngressRingBufferDataOut    : std_logic_vector(G_RX_DATA_WIDTH - 1 downto 0);
-    signal IngressRingBufferAddress    : std_logic_vector(G_RX_ADDR_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : unsigned(G_RX_ADDR_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotClear  : std_logic;
-    signal IngressRingBufferSlotID     : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
+    signal IngressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : std_logic;
 
     signal EgressRingBufferDataEnable : std_logic_vector((G_TX_DATA_WIDTH / 8) - 1 downto 0);
     signal EgressRingBufferDataWrite  : std_logic;
     signal EgressRingBufferData       : std_logic_vector(G_TX_DATA_WIDTH - 1 downto 0);
-    signal EgressRingBufferAddress    : std_logic_vector(G_TX_ADDR_WIDTH - 1 downto 0);
     signal EgressRingBufferSlotSet    : std_logic;
-    signal EgressRingBufferSlotID     : std_logic_vector(G_SLOT_WIDTH - 1 downto 0);
+    signal EgressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal EgressRingBufferSlotStatus : std_logic;
-
+    signal lFrameIndex : natural range 0 to C_FRAME_INDEX_MAX;
+    signal lByteIndex  : natural range 0 to C_BYTE_INDEX_MAX;
 begin
     GNDBit <= '0';
 
@@ -217,9 +224,9 @@ begin
             TxPacketByteEnable     => IngressRingBufferDataEnable,
             TxPacketDataRead       => IngressRingBufferDataRead,
             TxPacketData           => IngressRingBufferDataOut,
-            TxPacketAddress        => IngressRingBufferAddress,
+            TxPacketAddress        => std_logic_vector(IngressRingBufferAddress),
             TxPacketSlotClear      => IngressRingBufferSlotClear,
-            TxPacketSlotID         => IngressRingBufferSlotID,
+            TxPacketSlotID         => std_logic_vector(IngressRingBufferSlotID),
             TxPacketSlotStatus     => IngressRingBufferSlotStatus,
             TxPacketSlotTypeStatus => open,
             RxPacketReadByteEnable => RxPacketReadByteEnable,
@@ -257,9 +264,9 @@ begin
             RxPacketByteEnable     => EgressRingBufferDataEnable,
             RxPacketDataWrite      => EgressRingBufferDataWrite,
             RxPacketData           => EgressRingBufferData,
-            RxPacketAddress        => EgressRingBufferAddress,
+            RxPacketAddress        => std_logic_vector(to_unsigned(lFrameIndex, G_TX_ADDR_WIDTH)),
             RxPacketSlotSet        => EgressRingBufferSlotSet,
-            RxPacketSlotID         => EgressRingBufferSlotID,
+            RxPacketSlotID         => std_logic_vector(EgressRingBufferSlotID),
             RxPacketSlotType       => GNDBit,
             RxPacketSlotStatus     => EgressRingBufferSlotStatus,
             RxPacketSlotTypeStatus => open
@@ -283,25 +290,106 @@ begin
 
                 StateVariable <= InitialiseSt;
             else
-                case (StateVariable) is
+               case (StateVariable) is
 
                     when InitialiseSt =>
 
                         -- Wait for packet after initialization
-                        StateVariable             <= FindPresentAndEmptySlotsSt;
-                        IngressRingBufferSlotID   <= (others => '0');
-                        EgressRingBufferSlotID    <= (others => '0');
+                        StateVariable              <= FindPresentSlotsSt;
+                        IngressRingBufferSlotID    <= (others => '0');
+                        EgressRingBufferSlotID     <= (others => '0');
+                        IngressRingBufferAddress   <= (others => '0');
+                        IngressRingBufferDataRead  <= '0';
+                        EgressRingBufferDataWrite  <= '0';
+                        EgressRingBufferData       <= (others => '0');
+                        EgressRingBufferDataEnable <= (others => '0');
+                        EgressRingBufferSlotSet    <= '0';
+                        IngressRingBufferSlotClear <= '0';
+                        lFrameIndex                <= 0;
+                        lByteIndex                 <= 0;
 
-                    when FindPresentAndEmptySlotsSt =>
-                        StateVariable <= PullIngressDataSt;
+                    when FindPresentSlotsSt =>
+                        if (IngressRingBufferSlotStatus = '1') then
+                            -- There is a packet waiting on the ring buffer
+                            -- Start from the base address to extract the packet
+                            IngressRingBufferAddress   <= (others => '0');
+                            IngressRingBufferDataRead <= '1';
+                            lFrameIndex               <= 0;
+                            StateVariable             <= PullIngressDataSt;
+                        else
+                            -- Keep searching for a packet
+                            StateVariable <= FindPresentSlotsSt;
+                        end if;
                     when PullIngressDataSt =>
-                        StateVariable <= SaveIngressDataSt;
+                        EgressRingBufferDataWrite <= '0';
+
+                        if (lFrameIndex = C_FRAME_INDEX_MAX) then
+                            -- This is an error condition
+                            -- How do we recover from error?
+                            -- Clear the current slot and drop the incorrect framing packet 
+                            IngressRingBufferSlotClear <= '1';
+                            StateVariable              <= IngressFramingErrorSt;
+                        else
+                            IngressRingBufferDataRead <= '1';
+                            StateVariable             <= SaveIngressDataSt;
+                        end if;
+
+                    when IngressFramingErrorSt =>
+                        IngressRingBufferSlotClear <= '0';
+                        IngressRingBufferSlotID    <= IngressRingBufferSlotID + 1;
+                        StateVariable              <= FindPresentSlotsSt;
+
                     when SaveIngressDataSt =>
-                        StateVariable <= WriteEgressDataSt;
+                        -- Save the data and the byte enable 
+                        IngressRingBufferDataRead <= '0';
+                        -- Point to next Frame index
+                        lFrameIndex               <= lFrameIndex + 1;
+                        lByteIndex                <= 0;
+                        StateVariable             <= WriteEgressDataSt;
+
                     when WriteEgressDataSt =>
-                        StateVariable <= ClearAndSetSlotsSt;
+                        IngressRingBufferDataRead     <= '1';
+                        if (lByteIndex = C_BYTE_INDEX_MAX) then
+                            if (lRingBufferDataEnable(0) = '1') then
+                                -- We are on the last byte enable and have TLAST
+                                EgressRingBufferDataEnable(1) <= '1';
+                                StateVariable                 <= ClearAndSetSlotsSt;
+                            else
+                                EgressRingBufferDataEnable(1) <= '0';
+                                StateVariable                 <= PullIngressDataSt;
+                            end if;
+                        else
+                            if ((lRingBufferDataEnable(0) = '1') and (lRingBufferDataEnable(lByteIndex + 1) = '0')) then
+                                -- We are on the last byte enable and have TLAST
+                                EgressRingBufferDataEnable(1) <= '1';
+                                -- Done with packet output completely 
+                                StateVariable                 <= ClearAndSetSlotsSt;
+                            else
+                                EgressRingBufferDataEnable(1) <= '0';
+                                StateVariable                 <= WriteEgressDataSt;
+                            end if;
+                        end if;
+                        -- Write the current byte out
+                        lRingBufferData(lByteIndex) <= IngressRingBufferDataOut;
+                        lRingBufferDataEnable     <= IngressRingBufferDataEnable;                        
+                        -- Point to next byte index
+                        lByteIndex                    <= lByteIndex + 1;
+                        -- Point to next egress buffer address
+                        IngressRingBufferAddress       <= IngressRingBufferAddress + 1;
+
                     when ClearAndSetSlotsSt =>
-                        StateVariable <= FindPresentAndEmptySlotsSt;
+                        -- Clear the ingress slot and and set the egress slot 
+                        EgressRingBufferDataWrite  <= '0';
+                        EgressRingBufferSlotSet    <= '1';
+                        IngressRingBufferSlotClear <= '1';
+                        StateVariable              <= NextSlotsSt;
+                    when NextSlotsSt =>
+                        EgressRingBufferSlotSet    <= '0';
+                        IngressRingBufferSlotClear <= '0';
+                        -- Search next slots  
+                        EgressRingBufferSlotID     <= EgressRingBufferSlotID + 1;
+                        IngressRingBufferSlotID    <= IngressRingBufferSlotID + 1;
+                        StateVariable              <= FindPresentSlotsSt;
                     when others =>
                         StateVariable <= InitialiseSt;
                 end case;
