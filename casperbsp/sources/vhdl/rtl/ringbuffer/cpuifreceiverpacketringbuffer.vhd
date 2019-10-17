@@ -171,7 +171,6 @@ architecture rtl of cpuifreceiverpacketringbuffer is
         IngressFramingErrorSt,
         PullIngressDataSt,
         SaveIngressDataSt,
-        OutputEgressDataSt,
         WriteEgressDataSt,
         ClearAndSetSlotsSt,
         NextSlotsSt
