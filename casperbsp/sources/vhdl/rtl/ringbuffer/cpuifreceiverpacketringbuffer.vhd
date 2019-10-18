@@ -203,7 +203,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
     signal lByteIndex  : natural range 0 to C_BYTE_INDEX_MAX;
 
 begin
-    GNDBit <= '0';
+    GNDBit                   <= '0';
     IngressRingBufferAddress <= std_logic_vector(to_unsigned(lFrameIndex, G_RX_ADDR_WIDTH));
     IngressPacketBuffer_i : packetringbuffer
         generic map(
