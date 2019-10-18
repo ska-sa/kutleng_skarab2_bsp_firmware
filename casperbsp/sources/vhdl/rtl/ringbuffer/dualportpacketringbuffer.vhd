@@ -213,10 +213,10 @@ begin
             WriteAEnable  => RxPacketDataWrite,
             WriteAData    => lRxPacketData,
             ReadAData     => open,
+            WriteBAddress => lTxPacketAddress,
+            EnableB       => TxPacketDataRead,
             WriteBEnable  => GND_onebit,
             WriteBData    => GND_dwidth,
-            EnableB       => TxPacketDataRead,
-            WriteBAddress => lTxPacketAddress,
             ReadBData     => lTxPacketData
         );
 end architecture rtl;
