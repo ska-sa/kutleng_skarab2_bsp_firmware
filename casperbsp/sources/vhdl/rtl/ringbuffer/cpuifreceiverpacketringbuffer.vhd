@@ -186,6 +186,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
     signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataRead   : std_logic;
     signal IngressRingBufferDataOut    : std_logic_vector(G_RX_DATA_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : std_logic_vector(G_RX_ADDR_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotClear  : std_logic;
     signal IngressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : std_logic;
@@ -203,7 +204,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
 
 begin
     GNDBit <= '0';
-
+    IngressRingBufferAddress <= std_logic_vector(to_unsigned(lFrameIndex, G_RX_ADDR_WIDTH));
     IngressPacketBuffer_i : packetringbuffer
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
@@ -216,7 +217,7 @@ begin
             TxPacketByteEnable     => IngressRingBufferDataEnable,
             TxPacketDataRead       => IngressRingBufferDataRead,
             TxPacketData           => IngressRingBufferDataOut,
-            TxPacketAddress        => std_logic_vector(to_unsigned(lFrameIndex, G_RX_ADDR_WIDTH)),
+            TxPacketAddress        => IngressRingBufferAddress,
             TxPacketSlotClear      => IngressRingBufferSlotClear,
             TxPacketSlotID         => std_logic_vector(IngressRingBufferSlotID),
             TxPacketSlotStatus     => IngressRingBufferSlotStatus,

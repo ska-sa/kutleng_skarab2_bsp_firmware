@@ -179,7 +179,6 @@ architecture rtl of cpuifsenderpacketringbuffer is
         IngressFramingErrorSt,
         PullIngressDataSt,
         SaveIngressDataSt,
-        OutputEgressDataSt,
         WriteEgressDataSt,
         ClearAndSetSlotsSt,
         NextSlotsSt
@@ -202,6 +201,7 @@ architecture rtl of cpuifsenderpacketringbuffer is
 
     signal EgressRingBufferDataWrite  : std_logic;
     signal EgressRingBufferData       : std_logic_vector(G_TX_DATA_WIDTH - 1 downto 0);
+    signal EgressRingBufferAddress    : std_logic_vector(G_TX_ADDR_WIDTH - 1 downto 0);
     signal EgressRingBufferSlotSet    : std_logic;
     signal EgressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal EgressRingBufferSlotStatus : std_logic;
@@ -209,7 +209,7 @@ architecture rtl of cpuifsenderpacketringbuffer is
     signal lByteIndex                 : natural range 0 to C_BYTE_INDEX_MAX;
 begin
     GNDBit <= '0';
-
+    EgressRingBufferAddress <= std_logic_vector(to_unsigned(lFrameIndex, G_TX_ADDR_WIDTH));
     IngressPacketBuffer_i : truedualportpacketringbuffer
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
@@ -263,7 +263,7 @@ begin
             RxPacketByteEnable     => lRingBufferDataEnable,
             RxPacketDataWrite      => EgressRingBufferDataWrite,
             RxPacketData           => EgressRingBufferData,
-            RxPacketAddress        => std_logic_vector(to_unsigned(lFrameIndex, G_TX_ADDR_WIDTH)),
+            RxPacketAddress        => EgressRingBufferAddress,
             RxPacketSlotSet        => EgressRingBufferSlotSet,
             RxPacketSlotID         => std_logic_vector(EgressRingBufferSlotID),
             RxPacketSlotType       => GNDBit,
@@ -363,6 +363,8 @@ begin
                         lByteIndex  <= lByteIndex + 1;
 
                     when WriteEgressDataSt =>
+                        -- Restart the byte index  
+                        lByteIndex <= 0;
                         if (IngressRingBufferDataEnable(1) = '1') then
                             -- The Frame has TLAST
                             -- Stop writing the output and terminate the frame
@@ -376,15 +378,13 @@ begin
                         else
                             -- Not on last frame
                             -- Continue reading
-                            -- Restart the byte index  
-                            lByteIndex <= 0;
                             lRingBufferDataEnable(lByteIndex)       <= IngressRingBufferDataEnable(0);
                             StateVariable                 <= WriteEgressDataSt;
                         end if;
-                        -- Write the current byte out
-                        lRingBufferData(lByteIndex) <= IngressRingBufferDataOut;
-                        -- Point to next byte index
-                        lByteIndex                  <= lByteIndex + 1;
+                        -- Write the entire data bytes out
+                        for i in 0 to C_BYTE_INDEX_MAX loop
+                            EgressRingBufferData((8 * (i + 1)) - 1 downto (8 * i)) <= lRingBufferData(i);
+                        end loop;                        
                         -- Point to next egress buffer address
                         IngressRingBufferAddress    <= IngressRingBufferAddress + 1;
 
