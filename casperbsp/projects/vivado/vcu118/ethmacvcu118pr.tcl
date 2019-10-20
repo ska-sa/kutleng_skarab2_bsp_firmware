@@ -93,13 +93,11 @@ add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetramsp.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetramdp.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetringbuffer.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/packetstatusram.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportramwwider.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetrictruedualportram.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpacketram1to64byte.vhd
-add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/assymetricdualportpacketram64to1byte.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpuifreceiverpacketringbuffer.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpuifsenderpacketringbuffer.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/dualportpacketringbuffer.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/cpudualportpacketringbuffer.vhd
+add_files $origin_dir/../../../sources/vhdl/rtl/ringbuffer/truedualportpacketringbuffer.vhd
 
 
 #L-BUS <=> AXIS
@@ -147,7 +145,6 @@ add_files $origin_dir/../../../sources/vhdl/rtl/udp/udpstreamingapps.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/cpuinterface/cpumacifudpreceiver.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/cpuinterface/cpumacifudpsender.vhd
 add_files $origin_dir/../../../sources/vhdl/rtl/udp/macinterface/cpuinterface/cpumacifethernetreceiver.vhd
-
 
 
 #Multiplexer Module
