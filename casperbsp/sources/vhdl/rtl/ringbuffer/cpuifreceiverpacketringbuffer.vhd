@@ -186,6 +186,7 @@ architecture rtl of cpuifreceiverpacketringbuffer is
     signal IngressRingBufferDataEnable : std_logic_vector((G_RX_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataRead   : std_logic;
     signal IngressRingBufferDataOut    : std_logic_vector(G_RX_DATA_WIDTH - 1 downto 0);
+    signal IngressRingBufferAddress    : std_logic_vector(G_RX_ADDR_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotClear  : std_logic;
     signal IngressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
     signal IngressRingBufferSlotStatus : std_logic;
@@ -202,8 +203,8 @@ architecture rtl of cpuifreceiverpacketringbuffer is
     signal lByteIndex  : natural range 0 to C_BYTE_INDEX_MAX;
 
 begin
-    GNDBit <= '0';
-
+    GNDBit                   <= '0';
+    IngressRingBufferAddress <= std_logic_vector(to_unsigned(lFrameIndex, G_RX_ADDR_WIDTH));
     IngressPacketBuffer_i : packetringbuffer
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
@@ -216,7 +217,7 @@ begin
             TxPacketByteEnable     => IngressRingBufferDataEnable,
             TxPacketDataRead       => IngressRingBufferDataRead,
             TxPacketData           => IngressRingBufferDataOut,
-            TxPacketAddress        => std_logic_vector(to_unsigned(lFrameIndex, G_RX_ADDR_WIDTH)),
+            TxPacketAddress        => IngressRingBufferAddress,
             TxPacketSlotClear      => IngressRingBufferSlotClear,
             TxPacketSlotID         => std_logic_vector(IngressRingBufferSlotID),
             TxPacketSlotStatus     => IngressRingBufferSlotStatus,
@@ -351,6 +352,8 @@ begin
                                 StateVariable                 <= PullIngressDataSt;
                             end if;
                         else
+    	                    -- Point to next byte index
+	                        lByteIndex                    <= lByteIndex + 1;
                             if ((lRingBufferDataEnable(0) = '1') and (lRingBufferDataEnable(lByteIndex + 1) = '0')) then
                                 -- We are on the last byte enable and have TLAST
                                 EgressRingBufferDataEnable(1) <= '1';
@@ -364,8 +367,6 @@ begin
                         -- Write the current byte out
                         EgressRingBufferData          <= lRingBufferData(lByteIndex);
                         EgressRingBufferDataEnable(0) <= lRingBufferDataEnable(lByteIndex);
-                        -- Point to next byte index
-                        lByteIndex                    <= lByteIndex + 1;
                         -- Point to next egress buffer address
                         EgressRingBufferAddress       <= EgressRingBufferAddress + 1;
 

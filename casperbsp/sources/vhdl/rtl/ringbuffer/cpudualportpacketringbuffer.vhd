@@ -46,7 +46,7 @@
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
 -- Design Name      : CASPER BSP                                               -
--- Module Name      : dualportpacketringbuffer - rtl                           -
+-- Module Name      : cpudualportpacketringbuffer - rtl                        -
 -- Project Name     : SKARAB2                                                  -
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
@@ -73,7 +73,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity dualportpacketringbuffer is
+entity cpudualportpacketringbuffer is
     generic(
         G_SLOT_WIDTH : natural := 4;
         G_ADDR_WIDTH : natural := 8;
@@ -83,7 +83,7 @@ entity dualportpacketringbuffer is
         RxClk                  : in  STD_LOGIC;
         TxClk                  : in  STD_LOGIC;
         -- Transmission port
-        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
         TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
         TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -92,7 +92,7 @@ entity dualportpacketringbuffer is
         TxPacketSlotStatus     : out STD_LOGIC;
         TxPacketSlotTypeStatus : out STD_LOGIC;
         -- Reception port
-        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) downto 0);
         RxPacketDataWrite      : in  STD_LOGIC;
         RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
         RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -102,9 +102,9 @@ entity dualportpacketringbuffer is
         RxPacketSlotStatus     : out STD_LOGIC;
         RxPacketSlotTypeStatus : out STD_LOGIC
     );
-end entity dualportpacketringbuffer;
+end entity cpudualportpacketringbuffer;
 
-architecture rtl of dualportpacketringbuffer is
+architecture rtl of cpudualportpacketringbuffer is
     component packetstatusram is
         generic(
             G_ADDR_WIDTH : natural := 4
@@ -156,7 +156,7 @@ architecture rtl of dualportpacketringbuffer is
     signal VCC_onebit       : std_logic;
     signal GND_onebit       : std_logic;
     signal GND_twobit       : std_logic_vector(1 downto 0);
-    signal GND_dwidth       : std_logic_vector(((G_DATA_WIDTH) + (G_DATA_WIDTH / 8)) - 1 downto 0);
+    signal GND_dwidth       : std_logic_vector(((G_DATA_WIDTH) + (G_DATA_WIDTH / 8)) downto 0);
 
 begin
     VCC_onebit <= '1';

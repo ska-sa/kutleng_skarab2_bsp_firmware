@@ -109,7 +109,7 @@ architecture rtl of assymetricdualportramwwider is
             end if;
         end loop;
         return res;
-    end function Log2;
+    end function log2;
     constant minWIDTH : integer := min(WIDTHA, WIDTHB);
     constant maxWIDTH : integer := max(WIDTHA, WIDTHB);
     constant maxSIZE  : integer := max(SIZEA, SIZEB);
@@ -122,10 +122,8 @@ architecture rtl of assymetricdualportramwwider is
 
     signal my_ram : ramType := (others => (others => '0'));
 
-    signal reada : std_logic_vector(WIDTHA - 1 downto 0) := (others => '0');
-    signal readB : std_logic_vector(WIDTHB - 1 downto 0) := (others => '0');
+    signal readA : std_logic_vector(WIDTHA - 1 downto 0) := (others => '0');
     signal regA  : std_logic_vector(WIDTHA - 1 downto 0) := (others => '0');
-    signal regB  : std_logic_vector(WIDTHB - 1 downto 0) := (others => '0');
 begin
     -- read process
     process(clkA)
@@ -149,7 +147,6 @@ begin
                     end if;
                 end if;
             end loop;
-            regB <= readB;
         end if;
     end process;
     doA <= regA;

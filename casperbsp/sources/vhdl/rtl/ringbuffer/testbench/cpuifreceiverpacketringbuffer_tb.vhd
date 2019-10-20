@@ -181,8 +181,8 @@ begin
 		for i in 0 to 14 loop
 			RxPacketAddress    <= (others => '0');
 			RxPacketByteEnable <= (others => '0');
+    		wait for C_CLK_PERIOD;
 			for n in 0 to 7 loop
-				RxPacketAddress   <= RxPacketAddress + 1;
 				if (n = 7) then
 					-- Terminate the transcation with TLAST
 					-- Also have some byte enables disabled to test 
@@ -213,6 +213,8 @@ begin
 				wait for C_CLK_PERIOD;
 				RxPacketDataWrite <= '0';
 				wait for C_CLK_PERIOD;
+				RxPacketAddress   <= RxPacketAddress + 1;
+				wait for C_CLK_PERIOD;
 			end loop;
 			RxPacketSlotSet    <= '1';
 			wait for C_CLK_PERIOD;
@@ -221,5 +223,9 @@ begin
 			RxPacketSlotID     <= RxPacketSlotID + 1;
 			wait for C_CLK_PERIOD;
 		end loop;
+		-- Clean up after the simulation data feed.
+		wait C_CLK_PERIOD*1000;
+		-- Terminate the simulation
+		std.env.finish;
 	end process StimProc;
 end architecture behavorial;

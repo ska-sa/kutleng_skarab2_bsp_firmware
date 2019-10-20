@@ -46,7 +46,7 @@
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
 -- Design Name      : CASPER BSP                                               -
--- Module Name      : dualportpacketringbuffer - rtl                           -
+-- Module Name      : truedualportpacketringbuffer - rtl                       -
 -- Project Name     : SKARAB2                                                  -
 -- Target Devices   : N/A                                                      -
 -- Tool Versions    : N/A                                                      -
@@ -73,7 +73,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity dualportpacketringbuffer is
+entity truedualportpacketringbuffer is
     generic(
         G_SLOT_WIDTH : natural := 4;
         G_ADDR_WIDTH : natural := 8;
@@ -83,7 +83,7 @@ entity dualportpacketringbuffer is
         RxClk                  : in  STD_LOGIC;
         TxClk                  : in  STD_LOGIC;
         -- Transmission port
-        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
         TxPacketData           : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
         TxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -92,7 +92,11 @@ entity dualportpacketringbuffer is
         TxPacketSlotStatus     : out STD_LOGIC;
         TxPacketSlotTypeStatus : out STD_LOGIC;
         -- Reception port
-        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+        RxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) downto 0);
+        RxPacketDataRead       : in  STD_LOGIC;
+        RxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+        RxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+        RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) downto 0);
         RxPacketDataWrite      : in  STD_LOGIC;
         RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
         RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
@@ -102,9 +106,9 @@ entity dualportpacketringbuffer is
         RxPacketSlotStatus     : out STD_LOGIC;
         RxPacketSlotTypeStatus : out STD_LOGIC
     );
-end entity dualportpacketringbuffer;
+end entity truedualportpacketringbuffer;
 
-architecture rtl of dualportpacketringbuffer is
+architecture rtl of truedualportpacketringbuffer is
     component packetstatusram is
         generic(
             G_ADDR_WIDTH : natural := 4
@@ -149,14 +153,16 @@ architecture rtl of dualportpacketringbuffer is
         );
     end component packetramdp;
 
-    signal lRxPacketAddress : std_logic_vector((RxPacketAddress'length + RxPacketSlotID'length) - 1 downto 0);
-    signal lTxPacketAddress : std_logic_vector((TxPacketAddress'length + TxPacketSlotID'length) - 1 downto 0);
-    signal lTxPacketData    : std_logic_vector((TxPacketData'length + TxPacketByteEnable'length) - 1 downto 0);
-    signal lRxPacketData    : std_logic_vector((RxPacketData'length + RxPacketByteEnable'length) - 1 downto 0);
-    signal VCC_onebit       : std_logic;
-    signal GND_onebit       : std_logic;
-    signal GND_twobit       : std_logic_vector(1 downto 0);
-    signal GND_dwidth       : std_logic_vector(((G_DATA_WIDTH) + (G_DATA_WIDTH / 8)) - 1 downto 0);
+    signal lRxPacketAddress  : std_logic_vector((RxPacketAddress'length + RxPacketSlotID'length) - 1 downto 0);
+    signal lTxPacketAddress  : std_logic_vector((TxPacketAddress'length + TxPacketSlotID'length) - 1 downto 0);
+    signal lTxPacketData     : std_logic_vector((TxPacketData'length + TxPacketByteEnable'length) - 1 downto 0);
+    signal lRxPacketData     : std_logic_vector((RxPacketData'length + RxPacketByteEnable'length) - 1 downto 0);
+    signal lRxPacketDataOut  : std_logic_vector((RxPacketData'length + RxPacketByteEnable'length) - 1 downto 0);
+    signal lRxPacketDataRead : std_logic;
+    signal VCC_onebit        : std_logic;
+    signal GND_onebit        : std_logic;
+    signal GND_twobit        : std_logic_vector(1 downto 0);
+    signal GND_dwidth        : std_logic_vector(((G_DATA_WIDTH) + (G_DATA_WIDTH / 8)) downto 0);
 
 begin
     VCC_onebit <= '1';
@@ -192,13 +198,17 @@ begin
     lRxPacketData(RxPacketData'length - 1 downto 0)                                                 <= RxPacketData;
 
     lRxPacketAddress((RxPacketSlotID'length + RxPacketAddress'length) - 1 downto RxPacketAddress'length) <= RxPacketSlotID;
-    lRxPacketAddress(RxPacketAddress'length - 1 downto 0)                                                <= RxPacketAddress;
+    lRxPacketAddress(RxPacketAddress'length - 1 downto 0)                                                <= RxPacketAddress when RxPacketDataWrite = '1' else RxPacketReadAddress;
+    lRxPacketDataRead                                                                                    <= RxPacketDataWrite when RxPacketDataWrite = '1' else RxPacketDataRead;
 
     lTxPacketAddress((TxPacketSlotID'length + TxPacketAddress'length) - 1 downto TxPacketAddress'length) <= TxPacketSlotID;
     lTxPacketAddress(TxPacketAddress'length - 1 downto 0)                                                <= TxPacketAddress;
 
     TxPacketByteEnable <= lTxPacketData((TxPacketByteEnable'length + TxPacketData'length) - 1 downto TxPacketData'length);
     TxPacketData       <= lTxPacketData(TxPacketData'length - 1 downto 0);
+
+    RxPacketReadByteEnable <= lRxPacketDataOut((RxPacketReadByteEnable'length + RxPacketDataOut'length) - 1 downto RxPacketDataOut'length);
+    RxPacketDataOut        <= lRxPacketDataOut(RxPacketDataOut'length - 1 downto 0);
 
     Buffer_i : packetramdp
         generic map(
@@ -209,10 +219,10 @@ begin
             ClkA          => RxClk,
             ClkB          => TxClk,
             WriteAAddress => lRxPacketAddress,
-            EnableA       => RxPacketDataWrite,
+            EnableA       => lRxPacketDataRead,
             WriteAEnable  => RxPacketDataWrite,
             WriteAData    => lRxPacketData,
-            ReadAData     => open,
+            ReadAData     => lRxPacketDataOut,
             WriteBAddress => lTxPacketAddress,
             EnableB       => TxPacketDataRead,
             WriteBEnable  => GND_onebit,
