@@ -76,145 +76,227 @@ use ieee.numeric_std.all;
 entity cpuifsenderpacketringbuffer_tb is
 end entity cpuifsenderpacketringbuffer_tb;
 
-architecture rtl of cpuifsenderpacketringbuffer_tb is
-	component cpuifsenderpacketringbuffer is
-		generic(
-			G_SLOT_WIDTH             : natural := 4;
-			constant G_RX_ADDR_WIDTH : natural := 11;
-			constant G_TX_ADDR_WIDTH : natural := 5;
-			constant G_RX_DATA_WIDTH : natural := 8;
-			constant G_TX_DATA_WIDTH : natural := 512
-		);
-		port(
-			RxClk                  : in  STD_LOGIC;
-			TxClk                  : in  STD_LOGIC;
-			Reset                  : in  STD_LOGIC;
-			-- Transmission port
-			TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
-			TxPacketDataRead       : in  STD_LOGIC;
-			TxPacketData           : out STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
-			TxPacketAddress        : in  STD_LOGIC_VECTOR(G_TX_ADDR_WIDTH - 1 downto 0);
-			TxPacketSlotClear      : in  STD_LOGIC;
-			TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-			TxPacketSlotStatus     : out STD_LOGIC;
-			-- Reception port
-			RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
-			RxPacketData           : in  STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
-			RxPacketAddress        : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
-			RxPacketDataWrite      : in  STD_LOGIC;
-			RxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
-			RxPacketDataRead       : in  STD_LOGIC;
-			RxPacketDataOut        : out STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
-			RxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
-			RxPacketSlotSet        : in  STD_LOGIC;
-			RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-			RxPacketSlotStatus     : out STD_LOGIC
-		);
-	end component cpuifsenderpacketringbuffer;
-	constant G_SLOT_WIDTH         : natural                                          := 4;
-	constant G_RX_ADDR_WIDTH      : natural                                          := 11;
-	constant G_TX_ADDR_WIDTH      : natural                                          := 5;
-	constant G_RX_DATA_WIDTH      : natural                                          := 8;
-	constant G_TX_DATA_WIDTH      : natural                                          := 512;
-	signal Clk                    : STD_LOGIC                                        := '1';
-	signal Reset                  : STD_LOGIC                                        := '1';
-	signal TxPacketByteEnable     : STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
-	signal TxPacketDataRead       : STD_LOGIC                                        := '1';
-	signal TxPacketData           : STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
-	signal TxPacketAddress        : unsigned(G_TX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
-	signal TxPacketSlotClear      : STD_LOGIC                                        := '0';
-	signal TxPacketSlotID         : unsigned(G_SLOT_WIDTH - 1 downto 0)              := (others => '0');
-	signal TxPacketSlotStatus     : STD_LOGIC;
-	signal RxPacketByteEnable     : STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0) := (others => '0');
-	signal RxPacketData           : STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0)   := (others => '0');
-	signal RxPacketAddress        : unsigned(G_RX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
-	signal RxPacketDataWrite      : STD_LOGIC                                        := '0';
-	signal RxPacketReadByteEnable : STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
-	signal RxPacketDataRead       : STD_LOGIC                                        := '0';
-	signal RxPacketDataOut        : STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
-	signal RxPacketReadAddress    : unsigned(G_RX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
-	signal RxPacketSlotSet        : STD_LOGIC                                        := '0';
-	signal RxPacketSlotID         : unsigned(G_SLOT_WIDTH - 1 downto 0)              := (others => '0');
-	signal RxPacketSlotStatus     : STD_LOGIC;
-	constant C_CLK_PERIOD         : time                                             := 10 ns;
+architecture behavorial of cpuifsenderpacketringbuffer_tb is
+    component cpuifsenderpacketringbuffer is
+        generic(
+            G_SLOT_WIDTH             : natural := 4;
+            constant G_RX_ADDR_WIDTH : natural := 11;
+            constant G_TX_ADDR_WIDTH : natural := 5;
+            constant G_RX_DATA_WIDTH : natural := 8;
+            constant G_TX_DATA_WIDTH : natural := 512
+        );
+        port(
+            RxClk                  : in  STD_LOGIC;
+            TxClk                  : in  STD_LOGIC;
+            Reset                  : in  STD_LOGIC;
+            -- Transmission port
+            TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
+            TxPacketDataRead       : in  STD_LOGIC;
+            TxPacketData           : out STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
+            TxPacketAddress        : in  STD_LOGIC_VECTOR(G_TX_ADDR_WIDTH - 1 downto 0);
+            TxPacketSlotClear      : in  STD_LOGIC;
+            TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            TxPacketSlotStatus     : out STD_LOGIC;
+            -- Reception port
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
+            RxPacketData           : in  STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
+            RxPacketDataWrite      : in  STD_LOGIC;
+            RxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
+            RxPacketDataRead       : in  STD_LOGIC;
+            RxPacketDataOut        : out STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+            RxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
+            RxPacketSlotSet        : in  STD_LOGIC;
+            RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RxPacketSlotStatus     : out STD_LOGIC
+        );
+    end component cpuifsenderpacketringbuffer;
+    constant G_SLOT_WIDTH         : natural                                          := 4;
+    constant G_RX_ADDR_WIDTH      : natural                                          := 11;
+    constant G_TX_ADDR_WIDTH      : natural                                          := 5;
+    constant G_RX_DATA_WIDTH      : natural                                          := 8;
+    constant G_TX_DATA_WIDTH      : natural                                          := 512;
+    signal Clk                    : STD_LOGIC                                        := '1';
+    signal Reset                  : STD_LOGIC                                        := '1';
+    signal TxPacketByteEnable     : STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
+    signal TxPacketDataRead       : STD_LOGIC                                        := '1';
+    signal TxPacketData           : STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
+    signal TxPacketAddress        : unsigned(G_TX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
+    signal TxPacketSlotClear      : STD_LOGIC                                        := '0';
+    signal TxPacketSlotID         : unsigned(G_SLOT_WIDTH - 1 downto 0)              := (others => '0');
+    signal TxPacketSlotStatus     : STD_LOGIC;
+    signal RxPacketByteEnable     : STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0) := (others => '0');
+    signal RxPacketData           : STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0)   := (others => '0');
+    signal RxPacketAddress        : unsigned(G_RX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
+    signal RxPacketDataWrite      : STD_LOGIC                                        := '0';
+    signal RxPacketReadByteEnable : STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) downto 0);
+    signal RxPacketDataRead       : STD_LOGIC                                        := '0';
+    signal RxPacketDataOut        : STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+    signal RxPacketReadAddress    : unsigned(G_RX_ADDR_WIDTH - 1 downto 0)           := (others => '0');
+    signal RxPacketSlotSet        : STD_LOGIC                                        := '0';
+    signal RxPacketSlotID         : unsigned(G_SLOT_WIDTH - 1 downto 0)              := (others => '0');
+    signal RxPacketSlotStatus     : STD_LOGIC;
+    constant C_CLK_PERIOD         : time                                             := 10 ns;
 begin
-	Clk   <= not Clk after C_CLK_PERIOD / 2;
-	Reset <= '1', '0' after C_CLK_PERIOD * 10;
-	UUTRBi : cpuifsenderpacketringbuffer
-		generic map(
-			G_SLOT_WIDTH    => G_SLOT_WIDTH,
-			G_RX_ADDR_WIDTH => G_RX_ADDR_WIDTH,
-			G_TX_ADDR_WIDTH => G_TX_ADDR_WIDTH,
-			G_RX_DATA_WIDTH => G_RX_DATA_WIDTH,
-			G_TX_DATA_WIDTH => G_TX_DATA_WIDTH
-		)
-		port map(
-			RxClk                  => Clk,
-			TxClk                  => Clk,
-			Reset                  => Reset,
-			TxPacketByteEnable     => TxPacketByteEnable,
-			TxPacketDataRead       => TxPacketDataRead,
-			TxPacketData           => TxPacketData,
-			TxPacketAddress        => std_logic_vector(TxPacketAddress),
-			TxPacketSlotClear      => TxPacketSlotClear,
-			TxPacketSlotID         => std_logic_vector(TxPacketSlotID),
-			TxPacketSlotStatus     => TxPacketSlotStatus,
-			RxPacketByteEnable     => RxPacketByteEnable,
-			RxPacketData           => RxPacketData,
-			RxPacketAddress        => std_logic_vector(RxPacketAddress),
-			RxPacketDataWrite      => RxPacketDataWrite,
-			RxPacketReadByteEnable => RxPacketReadByteEnable,
-			RxPacketDataRead       => RxPacketDataRead,
-			RxPacketDataOut        => RxPacketDataOut,
-			RxPacketReadAddress    => std_logic_vector(RxPacketReadAddress),
-			RxPacketSlotSet        => RxPacketSlotSet,
-			RxPacketSlotID         => std_logic_vector(RxPacketSlotID),
-			RxPacketSlotStatus     => RxPacketSlotStatus
-		);
+    Clk   <= not Clk after C_CLK_PERIOD / 2;
+    Reset <= '1', '0' after C_CLK_PERIOD * 10;
+    UUTRBi : cpuifsenderpacketringbuffer
+        generic map(
+            G_SLOT_WIDTH    => G_SLOT_WIDTH,
+            G_RX_ADDR_WIDTH => G_RX_ADDR_WIDTH,
+            G_TX_ADDR_WIDTH => G_TX_ADDR_WIDTH,
+            G_RX_DATA_WIDTH => G_RX_DATA_WIDTH,
+            G_TX_DATA_WIDTH => G_TX_DATA_WIDTH
+        )
+        port map(
+            RxClk                  => Clk,
+            TxClk                  => Clk,
+            Reset                  => Reset,
+            TxPacketByteEnable     => TxPacketByteEnable,
+            TxPacketDataRead       => TxPacketDataRead,
+            TxPacketData           => TxPacketData,
+            TxPacketAddress        => std_logic_vector(TxPacketAddress),
+            TxPacketSlotClear      => TxPacketSlotClear,
+            TxPacketSlotID         => std_logic_vector(TxPacketSlotID),
+            TxPacketSlotStatus     => TxPacketSlotStatus,
+            RxPacketByteEnable     => RxPacketByteEnable,
+            RxPacketData           => RxPacketData,
+            RxPacketAddress        => std_logic_vector(RxPacketAddress),
+            RxPacketDataWrite      => RxPacketDataWrite,
+            RxPacketReadByteEnable => RxPacketReadByteEnable,
+            RxPacketDataRead       => RxPacketDataRead,
+            RxPacketDataOut        => RxPacketDataOut,
+            RxPacketReadAddress    => std_logic_vector(RxPacketReadAddress),
+            RxPacketSlotSet        => RxPacketSlotSet,
+            RxPacketSlotID         => std_logic_vector(RxPacketSlotID),
+            RxPacketSlotStatus     => RxPacketSlotStatus
+        );
 
-	StimProc : process
-	begin
-		wait for C_CLK_PERIOD * 15;
-		RxPacketSlotID                           <= (others => '0');
-		TxPacketSlotID                           <= (others => '0');
-		RxPacketAddress                          <= (others => '0');
-		TxPacketAddress                          <= (others => '0');
-		TxPacketDataRead                         <= '0';
-		TxPacketSlotClear                        <= '0';
-		RxPacketSlotSet                          <= '0';
-		RxPacketDataWrite                        <= '0';
-		RxPacketByteEnable                       <= (others => '0');
-		RxPacketData(0)                          <= '1';
-		RxPacketData(RxPacketData'left downto 1) <= (others => '0');
+    StimProc : process
+    begin
+        wait for C_CLK_PERIOD * 15;
+        RxPacketSlotID                           <= (others => '0');
+        TxPacketSlotID                           <= (others => '0');
+        RxPacketAddress                          <= (others => '0');
+        TxPacketAddress                          <= (others => '0');
+        TxPacketDataRead                         <= '0';
+        TxPacketSlotClear                        <= '0';
+        RxPacketSlotSet                          <= '0';
+        RxPacketDataWrite                        <= '0';
+        RxPacketByteEnable                       <= (others => '0');
+        RxPacketData(0)                          <= '1';
+        RxPacketData(RxPacketData'left downto 1) <= (others => '0');
 
-		wait for C_CLK_PERIOD * 4;
-		for i in 0 to 14 loop
-			RxPacketAddress    <= (others => '0');
-			RxPacketByteEnable <= (others => '0');
-			for n in 0 to 7 loop
-				RxPacketAddress   <= RxPacketAddress + 1;
-				if (n = 7) then
-					-- Terminate the transcation with TLAST
-					-- Also have some byte enables disabled to test 
-					RxPacketByteEnable <= B"11";
-				else
-					RxPacketByteEnable <= B"01";
-				end if;
-				RxPacketData      <= RxPacketData(0) & RxPacketData(RxPacketData'left - 1 downto 0);
-				RxPacketDataWrite <= '0';
-				wait for C_CLK_PERIOD;
-				RxPacketDataWrite <= '1';
-				wait for C_CLK_PERIOD;
-				RxPacketDataWrite <= '0';
-				wait for C_CLK_PERIOD;
-			end loop;
-			RxPacketSlotSet    <= '1';
-			wait for C_CLK_PERIOD;
-			RxPacketSlotSet    <= '0';
-			wait for C_CLK_PERIOD;
-			RxPacketSlotID     <= RxPacketSlotID + 1;
-			wait for C_CLK_PERIOD;
-		end loop;
-	end process StimProc;
+        wait for C_CLK_PERIOD * 4;
+        -- Send 8 packets frames
+        for i in 0 to 7 loop
+            RxPacketAddress     <= (others => '0');
+            RxPacketReadAddress <= (others => '0');
+            RxPacketByteEnable  <= (others => '0');
+            wait for C_CLK_PERIOD;
+            -- Send packets that are limited by the Ethernet MTU
+            for n in 0 to 1521 loop
+                case i is
+                    when 0 =>
+                        -- Special case for 63rd byte TLAST on second frame
+                        if (n = 126) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 1 =>
+                        if (n = 511) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 2 =>
+                        if (n = 1289) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 3 =>
+                        if (n = 1511) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 4 =>
+                        if (n = 1011) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 5 =>
+                        -- Special case for last TLAST
+                        if (n = 63) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 6 =>
+                        -- Special case for first byte TLAST
+                        if (n = (63 + 1)) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
+                    when 7 =>
+                        -- Special case for second byte TLAST
+                        if (n = (63 + 2)) then
+                            -- Terminate the transcation with TLAST
+                            -- Also have some byte enables disabled to test 
+                            RxPacketByteEnable <= B"11";
+                        else
+                            RxPacketByteEnable <= B"01";
+                        end if;
 
-end architecture rtl;
+                    when others =>
+                        -- case where other bytes are enabled
+                        RxPacketByteEnable <= B"01";
+                end case;
+                RxPacketData        <= RxPacketData(0) & RxPacketData(RxPacketData'left - 1 downto 0);
+                RxPacketDataWrite   <= '0';
+                wait for C_CLK_PERIOD;
+                RxPacketDataWrite   <= '1';
+                RxPacketDataRead    <= '0';
+                wait for C_CLK_PERIOD;
+                RxPacketDataWrite   <= '0';
+                wait for C_CLK_PERIOD;
+                RxPacketDataRead    <= '1';
+                RxPacketAddress     <= RxPacketAddress + 1;
+                wait for C_CLK_PERIOD;
+                RxPacketDataRead    <= '0';
+                wait for C_CLK_PERIOD;
+                RxPacketReadAddress <= RxPacketReadAddress + 1;
+                wait for C_CLK_PERIOD;
+            end loop;
+            wait for C_CLK_PERIOD;
+            RxPacketSlotSet     <= '1';
+            wait for C_CLK_PERIOD;
+            RxPacketSlotSet     <= '0';
+            wait for C_CLK_PERIOD;
+            RxPacketSlotID      <= RxPacketSlotID + 1;
+            wait for C_CLK_PERIOD;
+        end loop;
+        -- Clean up after the simulation data feed.
+        wait for 1000 ns;
+        -- Terminate the simulation
+        std.env.finish;
+    end process StimProc;
+end architecture behavorial;
