@@ -216,6 +216,7 @@ begin
 				RxPacketAddress   <= RxPacketAddress + 1;
 				wait for C_CLK_PERIOD;
 			end loop;
+			wait for C_CLK_PERIOD;			
 			RxPacketSlotSet    <= '1';
 			wait for C_CLK_PERIOD;
 			RxPacketSlotSet    <= '0';
@@ -224,7 +225,7 @@ begin
 			wait for C_CLK_PERIOD;
 		end loop;
 		-- Clean up after the simulation data feed.
-		wait C_CLK_PERIOD*1000;
+		wait for 90000ns;
 		-- Terminate the simulation
 		std.env.finish;
 	end process StimProc;

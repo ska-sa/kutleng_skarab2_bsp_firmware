@@ -2,7 +2,7 @@
 <document type="awc" version="2">
 	<waveform>
 		<datasets>
-			<dataset alias="sim" file="../../../../../projects/riviera/workspace/ethmac/ethdesign/dataset.asdb" id="0" uniqueid="1571565796"/>
+			<dataset alias="sim" file="../../../../../projects/riviera/workspace/ethmac/ethdesign/dataset.asdb" id="0" uniqueid="1571617946"/>
 		</datasets>
 		<browser type="events"/>
 		<view active="true">
@@ -12,8 +12,10 @@
 			</cursors>
 			<signalspart>
 				<viewmode value="namedrow"/>
+				<expand value="1"/>
 				<group name="/cpuifreceiverpacketringbuffer_tb/UUTRBi">
 					<viewmode value=""/>
+					<expand value=""/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/RxClk" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/TxClk" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/Reset" aliasid="0"/>
@@ -54,7 +56,9 @@
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/EgressRingBufferAddress" aliasid="0"/>
 					<integral_representation value=""/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/EgressRingBufferSlotSet" aliasid="0"/>
+					<integral_representation value="DecimalUnsigned"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/EgressRingBufferSlotID" aliasid="0"/>
+					<integral_representation value=""/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/EgressRingBufferSlotStatus" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/lFrameIndex" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/lByteIndex" aliasid="0"/>
@@ -88,8 +92,10 @@
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/RxPacketSlotType" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/RxPacketSlotStatus" aliasid="0"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/RxPacketSlotTypeStatus" aliasid="0"/>
-					<integral_representation value="DecimalUnsigned"/>
+					<height value="18"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/lRxPacketAddress" aliasid="0"/>
+					<height value=""/>
+					<integral_representation value="DecimalUnsigned"/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/lTxPacketAddress" aliasid="0"/>
 					<integral_representation value=""/>
 					<signal name="/cpuifreceiverpacketringbuffer_tb/UUTRBi/IngressPacketBuffer_i/lTxPacketData" aliasid="0"/>
@@ -205,11 +211,11 @@
 			<time beginvisible="0fs" endvisible="0fs"/>
 		</view>
 		<bookmarks/>
-		<time beginvisible="0fs" endvisible="5590ns"/>
+		<time beginvisible="0fs" endvisible="5983744ps"/>
 		<timeunit name="auto"/>
 		<cursors>
-			<cursor name="Default cursor" id="-1" time="5590ns+0" lock="0" tip="1"/>
-			<active name="Default cursor" time="5590ns+0"/>
+			<cursor name="Default cursor" id="-1" time="366ns" lock="0" tip="1"/>
+			<active name="Default cursor" time="366ns"/>
 		</cursors>
 		<hierarchy_depth value="0"/>
 	</waveform>
