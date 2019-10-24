@@ -10,3 +10,4 @@ set_property SNAPPING_MODE ON [get_pblocks pblock_partialblinker_rm]
 #set_property HD.RECONFIGURABLE true [get_cells PartialBlinker_i]
 
 
+
