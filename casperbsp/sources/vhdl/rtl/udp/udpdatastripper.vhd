@@ -79,6 +79,8 @@ entity udpdatastripper is
 		RecvRingBufferDataOut    : in  STD_LOGIC_VECTOR(511 downto 0);
 		RecvRingBufferAddress    : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		--
+		UDPPacketLength          : out STD_LOGIC_VECTOR(15 downto 0);
+        --
 		axis_tuser               : out STD_LOGIC;
 		axis_tdata               : out STD_LOGIC_VECTOR(511 downto 0);
 		axis_tvalid              : out STD_LOGIC;
@@ -96,9 +98,46 @@ architecture rtl of udpdatastripper is
 		NextSlotSt
 	);
 	constant C_ADDRESS_MAX        : natural             := (2**G_ADDR_WIDTH) - 1;
+    constant C_UDP_HEADER_LENGTH  : unsigned(15 downto 0)         := X"0008";	
 	signal StateVariable          : UDPDataStripperSM_t := InitialiseSt;
 	signal lRecvRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
 	signal lRecvRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
+	signal lFirstFrame            : std_logic;
+    function byteswap(DataIn : in std_logic_vector)
+    return std_logic_vector is
+        variable RData48 : std_logic_vector(47 downto 0);
+        variable RData32 : std_logic_vector(31 downto 0);
+        variable RData24 : std_logic_vector(23 downto 0);
+        variable RData16 : std_logic_vector(15 downto 0);
+    begin
+        if (DataIn'length = RData48'length) then
+            RData48(7 downto 0)   := DataIn((47 + DataIn'right) downto (40 + DataIn'right));
+            RData48(15 downto 8)  := DataIn((39 + DataIn'right) downto (32 + DataIn'right));
+            RData48(23 downto 16) := DataIn((31 + DataIn'right) downto (24 + DataIn'right));
+            RData48(31 downto 24) := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData48(39 downto 32) := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData48(47 downto 40) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
+            return std_logic_vector(RData48);
+        end if;
+        if (DataIn'length = RData32'length) then
+            RData32(7 downto 0)   := DataIn((31 + DataIn'right) downto (24 + DataIn'right));
+            RData32(15 downto 8)  := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData32(23 downto 16) := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData32(31 downto 24) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
+            return std_logic_vector(RData32);
+        end if;
+        if (DataIn'length = RData24'length) then
+            RData24(7 downto 0)   := DataIn((23 + DataIn'right) downto (16 + DataIn'right));
+            RData24(15 downto 8)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData24(23 downto 16) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
+            return std_logic_vector(RData24);
+        end if;
+        if (DataIn'length = RData16'length) then
+            RData16(7 downto 0)  := DataIn((15 + DataIn'right) downto (8 + DataIn'right));
+            RData16(15 downto 8) := DataIn((7 + DataIn'right) downto (0 + DataIn'right));
+            return std_logic_vector(RData16);
+        end if;
+    end byteswap;
 begin
 	RecvRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
 	RecvRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
@@ -118,6 +157,7 @@ begin
 						StateVariable          <= CheckEmptySlotSt;
 						lRecvRingBufferSlotID  <= (others => '0');
 						lRecvRingBufferAddress <= (others => '0');
+				        lFirstFrame <= '0';
 
 					when CheckEmptySlotSt =>
 						if ((RecvRingBufferSlotStatus = '1') and (EthernetMACEnable = '1')) then
@@ -125,17 +165,20 @@ begin
 							-- Start from the base address to extract the packet
 							lRecvRingBufferAddress <= (others => '0');
 							RecvRingBufferDataRead <= '1';
+							lFirstFrame <= '1';
 							StateVariable          <= ExtractPacketDataSt;
 						else
-
+							lFirstFrame <= '0';
 							RecvRingBufferDataRead <= '0';
 							-- Keep searching for a packet
 							StateVariable          <= CheckEmptySlotSt;
 						end if;
 
 					when ExtractPacketDataSt =>
-
-						RecvRingBufferDataRead <= '1';
+                        if (lFirstFrame = '1') then
+                            UDPPacketLength <= std_logic_vector(unsigned(byteswap(RecvRingBufferDataOut(319 downto 304))) - C_UDP_HEADER_LENGTH) ;
+                            lFirstFrame <= '0';
+                        end if;
 						if (axis_tready = '1') then
 							-- Read and point to next address
 							lRecvRingBufferAddress  <= lRecvRingBufferAddress + 1;

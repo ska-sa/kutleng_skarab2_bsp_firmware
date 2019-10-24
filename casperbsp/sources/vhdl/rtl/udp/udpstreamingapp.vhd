@@ -83,7 +83,6 @@ entity udpstreamingapp is
         aximm_gmac_reg_multicast_ip_address         : in  STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_multicast_ip_mask            : in  STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_mac_enable                   : in  STD_LOGIC;
-        aximm_gmac_reg_mac_promiscous_mode          : in  STD_LOGIC;
         aximm_gmac_reg_tx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_tx_afull_count               : out STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
@@ -98,6 +97,8 @@ entity udpstreamingapp is
         ------------------------------------------------------------------------
         -- Streaming data clock 
         axis_streaming_data_clk                     : in  STD_LOGIC;
+        -- Received data packet length 
+        axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR(15 downto 0);        
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_streaming_data_rx_tvalid               : out STD_LOGIC;
@@ -158,11 +159,15 @@ architecture rtl of udpstreamingapp is
         );
         port(
             axis_clk                       : in  STD_LOGIC;
+            axis_app_clk                   : in  STD_LOGIC;            
             axis_reset                     : in  STD_LOGIC;
             -- Setup information
             ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
             ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
             ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- MAC Statistics
+            RXOverFlowCount                : out STD_LOGIC_VECTOR(31 downto 0);
+            RXAlmostFullCount              : out STD_LOGIC_VECTOR(31 downto 0);
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -211,24 +216,20 @@ architecture rtl of udpstreamingapp is
         );
         port(
             axis_clk                     : in  STD_LOGIC;
-            axis_app_clk                 : in  STD_LOGIC;
             axis_reset                   : in  STD_LOGIC;
             EthernetMACEnable            : in  STD_LOGIC;
-            SetMACPromiscousMode         : in  STD_LOGIC;
-            RXOverFlowCount              : out STD_LOGIC_VECTOR(31 downto 0);
-            RXAlmostFullCount            : out STD_LOGIC_VECTOR(31 downto 0);
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear      : out STD_LOGIC;
             RecvRingBufferSlotStatus     : in  STD_LOGIC;
-            RecvRingBufferSlotTypeStatus : in  STD_LOGIC;
-            RecvRingBufferSlotsFilled    : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferDataRead       : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
             RecvRingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
             RecvRingBufferDataOut        : in  STD_LOGIC_VECTOR(511 downto 0);
             RecvRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            --
+            UDPPacketLength              : out STD_LOGIC_VECTOR(15 downto 0);
             --
             axis_tuser                   : out STD_LOGIC;
             axis_tdata                   : out STD_LOGIC_VECTOR(511 downto 0);
@@ -291,8 +292,6 @@ architecture rtl of udpstreamingapp is
     signal UDPRXRingBufferSlotID         : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal UDPRXRingBufferSlotClear      : STD_LOGIC;
     signal UDPRXRingBufferSlotStatus     : STD_LOGIC;
-    signal UDPRXRingBufferSlotTypeStatus : STD_LOGIC;
-    signal UDPRXRingBufferSlotsFilled    : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal UDPRXRingBufferDataRead       : STD_LOGIC;
     signal UDPRXRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
     signal UDPRXRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
@@ -314,25 +313,20 @@ begin
             G_ADDR_WIDTH => G_ADDR_WIDTH
         )
         port map(
-            axis_clk                     => axis_clk,
-            axis_app_clk                 => axis_streaming_data_clk,
+            axis_clk                     => axis_streaming_data_clk,
             axis_reset                   => axis_reset,
             EthernetMACEnable            => aximm_gmac_reg_mac_enable,
-            SetMACPromiscousMode         => aximm_gmac_reg_mac_promiscous_mode,
-            RXOverFlowCount              => aximm_gmac_reg_rx_overflow_count,
-            RXAlmostFullCount            => aximm_gmac_reg_rx_almost_full_count,
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID         => UDPRXRingBufferSlotID,
             RecvRingBufferSlotClear      => UDPRXRingBufferSlotClear,
             RecvRingBufferSlotStatus     => UDPRXRingBufferSlotStatus,
-            RecvRingBufferSlotTypeStatus => UDPRXRingBufferSlotTypeStatus,
-            RecvRingBufferSlotsFilled    => UDPRXRingBufferSlotsFilled,
             RecvRingBufferDataRead       => UDPRXRingBufferDataRead,
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
             RecvRingBufferDataEnable     => UDPRXRingBufferDataEnable,
             RecvRingBufferDataOut        => UDPRXRingBufferData,
             RecvRingBufferAddress        => UDPRXRingBufferAddress,
+            UDPPacketLength              => axis_streaming_data_rx_packet_length,            
             -- Receive AXIS interface
             axis_tuser                   => axis_streaming_data_rx_tuser,
             axis_tdata                   => axis_streaming_data_rx_tdata,
@@ -395,17 +389,21 @@ begin
         )
         port map(
             axis_clk                       => axis_clk,
+            axis_app_clk                   => axis_streaming_data_clk,
             axis_reset                     => axis_reset,
             -- Setup information
             ServerMACAddress               => aximm_gmac_reg_mac_address,
             ServerIPAddress                => aximm_gmac_reg_local_ip_address,
             ServerUDPPort                  => axis_streaming_data_tx_source_udp_port,
+            -- MAC Statistics
+            RXOverFlowCount                => aximm_gmac_reg_rx_overflow_count,
+            RXAlmostFullCount              => aximm_gmac_reg_rx_almost_full_count,
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           => UDPRXRingBufferSlotID,
             RecvRingBufferSlotClear        => UDPRXRingBufferSlotClear,
             RecvRingBufferSlotStatus       => UDPRXRingBufferSlotStatus,
-            RecvRingBufferSlotTypeStatus   => UDPRXRingBufferSlotTypeStatus,
-            RecvRingBufferSlotsFilled      => UDPRXRingBufferSlotsFilled,
+            RecvRingBufferSlotTypeStatus   => open,
+            RecvRingBufferSlotsFilled      => open,
             RecvRingBufferDataRead         => UDPRXRingBufferDataRead,
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST

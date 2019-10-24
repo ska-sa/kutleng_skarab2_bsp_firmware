@@ -182,6 +182,7 @@ entity udpipinterfacepr is
         ------------------------------------------------------------------------
         -- Streaming data clocks 
         axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+        axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -193,6 +194,7 @@ entity udpipinterfacepr is
         axis_streaming_data_tx_destination_ip        : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_destination_udp_port  : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
         axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -252,6 +254,8 @@ architecture rtl of udpipinterfacepr is
             aximm_gmac_reg_mac_address                   : in  STD_LOGIC_VECTOR(47 downto 0);
             aximm_gmac_reg_udp_port                      : in  STD_LOGIC_VECTOR(15 downto 0);
             aximm_gmac_reg_udp_port_mask                 : in  STD_LOGIC_VECTOR(15 downto 0);
+            aximm_gmac_reg_mac_promiscous_mode           : in  STD_LOGIC;
+            aximm_gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);            
             ------------------------------------------------------------------------
             -- Transmit Ring Buffer Interface according to EthernetCore Memory MAP--
             ------------------------------------------------------------------------ 
@@ -352,7 +356,6 @@ architecture rtl of udpipinterfacepr is
             aximm_gmac_reg_multicast_ip_address         : in  STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_multicast_ip_mask            : in  STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_mac_enable                   : in  STD_LOGIC;
-            aximm_gmac_reg_mac_promiscous_mode          : in  STD_LOGIC;
             aximm_gmac_reg_tx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_tx_afull_count               : out STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
@@ -372,6 +375,7 @@ architecture rtl of udpipinterfacepr is
             ------------------------------------------------------------------------
             -- Streaming data clocks 
             axis_streaming_data_clk                     : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                     
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_rx_tvalid               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -383,6 +387,7 @@ architecture rtl of udpipinterfacepr is
             axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                     
             axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -569,7 +574,6 @@ architecture rtl of udpipinterfacepr is
     signal axis_tx_tlast_1_pr     : STD_LOGIC;
     signal axis_tx_tready_1_pr    : STD_LOGIC;
 
-    signal gmac_reg_mac_promisc            : STD_LOGIC;
     constant C_ARP_REG_BUFFER_SIZE         : NATURAL := 512;
     constant C_READ_REG_BUFFER_SIZE        : NATURAL := 2048;
     constant C_WRITE_REG_BUFFER_SIZE       : NATURAL := 2048;
@@ -590,7 +594,6 @@ architecture rtl of udpipinterfacepr is
 
 begin
     gmac_reg_mac_enable  <= aximm_gmac_reg_mac_enable;
-    gmac_reg_mac_promisc <= aximm_gmac_reg_mac_promiscous_mode;
 
     aximm_gmac_reg_rx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
     aximm_gmac_reg_tx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
@@ -653,7 +656,6 @@ begin
             aximm_gmac_reg_multicast_ip_address         => aximm_gmac_reg_multicast_ip_address,
             aximm_gmac_reg_multicast_ip_mask            => aximm_gmac_reg_multicast_ip_mask,
             aximm_gmac_reg_mac_enable                   => aximm_gmac_reg_mac_enable,
-            aximm_gmac_reg_mac_promiscous_mode          => aximm_gmac_reg_mac_promiscous_mode,
             aximm_gmac_reg_tx_overflow_count            => aximm_gmac_reg_tx_overflow_count,
             aximm_gmac_reg_tx_afull_count               => aximm_gmac_reg_tx_afull_count,
             aximm_gmac_reg_rx_overflow_count            => aximm_gmac_reg_rx_overflow_count,
@@ -662,6 +664,7 @@ begin
             ARPReadData                                 => ARPReadData,
             ARPReadAddress                              => ARPReadAddress,
             axis_streaming_data_clk                     => axis_streaming_data_clk,
+            axis_streaming_data_rx_packet_length        => axis_streaming_data_rx_packet_length,                                 
             axis_streaming_data_rx_tdata                => axis_streaming_data_rx_tdata,
             axis_streaming_data_rx_tvalid               => axis_streaming_data_rx_tvalid,
             axis_streaming_data_rx_tready               => axis_streaming_data_rx_tready,
@@ -671,6 +674,7 @@ begin
             axis_streaming_data_tx_destination_ip       => axis_streaming_data_tx_destination_ip,
             axis_streaming_data_tx_destination_udp_port => axis_streaming_data_tx_destination_udp_port,
             axis_streaming_data_tx_source_udp_port      => axis_streaming_data_tx_source_udp_port,
+            axis_streaming_data_tx_packet_length        => axis_streaming_data_tx_packet_length,                                 
             axis_streaming_data_tx_tdata                => axis_streaming_data_tx_tdata,
             axis_streaming_data_tx_tvalid               => axis_streaming_data_tx_tvalid,
             axis_streaming_data_tx_tuser                => axis_streaming_data_tx_tuser,
@@ -706,6 +710,8 @@ begin
             aximm_gmac_reg_mac_address                   => aximm_gmac_reg_mac_address,
             aximm_gmac_reg_udp_port                      => aximm_gmac_reg_udp_port,
             aximm_gmac_reg_udp_port_mask                 => aximm_gmac_reg_udp_port_mask,
+            aximm_gmac_reg_mac_promiscous_mode           => aximm_gmac_reg_mac_promiscous_mode,
+            aximm_gmac_reg_local_ip_address              => aximm_gmac_reg_local_ip_address,
             aximm_gmac_tx_data_write_enable              => aximm_gmac_tx_data_write_enable,
             aximm_gmac_tx_data_read_enable               => aximm_gmac_tx_data_read_enable,
             aximm_gmac_tx_data_write_data                => aximm_gmac_tx_data_write_data,

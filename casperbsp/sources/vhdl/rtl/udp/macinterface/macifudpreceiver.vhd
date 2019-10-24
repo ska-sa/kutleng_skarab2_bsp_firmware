@@ -78,11 +78,15 @@ entity macifudpreceiver is
     );
     port(
         axis_clk                 : in  STD_LOGIC;
+        axis_app_clk             : in  STD_LOGIC;
         axis_reset               : in  STD_LOGIC;
         -- Setup information
         ReceiverMACAddress       : in  STD_LOGIC_VECTOR(47 downto 0);
         ReceiverIPAddress        : in  STD_LOGIC_VECTOR(31 downto 0);
         ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
+        -- MAC Statistics
+        RXOverFlowCount          : out STD_LOGIC_VECTOR(31 downto 0);
+        RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0);                      
         -- Packet Readout in addressed bus format
         RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferSlotClear      : in  STD_LOGIC;
@@ -106,14 +110,15 @@ end entity macifudpreceiver;
 
 architecture rtl of macifudpreceiver is
 
-    component packetringbuffer is
-        generic(
-            G_SLOT_WIDTH : natural := 4;
-            G_ADDR_WIDTH : natural := 5;
-            G_DATA_WIDTH : natural := 64
-        );
-        port(
-            Clk                    : in  STD_LOGIC;
+    component dualportpacketringbuffer is
+    generic(
+        G_SLOT_WIDTH : natural := 4;
+        G_ADDR_WIDTH : natural := 8;
+        G_DATA_WIDTH : natural := 64
+    );
+    port(
+        RxClk                  : in  STD_LOGIC;
+        TxClk                  : in  STD_LOGIC;
             -- Transmission port
             TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
@@ -134,7 +139,7 @@ architecture rtl of macifudpreceiver is
             RxPacketSlotStatus     : out STD_LOGIC;
             RxPacketSlotTypeStatus : out STD_LOGIC
         );
-    end component packetringbuffer;
+    end component dualportpacketringbuffer;
 
     type AxisUDPReaderSM_t is (
         InitialiseSt,                   -- On the reset state
@@ -218,9 +223,9 @@ architecture rtl of macifudpreceiver is
     end byteswap;
 
 begin
-    FilledSlotCounterProc : process(axis_clk)
+    FilledSlotCounterProc : process(axis_app_clk)
     begin
-        if rising_edge(axis_clk) then
+        if rising_edge(axis_app_clk) then
             if (axis_reset = '1') then
                 lFilledSlots <= (others => '0');
             else
@@ -237,14 +242,15 @@ begin
     end process FilledSlotCounterProc;
 
     RingBufferSlotsFilled <= std_logic_vector(lFilledSlots);
-    PacketBuffer_i : packetringbuffer
+    PacketBuffer_i : dualportpacketringbuffer
         generic map(
             G_SLOT_WIDTH => RingBufferSlotID'length,
             G_ADDR_WIDTH => RingBufferAddress'length,
             G_DATA_WIDTH => RingBufferDataOut'length
         )
         port map(
-            Clk                    => axis_clk,
+            RxClk                  => axis_clk,
+            TxClk                  => axis_app_clk,
             -- Transmission port
             TxPacketByteEnable     => RingBufferDataEnable,
             TxPacketDataRead       => RingBufferDataRead,
@@ -265,9 +271,9 @@ begin
             RxPacketSlotTypeStatus => open
         );
 
-    SynchStateProc : process(axis_clk)
+    SynchStateProc : process(axis_app_clk)
     begin
-        if rising_edge(axis_clk) then
+        if rising_edge(axis_app_clk) then
             if (axis_reset = '1') then
                 -- Initialize SM on reset
                 StateVariable <= InitialiseSt;

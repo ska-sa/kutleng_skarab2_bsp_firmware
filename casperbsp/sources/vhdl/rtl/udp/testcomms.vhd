@@ -102,11 +102,15 @@ architecture rtl of testcomms is
         );
         port(
             axis_clk                       : in  STD_LOGIC;
+            axis_app_clk                   : in  STD_LOGIC;
             axis_reset                     : in  STD_LOGIC;
             -- Setup information
             ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
             ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
             ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- MAC Statistics
+            RXOverFlowCount                : out STD_LOGIC_VECTOR(31 downto 0);
+            RXAlmostFullCount              : out STD_LOGIC_VECTOR(31 downto 0);  
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -268,11 +272,14 @@ begin
         )
         port map(
             axis_clk                       => axis_clk,
+            axis_app_clk                   => axis_clk,
             axis_reset                     => axis_reset,
             -- Setup information
             ServerMACAddress               => G_EMAC_ADDR,
             ServerIPAddress                => G_IP_ADDR,
             ServerUDPPort                  => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
+            RXOverFlowCount                => open,
+            RXAlmostFullCount              => open, 
             -- Packet Readout in addressed bus format
             RecvRingBufferSlotID           => UDPRingBufferSlotID,
             RecvRingBufferSlotClear        => UDPRingBufferSlotClear,

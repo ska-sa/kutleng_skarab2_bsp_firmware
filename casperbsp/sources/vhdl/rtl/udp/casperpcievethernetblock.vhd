@@ -116,6 +116,7 @@ entity casperpcievethernetblock is
         ------------------------------------------------------------------------
         -- Streaming data clocks 
         axis_streaming_data_clk                     : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+        axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_rx_tvalid               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -127,6 +128,7 @@ entity casperpcievethernetblock is
         axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -261,6 +263,7 @@ architecture rtl of casperpcievethernetblock is
             ------------------------------------------------------------------------
             -- Streaming data clocks 
             axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                             
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -272,6 +275,7 @@ architecture rtl of casperpcievethernetblock is
             axis_streaming_data_tx_destination_ip        : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_destination_udp_port  : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                             
             axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -837,6 +841,7 @@ begin
             aximm_gmac_rx_ringbuffer_slot_status         => gmac_rx_ringbuffer_slot_status,
             aximm_gmac_rx_ringbuffer_number_slots_filled => gmac_rx_ringbuffer_number_slots_filled,
             axis_streaming_data_clk                      => axis_streaming_data_clk,
+            axis_streaming_data_rx_packet_length         => axis_streaming_data_rx_packet_length,        
             axis_streaming_data_rx_tdata                 => axis_streaming_data_rx_tdata,
             axis_streaming_data_rx_tvalid                => axis_streaming_data_rx_tvalid,
             axis_streaming_data_rx_tready                => axis_streaming_data_rx_tready,
@@ -846,6 +851,7 @@ begin
             axis_streaming_data_tx_destination_ip        => axis_streaming_data_tx_destination_ip,
             axis_streaming_data_tx_destination_udp_port  => axis_streaming_data_tx_destination_udp_port,
             axis_streaming_data_tx_source_udp_port       => axis_streaming_data_tx_source_udp_port,
+            axis_streaming_data_tx_packet_length         => axis_streaming_data_tx_packet_length,
             axis_streaming_data_tx_tdata                 => axis_streaming_data_tx_tdata,
             axis_streaming_data_tx_tvalid                => axis_streaming_data_tx_tvalid,
             axis_streaming_data_tx_tuser                 => axis_streaming_data_tx_tuser,

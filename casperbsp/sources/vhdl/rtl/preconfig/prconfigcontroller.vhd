@@ -151,16 +151,26 @@ architecture rtl of prconfigcontroller is
     component macifudpreceiver is
         generic(
             G_SLOT_WIDTH      : natural                          := 4;
-            G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
+            -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
             -- The address width is log2(2048/(512/8))=5 bits wide
+            -- 1 x (16KBRAM) per slot = 1 x 4 = 4 (16K BRAMS)/ 2 (32K BRAMS)   
             G_ADDR_WIDTH      : natural                          := 5
+            -- For 9600 Jumbo ethernet frame packet size = ceil(9600)=16384 Bytes 
+            -- The address width is log2(16384/(512/8))=8 bits wide
+            -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
+            -- G_ADDR_WIDTH      : natural                          := 5
         );
         port(
             axis_clk                 : in  STD_LOGIC;
+            axis_app_clk             : in  STD_LOGIC;
             axis_reset               : in  STD_LOGIC;
             -- Setup information
             ReceiverMACAddress       : in  STD_LOGIC_VECTOR(47 downto 0);
             ReceiverIPAddress        : in  STD_LOGIC_VECTOR(31 downto 0);
+            ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- MAC Statistics
+            RXOverFlowCount          : out STD_LOGIC_VECTOR(31 downto 0);
+            RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0); 
             -- Packet Readout in addressed bus format
             RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RingBufferSlotClear      : in  STD_LOGIC;
@@ -530,15 +540,18 @@ begin
 
     UDPReceiver_i : macifudpreceiver
         generic map(
-            G_SLOT_WIDTH      => G_SLOT_WIDTH,
-            G_UDP_SERVER_PORT => G_UDP_SERVER_PORT,
+            G_SLOT_WIDTH      => G_SLOT_WIDTH,            
             G_ADDR_WIDTH      => G_ADDR_WIDTH
         )
         port map(
             axis_clk                 => axis_clk,
+            axis_app_clk             => axis_clk,
             axis_reset               => axis_reset,
             ReceiverMACAddress       => ServerMACAddress,
             ReceiverIPAddress        => ServerIPAddress,
+            ReceiverUDPPort          => std_logic_vector(to_unsigned(G_UDP_SERVER_PORT, 16)),
+            RXOverFlowCount          => open,
+            RXAlmostFullCount        => open,            
             RingBufferSlotID         => ReceiverRingBufferSlotID,
             RingBufferSlotClear      => ReceiverRingBufferSlotClear,
             RingBufferSlotStatus     => ReceiverRingBufferSlotStatus,

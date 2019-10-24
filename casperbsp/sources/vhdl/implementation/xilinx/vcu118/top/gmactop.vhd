@@ -63,6 +63,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library unisim;
 use unisim.vcomponents.all;
 
@@ -278,6 +279,8 @@ architecture rtl of gmactop is
             ------------------------------------------------------------------------
             -- Streaming data clocks 
             axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
+            
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -289,6 +292,7 @@ architecture rtl of gmactop is
             axis_streaming_data_tx_destination_ip        : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_destination_udp_port  : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                                 
             axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -716,6 +720,7 @@ architecture rtl of gmactop is
     signal udp1_gmac_reg_mac_enable          : STD_LOGIC;
 
     signal axis_streaming_data_clk                     : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+    signal axis_streaming_data_rx_packet_length        : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
     signal axis_streaming_data_rx_tdata                : STD_LOGIC_VECTOR((C_AXIS_DATA_WIDTH * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_rx_tvalid               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
     signal axis_streaming_data_rx_tready               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -725,6 +730,7 @@ architecture rtl of gmactop is
     signal axis_streaming_data_tx_destination_ip       : STD_LOGIC_VECTOR((32 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_destination_udp_port : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_source_udp_port      : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+    signal axis_streaming_data_tx_packet_length        : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
     signal axis_streaming_data_tx_tdata                : STD_LOGIC_VECTOR((C_AXIS_DATA_WIDTH * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tvalid               : STD_LOGIC_VECTOR((C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tuser                : STD_LOGIC_VECTOR((C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -732,6 +738,26 @@ architecture rtl of gmactop is
     signal axis_streaming_data_tx_tlast                : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
     signal axis_streaming_data_tx_tready               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
 begin
+
+
+
+
+
+
+     axis_streaming_data_clk(0)   <= ClkQSFP1;
+     axis_streaming_data_tx_packet_length <= axis_streaming_data_rx_packet_length;         
+     axis_streaming_data_tx_tdata <= axis_streaming_data_rx_tdata;
+     axis_streaming_data_tx_tvalid <= axis_streaming_data_rx_tvalid;
+     
+     axis_streaming_data_rx_tready <= axis_streaming_data_tx_tready;
+     
+     axis_streaming_data_tx_tkeep <= axis_streaming_data_rx_tkeep;
+     axis_streaming_data_tx_tlast <= axis_streaming_data_rx_tlast;
+     axis_streaming_data_tx_tuser <= axis_streaming_data_rx_tuser;
+     axis_streaming_data_tx_destination_ip       <= C_IP_ADDR_2;
+     axis_streaming_data_tx_destination_udp_port <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
+     axis_streaming_data_tx_source_udp_port      <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
+
     --ZERO_30_vector   <= (others => '0');
     Sig_Vcc <= '1';
     Sig_Gnd <= '0';
@@ -959,6 +985,7 @@ begin
             aximm_gmac_rx_ringbuffer_slot_status         => port1_gmac_rx_ringbuffer_slot_status,
             aximm_gmac_rx_ringbuffer_number_slots_filled => port1_gmac_rx_ringbuffer_number_slots_filled,
             axis_streaming_data_clk                      => axis_streaming_data_clk,
+            axis_streaming_data_rx_packet_length         => axis_streaming_data_rx_packet_length,
             axis_streaming_data_rx_tdata                 => axis_streaming_data_rx_tdata,
             axis_streaming_data_rx_tvalid                => axis_streaming_data_rx_tvalid,
             axis_streaming_data_rx_tready                => axis_streaming_data_rx_tready,
@@ -968,6 +995,7 @@ begin
             axis_streaming_data_tx_destination_ip        => axis_streaming_data_tx_destination_ip,
             axis_streaming_data_tx_destination_udp_port  => axis_streaming_data_tx_destination_udp_port,
             axis_streaming_data_tx_source_udp_port       => axis_streaming_data_tx_source_udp_port,
+            axis_streaming_data_tx_packet_length         => axis_streaming_data_tx_packet_length,
             axis_streaming_data_tx_tdata                 => axis_streaming_data_tx_tdata,
             axis_streaming_data_tx_tvalid                => axis_streaming_data_tx_tvalid,
             axis_streaming_data_tx_tuser                 => axis_streaming_data_tx_tuser,

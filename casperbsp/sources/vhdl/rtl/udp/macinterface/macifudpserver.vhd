@@ -73,11 +73,16 @@ entity macifudpserver is
     );
     port(
         axis_clk                       : in  STD_LOGIC;
+        axis_app_clk                   : in  STD_LOGIC;
         axis_reset                     : in  STD_LOGIC;
         -- Setup information
         ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
         ServerIPAddress                : in  STD_LOGIC_VECTOR(31 downto 0);
         ServerUDPPort                  : in  STD_LOGIC_VECTOR(15 downto 0);
+        -- MAC Statistics
+        RXOverFlowCount                : out STD_LOGIC_VECTOR(31 downto 0);
+        RXAlmostFullCount              : out STD_LOGIC_VECTOR(31 downto 0);
+    
         -- Packet Readout in addressed bus format
         RecvRingBufferSlotID           : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RecvRingBufferSlotClear        : in  STD_LOGIC;
@@ -165,11 +170,15 @@ architecture rtl of macifudpserver is
         );
         port(
             axis_clk                 : in  STD_LOGIC;
+            axis_app_clk             : in  STD_LOGIC;
             axis_reset               : in  STD_LOGIC;
             -- Setup information
             ReceiverMACAddress       : in  STD_LOGIC_VECTOR(47 downto 0);
             ReceiverIPAddress        : in  STD_LOGIC_VECTOR(31 downto 0);
             ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
+            -- MAC Statistics
+            RXOverFlowCount          : out STD_LOGIC_VECTOR(31 downto 0);
+            RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0);                  
             -- Packet Readout in addressed bus format
             RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RingBufferSlotClear      : in  STD_LOGIC;
@@ -225,10 +234,13 @@ begin
         )
         port map(
             axis_clk                 => axis_clk,
+            axis_app_clk             => axis_app_clk,
             axis_reset               => axis_reset,
             ReceiverMACAddress       => ServerMACAddress,
             ReceiverIPAddress        => ServerIPAddress,
             ReceiverUDPPort          => ServerUDPPort,
+            RXOverFlowCount          => RXOverFlowCount,
+            RXAlmostFullCount        => RXAlmostFullCount,                        
             RingBufferSlotID         => RecvRingBufferSlotID,
             RingBufferSlotClear      => RecvRingBufferSlotClear,
             RingBufferSlotStatus     => RecvRingBufferSlotStatus,

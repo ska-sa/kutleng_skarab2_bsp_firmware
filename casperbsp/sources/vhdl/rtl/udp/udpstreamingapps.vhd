@@ -85,7 +85,6 @@ entity udpstreamingapps is
         aximm_gmac_reg_multicast_ip_address         : in  STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_multicast_ip_mask            : in  STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_mac_enable                   : in  STD_LOGIC;
-        aximm_gmac_reg_mac_promiscous_mode          : in  STD_LOGIC;
         aximm_gmac_reg_tx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_tx_afull_count               : out STD_LOGIC_VECTOR(31 downto 0);
         aximm_gmac_reg_rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
@@ -105,6 +104,7 @@ entity udpstreamingapps is
         ------------------------------------------------------------------------
         -- Streaming data clocks 
         axis_streaming_data_clk                     : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+        axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                             
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_rx_tvalid               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -116,6 +116,7 @@ entity udpstreamingapps is
         axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+        axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                             
         axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -167,7 +168,6 @@ architecture rtl of udpstreamingapps is
             aximm_gmac_reg_multicast_ip_address         : in  STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_multicast_ip_mask            : in  STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_mac_enable                   : in  STD_LOGIC;
-            aximm_gmac_reg_mac_promiscous_mode          : in  STD_LOGIC;
             aximm_gmac_reg_tx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_tx_afull_count               : out STD_LOGIC_VECTOR(31 downto 0);
             aximm_gmac_reg_rx_overflow_count            : out STD_LOGIC_VECTOR(31 downto 0);
@@ -182,6 +182,7 @@ architecture rtl of udpstreamingapps is
             ------------------------------------------------------------------------
             -- Streaming data clock 
             axis_streaming_data_clk                     : in  STD_LOGIC;
+            axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR(15 downto 0);                                 
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_streaming_data_rx_tvalid               : out STD_LOGIC;
@@ -193,6 +194,7 @@ architecture rtl of udpstreamingapps is
             axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR(31 downto 0);
             axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR(15 downto 0);
             axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR(15 downto 0);
+            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR(15 downto 0);                                 
             axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
             axis_streaming_data_tx_tvalid               : in  STD_LOGIC;
             axis_streaming_data_tx_tuser                : in  STD_LOGIC;
@@ -316,7 +318,6 @@ begin
                 aximm_gmac_reg_multicast_ip_address         => aximm_gmac_reg_multicast_ip_address,
                 aximm_gmac_reg_multicast_ip_mask            => aximm_gmac_reg_multicast_ip_mask,
                 aximm_gmac_reg_mac_enable                   => aximm_gmac_reg_mac_enable,
-                aximm_gmac_reg_mac_promiscous_mode          => aximm_gmac_reg_mac_promiscous_mode,
                 aximm_gmac_reg_tx_overflow_count            => gmac_reg_tx_overflow_count(i),
                 aximm_gmac_reg_tx_afull_count               => gmac_reg_tx_afull_count(i),
                 aximm_gmac_reg_rx_overflow_count            => gmac_reg_rx_overflow_count(i),
@@ -331,6 +332,7 @@ begin
                 ------------------------------------------------------------------------
                 -- Streaming data clock 
                 axis_streaming_data_clk                     => axis_streaming_data_clk(i),
+                axis_streaming_data_rx_packet_length        => axis_streaming_data_rx_packet_length(((i + 1) * 16) - 1 downto ((i) * 16)),                                 
                 -- Streaming data outputs to AXIS of the Yellow Blocks
                 axis_streaming_data_rx_tdata                => axis_streaming_data_rx_tdata(((i + 1) * G_AXIS_DATA_WIDTH) - 1 downto ((i) * G_AXIS_DATA_WIDTH)),
                 axis_streaming_data_rx_tvalid               => axis_streaming_data_rx_tvalid(i),
@@ -342,6 +344,7 @@ begin
                 axis_streaming_data_tx_destination_ip       => axis_streaming_data_tx_destination_ip(((i + 1) * 32) - 1 downto ((i) * 32)),
                 axis_streaming_data_tx_destination_udp_port => axis_streaming_data_tx_destination_udp_port(((i + 1) * 16) - 1 downto ((i) * 16)),
                 axis_streaming_data_tx_source_udp_port      => axis_streaming_data_tx_source_udp_port(((i + 1) * 16) - 1 downto ((i) * 16)),
+                axis_streaming_data_tx_packet_length        => axis_streaming_data_tx_packet_length(((i + 1) * 16) - 1 downto ((i) * 16)),                                
                 axis_streaming_data_tx_tdata                => axis_streaming_data_tx_tdata(((i + 1) * G_AXIS_DATA_WIDTH) - 1 downto ((i) * G_AXIS_DATA_WIDTH)),
                 axis_streaming_data_tx_tvalid               => axis_streaming_data_tx_tvalid(i),
                 axis_streaming_data_tx_tuser                => axis_streaming_data_tx_tuser(i),
