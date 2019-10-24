@@ -65,26 +65,26 @@ entity udpdatastripper is
 		G_ADDR_WIDTH : natural := 5
 	);
 	port(
-		axis_clk                     : in  STD_LOGIC;
-		axis_reset                   : in  STD_LOGIC;
-		EthernetMACEnable            : in  STD_LOGIC;
+		axis_clk                 : in  STD_LOGIC;
+		axis_reset               : in  STD_LOGIC;
+		EthernetMACEnable        : in  STD_LOGIC;
 		-- Packet Readout in addressed bus format
-		RecvRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-		RecvRingBufferSlotClear      : out STD_LOGIC;
-		RecvRingBufferSlotStatus     : in  STD_LOGIC;
-		RecvRingBufferDataRead       : out STD_LOGIC;
+		RecvRingBufferSlotID     : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+		RecvRingBufferSlotClear  : out STD_LOGIC;
+		RecvRingBufferSlotStatus : in  STD_LOGIC;
+		RecvRingBufferDataRead   : out STD_LOGIC;
 		-- Enable[0] is a special bit (we assume always 1 when packet is valid)
 		-- we use it to save TLAST
-		RecvRingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-		RecvRingBufferDataOut        : in  STD_LOGIC_VECTOR(511 downto 0);
-		RecvRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+		RecvRingBufferDataEnable : in  STD_LOGIC_VECTOR(63 downto 0);
+		RecvRingBufferDataOut    : in  STD_LOGIC_VECTOR(511 downto 0);
+		RecvRingBufferAddress    : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
 		--
-		axis_tuser                   : out STD_LOGIC;
-		axis_tdata                   : out STD_LOGIC_VECTOR(511 downto 0);
-		axis_tvalid                  : out STD_LOGIC;
-		axis_tready                  : in  STD_LOGIC;
-		axis_tkeep                   : out STD_LOGIC_VECTOR(63 downto 0);
-		axis_tlast                   : out STD_LOGIC
+		axis_tuser               : out STD_LOGIC;
+		axis_tdata               : out STD_LOGIC_VECTOR(511 downto 0);
+		axis_tvalid              : out STD_LOGIC;
+		axis_tready              : in  STD_LOGIC;
+		axis_tkeep               : out STD_LOGIC_VECTOR(63 downto 0);
+		axis_tlast               : out STD_LOGIC
 	);
 end entity udpdatastripper;
 
@@ -120,7 +120,7 @@ begin
 						lRecvRingBufferAddress <= (others => '0');
 
 					when CheckEmptySlotSt =>
-						if ((RecvRingBufferSlotStatus = '1') and (EthernetMACEnable ='1')) then
+						if ((RecvRingBufferSlotStatus = '1') and (EthernetMACEnable = '1')) then
 							-- There is a packet waiting on the ring buffer
 							-- Start from the base address to extract the packet
 							lRecvRingBufferAddress <= (others => '0');
@@ -173,7 +173,7 @@ begin
 						-- Search next slots  
 						lRecvRingBufferSlotID   <= lRecvRingBufferSlotID + 1;
 						StateVariable           <= CheckEmptySlotSt;
-						
+
 					when others =>
 						StateVariable <= InitialiseSt;
 				end case;
