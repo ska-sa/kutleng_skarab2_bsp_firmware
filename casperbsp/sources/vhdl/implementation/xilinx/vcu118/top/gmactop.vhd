@@ -104,15 +104,6 @@ entity gmactop is
         qsfp2_modprsl_ls  : in  STD_LOGIC;
         qsfp2_intl_ls     : in  STD_LOGIC;
         qsfp2_lpmode_ls   : out STD_LOGIC;
-        -- PCIe Clocks        
-        sys_clk_p         : in  STD_LOGIC;
-        sys_clk_n         : in  STD_LOGIC;
-        sys_rst_n         : in  STD_LOGIC;
-        -- PCIe Data signals
-        pci_exp_txp       : out STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_txn       : out STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_rxp       : in  STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_rxn       : in  STD_LOGIC_VECTOR(7 downto 0);
         -- UART I/O
         rs232_uart_rxd    : in  STD_LOGIC;
         rs232_uart_txd    : out STD_LOGIC;
@@ -626,22 +617,7 @@ architecture rtl of gmactop is
 
     signal Enable : STD_LOGIC;
 
-    --    signal ICAP_PRDONE  : std_logic;
-    --    signal ICAP_PRERROR : std_logic;
-    --    signal ICAP_AVAIL   : std_logic;
-    --    signal ICAP_CSIB    : std_logic;
-    --    signal ICAP_RDWRB   : std_logic;
-    --    signal ICAP_DataOut : std_logic_vector(31 downto 0);
-    --    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
-    --    signal ICAP_CSI                                     : std_logic;
 
-    --    signal ZERO_30_vector : std_logic_vector(29 downto 0);
-    signal Sig_Vcc                                      : std_logic;
-    signal Sig_Gnd                                      : std_logic;
-    signal sys_rst_n_c                                  : std_logic;
-    signal sys_clk_gt                                   : std_logic;
-    signal sys_clk                                      : std_logic;
-    signal ICAP_DataIn_Dummy                            : std_logic_vector(31 downto 0);
     signal port1_gmac_reg_phy_control_h                 : STD_LOGIC_VECTOR(31 downto 0);
     signal port1_gmac_reg_phy_control_l                 : STD_LOGIC_VECTOR(31 downto 0);
     signal port1_gmac_reg_mac_address                   : STD_LOGIC_VECTOR(47 downto 0);
@@ -758,10 +734,6 @@ begin
      axis_streaming_data_tx_destination_udp_port <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
      axis_streaming_data_tx_source_udp_port      <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
 
-    --ZERO_30_vector   <= (others => '0');
-    Sig_Vcc <= '1';
-    Sig_Gnd <= '0';
-    --ICAP_CSIB        <= not ICAP_CSI;
     Reset   <= (not RefClkLocked) or lReset;
 
     ----------------------------------------------------------------------------
@@ -813,6 +785,15 @@ begin
     --   Please remove this on your design it is just here to show the code is--
     --   running for testing purposes only.                                   --
     ----------------------------------------------------------------------------
+    LED1_i : ledflasher
+        generic map(
+            G_CLOCK_FREQUENCY => 322_265_625,
+            G_LED_FLASH_RATE  => 1
+        )
+        port map(
+            Clk => ClkQSFP1,
+            LED => blink_led(0)
+        );
     LED2_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
@@ -825,7 +806,7 @@ begin
     LED3_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
-            G_LED_FLASH_RATE  => 1
+            G_LED_FLASH_RATE  => 3
         )
         port map(
             Clk => ClkQSFP2,
@@ -834,7 +815,7 @@ begin
     LED4_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
-            G_LED_FLASH_RATE  => 2
+            G_LED_FLASH_RATE  => 4
         )
         port map(
             Clk => ClkQSFP2,
@@ -1250,64 +1231,6 @@ begin
             probe_out0(0) => lbus_reset,
             probe_out1(0) => lReset,
             probe_out2(0) => Enable
-        );
-
-    ----------------------------------------------------------------------------
-    --                    PCIe sub system instantiation                       --
-    -- The PCIe sub system with its QDMA engine is instantiated here.         --
-    -- This module resides on the static portion of the design.               --
-    -- This code must boot first on a minimal tandem bitstream to meet PCIe   --
-    -- system bus enumeration and meet the full line sync of less than 10ms   --
-    -- for successful device enumeration,else the FPGA wont be recognized on  --
-    -- the system PCIe bus.                                                   --
-    -- TODO                                                                   --
-    -- Add the PCIe vEthernet MAC controller.                                 --
-    ----------------------------------------------------------------------------   
-
-    -- PCIe Refference clock buffer for PCI Express clocking
-    refclk_ibuf : IBUFDS_GTE4
-        generic map(
-            REFCLK_HROW_CK_SEL => "00"
-        )
-        port map(
-            O     => sys_clk_gt,
-            ODIV2 => sys_clk,
-            CEB   => '0',
-            I     => sys_clk_p,
-            IB    => sys_clk_n
-        );
-
-    -- PCIe reset buffer for PCI Express card reset
-    sys_reset_n_ibuf : IBUF
-        port map(
-            O => sys_rst_n_c,
-            I => sys_rst_n
-        );
-
-    PCIE_i : pciexdma_refbd_wrapper
-        port map(
-            GPIO2_0_tri_i(31 downto 0) => ICAP_DataIn_Dummy(31 downto 0),
-            --GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
-            --GPIO2_0_tri_i(1)           => ICAP_PRERROR,
-            --GPIO2_0_tri_i(0)           => ICAP_PRDONE,
-            GPIO_0_tri_o               => open,
-            --M_AXIS_0_tdata             => ICAP_DataIn,
-            M_AXIS_0_tdata             => ICAP_DataIn_Dummy,
-            M_AXIS_0_tkeep             => open,
-            M_AXIS_0_tlast             => open,
-            M_AXIS_0_tready            => Enable, --ICAP_AVAIL,
-            --            M_AXIS_0_tvalid            => ICAP_CSI,
-            M_AXIS_0_tvalid            => open,
-            m_axis_aclk_0              => ICAPClk125MHz,
-            m_axis_aresetn_0           => Sig_Vcc,
-            pcie_mgt_0_rxn             => pci_exp_rxn,
-            pcie_mgt_0_rxp             => pci_exp_rxp,
-            pcie_mgt_0_txn             => pci_exp_txn,
-            pcie_mgt_0_txp             => pci_exp_txp,
-            sys_clk_0                  => sys_clk,
-            sys_clk_gt_0               => sys_clk_gt,
-            sys_rst_n_0                => sys_rst_n_c,
-            user_lnk_up_0              => blink_led(0)
         );
 
     ----------------------------------------------------------------------------
