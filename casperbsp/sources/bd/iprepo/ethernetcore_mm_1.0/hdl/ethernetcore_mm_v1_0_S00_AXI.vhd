@@ -787,7 +787,7 @@ begin
                 ----------------------------------------------------------------    
                 -- Register[28:28]:TX_SLOT_STATUS                             -- 
                 -- Register[27:24]:TX_SLOT_NUMBER_SLOTS_OCCUPIED[3:0]         -- 
-                -- Register[20:20]:TX_SLOT_CLEAR                              -- 
+                -- Register[20:20]:TX_SLOT_SET                                -- 
                 -- Register[19:16]:TX_SLOT_ID[3:0]                            -- 
                 -- Register[12:12]:RX_SLOT_STATUS                             -- 
                 -- Register[11:08]:RX_SLOT_NUMBER_SLOTS_OCCUPIED[3:0]         -- 
@@ -797,7 +797,7 @@ begin
                 reg_data_out(28)           <= gmac_tx_ringbuffer_slot_status;
                 reg_data_out(27 downto 24) <= gmac_tx_ringbuffer_number_slots_filled;
                 --tx_slot_set
-                reg_data_out(20)           <= slv_reg9(0);
+                reg_data_out(20)           <= slv_reg9(20);
                 -- tx_slot_id
                 reg_data_out(19 downto 16) <= slv_reg9(19 downto 16);
                 reg_data_out(12)           <= gmac_rx_ringbuffer_slot_status;
