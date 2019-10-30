@@ -222,17 +222,53 @@ architecture rtl of macifudpreceiver is
         end if;
     end byteswap;
 
+    signal lSlotClearBuffer               : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotClear                     : STD_LOGIC;
+    signal lSlotSetBuffer                 : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal lSlotSet                       : STD_LOGIC;
+
 begin
-    FilledSlotCounterProc : process(axis_app_clk)
+    --These slot clear and set operations are assynchronous and must have CDC.
+    SlotSetClearProc : process(axis_clk)
     begin
-        if rising_edge(axis_app_clk) then
+        if rising_edge(axis_clk) then
+            if (axis_reset = '1') then
+                lSlotClear <= '0';
+                lSlotSet   <= '0';
+            else
+                lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 2 downto 0) & RingBufferSlotClear;
+                lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 2 downto 0) & lPacketSlotSet;
+                -- Slot clear is late processed
+                if (lSlotClearBuffer = X"1100") then
+                    lSlotClear <= '1';
+                else
+                    lSlotClear <= '0';
+                end if;
+                -- Slot set is early processed
+                if (lSlotSetBuffer = X"0001") then
+                    lSlotSet <= '1';
+                else
+                    lSlotSet <= '0';
+                end if;
+
+            end if;
+        end if;
+    end process SlotSetClearProc;
+        
+    FilledSlotCounterProc : process(axis_clk)
+    begin
+        if rising_edge(axis_clk) then
             if (axis_reset = '1') then
                 lFilledSlots <= (others => '0');
             else
-                if ((RingBufferSlotClear = '0') and (lPacketSlotSet = '1')) then
-                    lFilledSlots <= lFilledSlots + 1;
-                elsif ((RingBufferSlotClear = '1') and (lPacketSlotSet = '0')) then
-                    lFilledSlots <= lFilledSlots - 1;
+                if ((lSlotClear = '0') and (lSlotSet = '1')) then
+                    if (lFilledSlots /= X"F") then
+                        lFilledSlots <= lFilledSlots + 1;
+                    end if;
+                elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
+                    if (lFilledSlots /= 0) then
+                        lFilledSlots <= lFilledSlots - 1;
+                    end if;
                 else
                     -- Its a neutral operation
                     lFilledSlots <= lFilledSlots;

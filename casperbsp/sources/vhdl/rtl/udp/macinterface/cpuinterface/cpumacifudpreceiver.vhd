@@ -198,8 +198,8 @@ begin
                 lSlotClear <= '0';
                 lSlotSet   <= '0';
             else
-                lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 1 downto 1) & IngressRingBufferSlotSet;
-                lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 1 downto 1) & ringbuffer_slot_clear;
+                lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 2 downto 0) & IngressRingBufferSlotSet;
+                lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 2 downto 0) & ringbuffer_slot_clear;
                 -- Slot clear is late processed
                 if (lSlotClearBuffer = b"1100") then
                     lSlotClear <= '1';
@@ -229,9 +229,13 @@ begin
                 lFilledSlots <= (others => '0');
             else
                 if ((lSlotClear = '0') and (lSlotSet = '1')) then
-                    lFilledSlots <= lFilledSlots + 1;
+                    if (lFilledSlots /= X"F") then
+                        lFilledSlots <= lFilledSlots + 1;
+                    end if;
                 elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
-                    lFilledSlots <= lFilledSlots - 1;
+                    if (lFilledSlots /= 0) then
+                        lFilledSlots <= lFilledSlots - 1;
+                    end if;
                 else
                     -- Its a neutral operation
                     lFilledSlots <= lFilledSlots;
