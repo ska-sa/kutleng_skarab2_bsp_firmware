@@ -95,6 +95,7 @@ architecture rtl of udpdatastripper is
 		InitialiseSt,                   -- On the reset state
 		CheckEmptySlotSt,
 		ExtractPacketDataSt,
+		PreExtractPacketDataSt,
 		NextSlotSt
 	);
 	constant C_ADDRESS_MAX        : natural             := (2**G_ADDR_WIDTH) - 1;
@@ -141,7 +142,17 @@ architecture rtl of udpdatastripper is
 begin
 	RecvRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
 	RecvRingBufferSlotID  <= std_logic_vector(lRecvRingBufferSlotID);
-
+	
+	
+	CombOutPut:process(StateVariable,axis_tready)
+	begin
+		if  (StateVariable = ExtractPacketDataSt) then
+			axis_tvalid <= axis_tready;
+		else
+			axis_tvalid <= '0';
+		end if;
+	end process CombOutPut;
+	
 	SynchStateProc : process(axis_clk)
 	begin
 		if rising_edge(axis_clk) then
@@ -166,12 +177,21 @@ begin
 							lRecvRingBufferAddress <= (others => '0');
 							RecvRingBufferDataRead <= '1';
 							lFirstFrame <= '1';
-							StateVariable          <= ExtractPacketDataSt;
+							-- This may need to wait before reading as the BRAM may have a latency on 1 clock cycle.
+							StateVariable          <= PreExtractPacketDataSt;
 						else
 							lFirstFrame <= '0';
 							RecvRingBufferDataRead <= '0';
 							-- Keep searching for a packet
 							StateVariable          <= CheckEmptySlotSt;
+						end if;
+					when PreExtractPacketDataSt =>
+						if (axis_tready = '1') then
+							-- Read and point to next address
+							lRecvRingBufferAddress  <= lRecvRingBufferAddress + 1;
+							StateVariable          <= ExtractPacketDataSt;
+						else
+							StateVariable          <= PreExtractPacketDataSt;						
 						end if;
 
 					when ExtractPacketDataSt =>
@@ -182,7 +202,7 @@ begin
 						if (axis_tready = '1') then
 							-- Read and point to next address
 							lRecvRingBufferAddress  <= lRecvRingBufferAddress + 1;
-							axis_tvalid             <= '1';
+							--axis_tvalid             <= '1';
 							axis_tdata              <= RecvRingBufferDataOut;
 							axis_tkeep(63 downto 1) <= RecvRingBufferDataEnable(63 downto 1);
 							axis_tkeep(0)           <= '1';
@@ -203,14 +223,14 @@ begin
 								StateVariable <= ExtractPacketDataSt;
 							end if;
 						else
-							axis_tvalid   <= '0';
+							--axis_tvalid   <= '0';
 							StateVariable <= ExtractPacketDataSt;
 						end if;
 
 					when NextSlotSt =>
 						axis_tlast              <= '0';
 						axis_tuser              <= '0';
-						axis_tvalid             <= '0';
+						--axis_tvalid             <= '0';
 						RecvRingBufferDataRead  <= '0';
 						RecvRingBufferSlotClear <= '0';
 						-- Search next slots  
