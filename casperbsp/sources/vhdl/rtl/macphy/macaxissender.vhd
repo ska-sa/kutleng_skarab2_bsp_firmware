@@ -64,7 +64,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity macifudpsender is
+entity macaxissender is
     generic(
         G_SLOT_WIDTH : natural := 4;
         --G_UDP_SERVER_PORT : natural range 0 to ((2**16) - 1) := 5;
@@ -74,16 +74,17 @@ entity macifudpsender is
     port(
         axis_clk                 : in  STD_LOGIC;
         axis_reset               : in  STD_LOGIC;
-        -- Setup information
-        --SenderMACAddress         : in  STD_LOGIC_VECTOR(47 downto 0);
-        --SenderIPAddress          : in  STD_LOGIC_VECTOR(31 downto 0);
+        DataRateBackOff          : in  STD_LOGIC;        
+        
         -- Packet Write in addressed bus format
+        MuxRequestSlot           : out STD_LOGIC;
+        MuxAckSlot               : in  STD_LOGIC;
+        MuxSlotID                : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         -- Packet Readout in addressed bus format
         RingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferSlotClear      : out STD_LOGIC;
         RingBufferSlotStatus     : in  STD_LOGIC;
         RingBufferSlotTypeStatus : in  STD_LOGIC;
-        RingBufferSlotsFilled    : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferDataRead       : out STD_LOGIC;
         -- Enable[0] is a special bit (we assume always 1 when packet is valid)
         -- we use it to save TLAST
@@ -92,61 +93,42 @@ entity macifudpsender is
         RingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
         --Inputs from AXIS bus of the MAC side
         --Outputs to AXIS bus MAC side 
-        axis_tx_tpriority        : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         axis_tx_tdata            : out STD_LOGIC_VECTOR(511 downto 0);
         axis_tx_tvalid           : out STD_LOGIC;
         axis_tx_tready           : in  STD_LOGIC;
+        axis_tx_tuser            : out STD_LOGIC;
         axis_tx_tkeep            : out STD_LOGIC_VECTOR(63 downto 0);
         axis_tx_tlast            : out STD_LOGIC
     );
-end entity macifudpsender;
+end entity macaxissender;
 
-architecture rtl of macifudpsender is
+architecture rtl of macaxissender is
 
-    type AxisUDPSenderSM_t is (
+    type AxisSenderSM_t is (
         InitialiseSt,                   -- On the reset state
+        RequestSlotSt,
         CheckSlotSt,
         NextSlotSt,
-        ProcessPacketSt,
-        ClearSlotSt
+        ProcessPacketSt
     );
-    signal StateVariable      : AxisUDPSenderSM_t := InitialiseSt;
+    signal StateVariable               : AxisSenderSM_t                      := InitialiseSt;
+    -- Maximum address for read ring buffer
+    -- In this case terminate the transaction with  tuser error
+    constant C_RING_BUFFER_MAX_ADDRESS : unsigned(G_ADDR_WIDTH - 1 downto 0) := (others => '1');
     -- Tuples registers
-    signal lRingBufferSlotID  : unsigned(G_SLOT_WIDTH - 1 downto 0);
-    signal lRingBufferAddress : unsigned(G_ADDR_WIDTH - 1 downto 0);
-    signal ltvalid            : std_logic;
-    signal ldtvalid           : std_logic;
-    signal lpready            : std_logic;
-
+    signal lRingBufferSlotID           : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRingBufferAddress          : unsigned(G_ADDR_WIDTH - 1 downto 0);
+    signal lDataRead                   : std_logic;
 begin
     RingBufferSlotID  <= std_logic_vector(lRingBufferSlotID);
     RingBufferAddress <= std_logic_vector(lRingBufferAddress);
-    FilledSlotsProc : process(axis_clk)
-    begin
-        if rising_edge(axis_clk) then
-            axis_tx_tpriority <= RingBufferSlotsFilled;
-        end if;
-    end process FilledSlotsProc;
 
-    TValidProc : process(StateVariable, ltvalid, ldtvalid)
-    begin
-        if (((StateVariable = ProcessPacketSt) and (ltvalid = '1') and (ldtvalid = '1')) or ((StateVariable = NextSlotSt) and (ltvalid = '1'))) then
-            axis_tx_tvalid <= '1';
-        else
-            axis_tx_tvalid <= '0';
-        end if;
-    end process TValidProc;
-
-    LValidProc : process(axis_clk)
-    begin
-        if rising_edge(axis_clk) then
-            if (ltvalid = '1') then
-                ldtvalid <= '1';
-            else
-                ldtvalid <= '0';
-            end if;
-        end if;
-    end process LValidProc;
+    axis_tx_tdata              <= RingBufferDataIn;
+    axis_tx_tkeep(63 downto 1) <= RingBufferDataEnable(63 downto 1);
+    axis_tx_tkeep(0)           <= (not RingBufferDataEnable(0)) when (RingBufferDataEnable(0) = '0') else '1';
+    axis_tx_tlast              <= '1' when ((lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS) or (RingBufferDataEnable(0) = '1')) else '0';
+    axis_tx_tuser              <= '1' when (lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS) else '0';
+    RingBufferDataRead         <= axis_tx_tready and lDataRead;
 
     SynchStateProc : process(axis_clk)
     begin
@@ -154,68 +136,70 @@ begin
             if (axis_reset = '1') then
                 -- Initialize SM on reset
                 StateVariable <= InitialiseSt;
-                lpready <= '0';
             else
-                lpready <= axis_tx_tready;
                 case (StateVariable) is
                     when InitialiseSt =>
                         -- Wait for packet after initialization
-                        StateVariable       <= CheckSlotSt;
-                        ltvalid             <= '0';
-                        axis_tx_tlast       <= '0';
+                        StateVariable       <= RequestSlotSt;
+                        MuxRequestSlot      <= '0';
                         lRingBufferAddress  <= (others => '0');
-                        RingBufferDataRead  <= '0';
+                        lDataRead           <= '0';
                         RingBufferSlotClear <= '0';
                         lRingBufferSlotID   <= (others => '0');
+                        
+                    when RequestSlotSt =>
+                        if (MuxAckSlot = '1') then
+                            lRingBufferSlotID <= unsigned(MuxSlotID);
+                            -- Check the slot if it has data
+                            StateVariable       <= CheckSlotSt;
+                            MuxRequestSlot <= '0';                            
+                        else
+                            MuxRequestSlot <= '1';                            
+                        end if;
 
                     when CheckSlotSt =>
+                        
                         lRingBufferAddress <= (others => '0');
+                        axis_tx_tvalid     <= '0';
                         if (RingBufferSlotStatus = '1') then
-                            -- The current slot has data 
+                            -- The current slot has data and the fifo has emptyness 
+                            --  for a complete packet slot
                             -- Pull the data 
-                            RingBufferDataRead <= '1';
-                            StateVariable      <= ProcessPacketSt;
+                            if (DataRateBackOff = '0') then 
+                                lDataRead     <= '1';
+                                StateVariable <= ProcessPacketSt;
+                            else
+                                lDataRead     <= '0';
+                                StateVariable <= CheckSlotSt;
+                            end if;
                         else
-                            RingBufferDataRead <= '0';
-                            StateVariable      <= CheckSlotSt;
+                            lDataRead     <= '0';
+                            StateVariable <= NextSlotSt;
                         end if;
 
                     when NextSlotSt =>
-                        -- Go to next Slot
-                        lRingBufferSlotID   <= lRingBufferSlotID + 1;
                         lRingBufferAddress  <= (others => '0');
-                        ltvalid             <= '0';
-                        axis_tx_tlast       <= '0';
-                        axis_tx_tdata       <= (others => '0');
-                        axis_tx_tkeep       <= (others => '0');
+                        axis_tx_tvalid      <= '0';
                         RingBufferSlotClear <= '0';
-                        RingBufferDataRead  <= '0';
-                        StateVariable       <= CheckSlotSt;
+                        lDataRead           <= '0';
+                        StateVariable       <= RequestSlotSt;
 
                     when ProcessPacketSt =>
-                        if ((axis_tx_tready = '1') and (lpready = '1'))then
-                            ltvalid                    <= '1';
-                            axis_tx_tdata              <= RingBufferDataIn;
-                            axis_tx_tkeep(63 downto 1) <= RingBufferDataEnable(63 downto 1);
-                            lRingBufferAddress         <= lRingBufferAddress + 1;
+                        -- Keep reading the slot till ready
 
-                            if (RingBufferDataEnable(0) = '1') then
-                                axis_tx_tlast       <= RingBufferSlotTypeStatus;
-                                axis_tx_tkeep(0)    <= RingBufferDataEnable(0);
-                                -- This is the last one
-                                -- Clear the current slot
-                                RingBufferSlotClear <= '1';
+                        if (axis_tx_tready = '1') then
+                            lRingBufferAddress <= lRingBufferAddress + 1;
+                            if ((RingBufferDataEnable(0) = '1') or (lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS)) then
+                                -- This is the last one, or there was an error
+							    RingBufferSlotClear <= RingBufferSlotTypeStatus;
+                                axis_tx_tvalid <= '0';
                                 -- Go to next slot
-                                StateVariable       <= NextSlotSt;
+                                StateVariable  <= NextSlotSt;
                             else
-                                -- More data to flow
-                                axis_tx_tlast       <= '0';
-                                axis_tx_tkeep(0)    <= not RingBufferDataEnable(0);
                                 -- read next address
+                                axis_tx_tvalid <= '1';
                                 -- Keep reading the slot till ready
-                                RingBufferSlotClear <= '0';
-                                RingBufferDataRead  <= '1';
-                                StateVariable       <= ProcessPacketSt;
+                                StateVariable  <= ProcessPacketSt;
                             end if;
                         end if;
                     when others =>

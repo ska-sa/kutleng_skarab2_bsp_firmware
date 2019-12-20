@@ -151,19 +151,20 @@ architecture rtl of udpdatapacker is
         PreComputeHeaderCheckSumSt,
         ProcessUDPPacketStreamSt
     );
-    signal StateVariable              : UDPDataPackerSM_t             := InitialiseSt;
-    constant C_DWORD_MAX              : natural                       := (16 - 1);
-    signal C_RESPONSE_UDP_LENGTH      : std_logic_vector(15 downto 0) := X"0012"; -- Always 8 bytes more than data size 
-    signal C_RESPONSE_IPV4_LENGTH     : std_logic_vector(15 downto 0) := X"0026"; -- Always 20 more than UDP length
-    constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0) := X"0800";
-    constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)  := X"45";
-    constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)  := X"00";
-    constant C_RESPONSE_FLAGS_OFFSET  : std_logic_vector(15 downto 0) := X"4000";
-    constant C_RESPONSE_TIME_TO_LEAVE : std_logic_vector(7 downto 0)  := X"40";
-    constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)  := X"11";
-    constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)         := X"0008";
-    constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)         := X"0014";
-    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)         := X"8411"; --X"8413";--X"8411";--X"e298";--
+    signal StateVariable              : UDPDataPackerSM_t                   := InitialiseSt;
+    constant C_DWORD_MAX              : natural                             := (16 - 1);
+    constant C_FILLED_SLOT_MAX        : unsigned(G_SLOT_WIDTH - 1 downto 0) := (others => '1');
+    signal C_RESPONSE_UDP_LENGTH      : std_logic_vector(15 downto 0)       := X"0012"; -- Always 8 bytes more than data size 
+    signal C_RESPONSE_IPV4_LENGTH     : std_logic_vector(15 downto 0)       := X"0026"; -- Always 20 more than UDP length
+    constant C_RESPONSE_ETHER_TYPE    : std_logic_vector(15 downto 0)       := X"0800";
+    constant C_RESPONSE_IPV4IHL       : std_logic_vector(7 downto 0)        := X"45";
+    constant C_RESPONSE_DSCPECN       : std_logic_vector(7 downto 0)        := X"00";
+    constant C_RESPONSE_FLAGS_OFFSET  : std_logic_vector(15 downto 0)       := X"4000";
+    constant C_RESPONSE_TIME_TO_LEAVE : std_logic_vector(7 downto 0)        := X"40";
+    constant C_RESPONSE_UDP_PROTOCOL  : std_logic_vector(7 downto 0)        := X"11";
+    constant C_UDP_HEADER_LENGTH      : unsigned(15 downto 0)               := X"0008";
+    constant C_IP_HEADER_LENGTH       : unsigned(15 downto 0)               := X"0014";
+    constant C_IP_IDENTIFICATION      : unsigned(15 downto 0)               := X"8411"; --X"8413";--X"8411";--X"e298";--
     -- Tuples registers
     signal lPacketData                : std_logic_vector(511 downto 0);
     alias lDestinationMACAddress      : std_logic_vector(47 downto 0) is lPacketData(47 downto 0);
@@ -179,8 +180,8 @@ architecture rtl of udpdatapacker is
     alias lIPHeaderChecksum           : std_logic_vector(15 downto 0) is lPacketData(207 downto 192);
     alias lSourceIPAddress            : std_logic_vector(31 downto 0) is lPacketData(239 downto 208);
     alias lDestinationIPAddress       : std_logic_vector(31 downto 0) is lPacketData(271 downto 240);
-    alias lSourceUDPPort              : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
-    alias lDestinationUDPPort         : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
+    alias lDestinationUDPPort         : std_logic_vector(15 downto 0) is lPacketData(287 downto 272);
+    alias lSourceUDPPort              : std_logic_vector(15 downto 0) is lPacketData(303 downto 288);
     alias lUDPDataStreamLength        : std_logic_vector(15 downto 0) is lPacketData(319 downto 304);
     alias lUDPCheckSum                : std_logic_vector(15 downto 0) is lPacketData(335 downto 320);
     signal lIPHDRCheckSum             : unsigned(16 downto 0);
@@ -309,8 +310,55 @@ architecture rtl of udpdatapacker is
     signal lSlotClear       : STD_LOGIC;
     signal lSlotSetBuffer   : STD_LOGIC_VECTOR(1 downto 0);
     signal lSlotSet         : STD_LOGIC;
+    signal FixedSlotID      : STD_LOGIC_VECTOR(3 downto 0);
+    signal lSlotID          : STD_LOGIC_VECTOR(3 downto 0);
+    signal ClearDisable     : STD_LOGIC;
+    signal lClear           : STD_LOGIC;
+    signal UseFixedSlotID   : STD_LOGIC;
+    component vio_packer is
+        port(
+            clk        : in  STD_LOGIC;
+            probe_out0 : out STD_LOGIC_VECTOR(0 downto 0); -- Clear disable
+            probe_out1 : out STD_LOGIC_VECTOR(0 downto 0); -- Use Fixed Slot ID
+            probe_out2 : out STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component vio_packer;
+    component ila_datapacker is
+        Port(
+            clk    : in STD_LOGIC;
+            probe0 : in STD_LOGIC_VECTOR(511 downto 0);
+            probe1 : in STD_LOGIC_VECTOR(63 downto 0);
+            probe2 : in STD_LOGIC_VECTOR(4 downto 0);
+            probe3 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe4 : in STD_LOGIC_VECTOR(0 to 0);
+            probe5 : in STD_LOGIC_VECTOR(0 to 0);
+            probe6 : in STD_LOGIC_VECTOR(0 to 0)
+        );
 
+    end component ila_datapacker;
 begin
+    ILAPACKERi : ila_datapacker
+        port map(
+            clk       => axis_app_clk,
+            probe0    => lPacketData,
+            probe1    => lPacketByteEnable,
+            probe2    => std_logic_vector(lPacketAddress),
+            probe3    => std_logic_vector(lDPacketSlotID),
+            probe4(0) => lPacketDataWrite,
+            probe5(0) => lPacketSlotSet,
+            probe6(0) => lPacketSlotStatus
+        );
+    VIOPACKi : vio_packer
+        port map(
+            clk           => axis_clk,
+            probe_out0(0) => ClearDisable,
+            probe_out1(0) => UseFixedSlotID,
+            probe_out2    => FixedSlotID
+        );
+    lClear <= '0' when (ClearDisable = '1') else SenderRingBufferSlotClear;
+
+    lSlotID <= FixedSlotID when (UseFixedSlotID = '1') else SenderRingBufferSlotID;
+
     TXOverflowCount <= std_logic_vector(lTXOverflowCount);
     TXAFullCount    <= std_logic_vector(lTXAFullCount);
     -- These slot clear and set operations are slow and must be spaced atleast
@@ -354,9 +402,15 @@ begin
                 lFilledSlots <= (others => '0');
             else
                 if ((lSlotClear = '0') and (lSlotSet = '1')) then
-                    lFilledSlots <= lFilledSlots + 1;
+                    if (lFilledSlots /= C_FILLED_SLOT_MAX) then
+                        -- Saturating add
+                        lFilledSlots <= lFilledSlots + 1;
+                    end if;
                 elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
-                    lFilledSlots <= lFilledSlots - 1;
+                    if (lFilledSlots /= 0) then
+                        -- Saturating subtract
+                        lFilledSlots <= lFilledSlots - 1;
+                    end if;
                 else
                     -- Its a neutral operation
                     lFilledSlots <= lFilledSlots;
@@ -379,8 +433,8 @@ begin
             TxPacketDataRead       => SenderRingBufferDataRead,
             TxPacketData           => SenderRingBufferData,
             TxPacketAddress        => SenderRingBufferAddress,
-            TxPacketSlotClear      => SenderRingBufferSlotClear,
-            TxPacketSlotID         => SenderRingBufferSlotID,
+            TxPacketSlotClear      => lClear, --SenderRingBufferSlotClear,
+            TxPacketSlotID         => lSlotID, --SenderRingBufferSlotID,
             TxPacketSlotStatus     => SenderRingBufferSlotStatus,
             TxPacketSlotTypeStatus => SenderRingBufferSlotTypeStatus,
             -- Reception port
@@ -398,16 +452,15 @@ begin
     AddressingChangeProc : process(axis_app_clk)
     begin
         if (rising_edge(axis_app_clk)) then
-            lDPacketSlotID <= lPacketSlotID;
+            lDPacketSlotID   <= lPacketSlotID;
             ClientMACAddress <= ARPReadData(47 downto 0);
-            
-            
+
             if (lClientMACAddress = ClientMACAddress) then
                 lClientMACAddresschanged <= '0';
             else
                 lClientMACAddresschanged <= '1';
             end if;
-                
+
             if (lUDPPacketLength = UDPPacketLength) then
                 lUDPPacketLengthChanged <= '0';
             else
@@ -626,6 +679,7 @@ begin
                             -- Enable all other data fields.
                             -- enable(0) is special for TLAST mapping
                             lPacketByteEnable(0)            <= axis_tlast;
+                            lPacketSlotType                 <= axis_tlast;
                             lPacketByteEnable(41 downto 1)  <= (others => '1');
                             ----------------------------------------------------
                             --                  Ethernet Header               --
@@ -866,6 +920,7 @@ begin
                                 -- Keep processing the lengthy packet                             
                                 -- Pass the packet byte enables
                                 lPacketByteEnable(0)           <= '0';
+                                lPacketSlotType                <= axis_tlast;
                                 lPacketByteEnable(63 downto 1) <= axis_tkeep(63 downto 1);
                                 StateVariable                  <= ProcessUDPPacketStreamSt;
                             else
@@ -875,6 +930,7 @@ begin
                                 -- Pass through the packet enable (tkeep)
                                 -- Enable(0) is special for TLAST mapping
                                 lPacketByteEnable(0)           <= axis_tlast;
+                                lPacketSlotType                <= axis_tlast;
                                 lPacketByteEnable(63 downto 1) <= axis_tkeep(63 downto 1);
                                 -- Point to next address when data is valid from source
                                 if (axis_tvalid = '1') then

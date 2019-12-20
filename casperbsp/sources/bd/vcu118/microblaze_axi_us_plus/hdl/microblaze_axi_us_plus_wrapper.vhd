@@ -1,7 +1,7 @@
 --Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
---Tool Version: Vivado v.2018.3.1 (lin64) Build 2489853 Tue Mar 26 04:18:30 MDT 2019
---Date        : Wed Oct 16 06:48:59 2019
+--Tool Version: Vivado v.2019.2 (lin64) Build 2700185 Thu Oct 24 18:45:48 MDT 2019
+--Date        : Sat Nov 16 17:59:48 2019
 --Host        : benjamin-ubuntu-ws running 64-bit Ubuntu 18.04.3 LTS
 --Command     : generate_target microblaze_axi_us_plus_wrapper.bd
 --Design      : microblaze_axi_us_plus_wrapper
@@ -90,8 +90,6 @@ architecture STRUCTURE of microblaze_axi_us_plus_wrapper is
     ClockStable : in STD_LOGIC;
     PSClock : in STD_LOGIC;
     PSReset : in STD_LOGIC;
-    rs232_uart_rxd : in STD_LOGIC;
-    rs232_uart_txd : out STD_LOGIC;
     gmac_reg_mac_promiscous_mode : out STD_LOGIC;
     gmac_arp_cache_write_enable : out STD_LOGIC;
     gmac_reg_counters_reset : out STD_LOGIC;
@@ -154,7 +152,9 @@ architecture STRUCTURE of microblaze_axi_us_plus_wrapper is
     gmac_reg_rx_valid_rate : in STD_LOGIC_VECTOR ( 31 downto 0 );
     gmac_reg_phy_status_h : in STD_LOGIC_VECTOR ( 31 downto 0 );
     gmac_reg_tx_valid_rate : in STD_LOGIC_VECTOR ( 31 downto 0 );
-    gmac_reg_core_type : in STD_LOGIC_VECTOR ( 31 downto 0 )
+    gmac_reg_core_type : in STD_LOGIC_VECTOR ( 31 downto 0 );
+    rs232_uart_rxd : in STD_LOGIC;
+    rs232_uart_txd : out STD_LOGIC
   );
   end component microblaze_axi_us_plus;
 begin

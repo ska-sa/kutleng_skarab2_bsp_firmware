@@ -48,14 +48,26 @@ set proj_dir [get_property directory [current_project]]
 
 # Set project properties
 set obj [current_project]
-set_property -name "board_part" -value "xilinx.com:vcu118:part0:2.0" -objects $obj
+set_property -name "board_part" -value "xilinx.com:vcu118:part0:2.3" -objects $obj
 set_property -name "default_lib" -value "xil_defaultlib" -objects $obj
+set_property -name "enable_vhdl_2008" -value "1" -objects $obj
 set_property -name "ip_cache_permissions" -value "read write" -objects $obj
 set_property -name "ip_output_repo" -value "$proj_dir/${_xil_proj_name_}.cache/ip" -objects $obj
+set_property -name "mem.enable_memory_map_generation" -value "1" -objects $obj
+set_property -name "platform.board_id" -value "vcu118" -objects $obj
 set_property -name "pr_flow" -value "1" -objects $obj
+set_property -name "sim.central_dir" -value "$proj_dir/${_xil_proj_name_}.ip_user_files" -objects $obj
 set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
 set_property -name "simulator_language" -value "Mixed" -objects $obj
+set_property -name "source_mgmt_mode" -value "None" -objects $obj
 set_property -name "target_language" -value "VHDL" -objects $obj
+set_property -name "webtalk.activehdl_export_sim" -value "40" -objects $obj
+set_property -name "webtalk.ies_export_sim" -value "41" -objects $obj
+set_property -name "webtalk.modelsim_export_sim" -value "42" -objects $obj
+set_property -name "webtalk.questa_export_sim" -value "41" -objects $obj
+set_property -name "webtalk.riviera_export_sim" -value "40" -objects $obj
+set_property -name "webtalk.vcs_export_sim" -value "40" -objects $obj
+set_property -name "webtalk.xsim_export_sim" -value "42" -objects $obj
 set_property -name "xpm_libraries" -value "XPM_CDC XPM_FIFO XPM_MEMORY" -objects $obj
 
 # Create 'sources_1' fileset (if not found)
@@ -493,7 +505,9 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
 
   # Create interface pins
   create_bd_intf_pin -mode MirroredMaster -vlnv xilinx.com:interface:lmb_rtl:1.0 DLMB
+
   create_bd_intf_pin -mode MirroredMaster -vlnv xilinx.com:interface:lmb_rtl:1.0 ILMB
+
 
   # Create pins
   create_bd_pin -dir I -type clk LMB_Clk
@@ -574,20 +588,18 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   # Create interface ports
   set rs232_uart [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:uart_rtl:1.0 rs232_uart ]
 
+
   # Create ports
   set ClockStable [ create_bd_port -dir I ClockStable ]
-  set PSClock [ create_bd_port -dir I -type clk PSClock ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {125000000} \
- ] $PSClock
+  set PSClock [ create_bd_port -dir I -type clk -freq_hz 125000000 PSClock ]
   set PSReset [ create_bd_port -dir I -type rst PSReset ]
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_HIGH} \
  ] $PSReset
-  set gmac_arp_cache_read_address [ create_bd_port -dir O -from 12 -to 0 gmac_arp_cache_read_address ]
+  set gmac_arp_cache_read_address [ create_bd_port -dir O -from 9 -to 0 gmac_arp_cache_read_address ]
   set gmac_arp_cache_read_data [ create_bd_port -dir I -from 31 -to 0 gmac_arp_cache_read_data ]
   set gmac_arp_cache_read_enable [ create_bd_port -dir O gmac_arp_cache_read_enable ]
-  set gmac_arp_cache_write_address [ create_bd_port -dir O -from 12 -to 0 gmac_arp_cache_write_address ]
+  set gmac_arp_cache_write_address [ create_bd_port -dir O -from 9 -to 0 gmac_arp_cache_write_address ]
   set gmac_arp_cache_write_data [ create_bd_port -dir O -from 31 -to 0 gmac_arp_cache_write_data ]
   set gmac_arp_cache_write_enable [ create_bd_port -dir O gmac_arp_cache_write_enable ]
   set gmac_reg_arp_size [ create_bd_port -dir I -from 31 -to 0 gmac_reg_arp_size ]
@@ -600,8 +612,8 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   set gmac_reg_mac_promiscous_mode [ create_bd_port -dir O gmac_reg_mac_promiscous_mode ]
   set gmac_reg_multicast_ip_address [ create_bd_port -dir O -from 31 -to 0 gmac_reg_multicast_ip_address ]
   set gmac_reg_multicast_ip_mask [ create_bd_port -dir O -from 31 -to 0 gmac_reg_multicast_ip_mask ]
-  set gmac_reg_phy_control_h [ create_bd_port -dir O -from 31 -to 0 -type data gmac_reg_phy_control_h ]
-  set gmac_reg_phy_control_l [ create_bd_port -dir O -from 31 -to 0 -type data gmac_reg_phy_control_l ]
+  set gmac_reg_phy_control_h [ create_bd_port -dir O -from 31 -to 0 gmac_reg_phy_control_h ]
+  set gmac_reg_phy_control_l [ create_bd_port -dir O -from 31 -to 0 gmac_reg_phy_control_l ]
   set gmac_reg_phy_status_h [ create_bd_port -dir I -from 31 -to 0 gmac_reg_phy_status_h ]
   set gmac_reg_phy_status_l [ create_bd_port -dir I -from 31 -to 0 gmac_reg_phy_status_l ]
   set gmac_reg_rx_almost_full_count [ create_bd_port -dir I -from 31 -to 0 gmac_reg_rx_almost_full_count ]
@@ -623,23 +635,23 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   set gmac_reg_tx_word_size [ create_bd_port -dir I -from 15 -to 0 gmac_reg_tx_word_size ]
   set gmac_reg_udp_port [ create_bd_port -dir O -from 15 -to 0 gmac_reg_udp_port ]
   set gmac_reg_udp_port_mask [ create_bd_port -dir O -from 15 -to 0 gmac_reg_udp_port_mask ]
-  set gmac_rx_data_read_address [ create_bd_port -dir O -from 12 -to 0 gmac_rx_data_read_address ]
+  set gmac_rx_data_read_address [ create_bd_port -dir O -from 10 -to 0 gmac_rx_data_read_address ]
   set gmac_rx_data_read_byte_enable [ create_bd_port -dir I -from 1 -to 0 gmac_rx_data_read_byte_enable ]
   set gmac_rx_data_read_data [ create_bd_port -dir I -from 7 -to 0 gmac_rx_data_read_data ]
   set gmac_rx_data_read_enable [ create_bd_port -dir O gmac_rx_data_read_enable ]
-  set gmac_rx_data_write_address [ create_bd_port -dir O -from 12 -to 0 gmac_rx_data_write_address ]
-  set gmac_rx_data_write_byte_enable_0 [ create_bd_port -dir O -from 1 -to 0 gmac_rx_data_write_byte_enable_0 ]
+  set gmac_rx_data_write_address [ create_bd_port -dir O -from 10 -to 0 gmac_rx_data_write_address ]
+  set gmac_rx_data_write_byte_enable [ create_bd_port -dir O -from 1 -to 0 gmac_rx_data_write_byte_enable ]
   set gmac_rx_data_write_data [ create_bd_port -dir O -from 7 -to 0 gmac_rx_data_write_data ]
   set gmac_rx_data_write_enable [ create_bd_port -dir O gmac_rx_data_write_enable ]
   set gmac_rx_ringbuffer_number_slots_filled [ create_bd_port -dir I -from 3 -to 0 gmac_rx_ringbuffer_number_slots_filled ]
   set gmac_rx_ringbuffer_slot_clear [ create_bd_port -dir O gmac_rx_ringbuffer_slot_clear ]
   set gmac_rx_ringbuffer_slot_id [ create_bd_port -dir O -from 3 -to 0 gmac_rx_ringbuffer_slot_id ]
   set gmac_rx_ringbuffer_slot_status [ create_bd_port -dir I gmac_rx_ringbuffer_slot_status ]
-  set gmac_tx_data_read_address [ create_bd_port -dir O -from 12 -to 0 gmac_tx_data_read_address ]
+  set gmac_tx_data_read_address [ create_bd_port -dir O -from 10 -to 0 gmac_tx_data_read_address ]
   set gmac_tx_data_read_byte_enable [ create_bd_port -dir I -from 1 -to 0 gmac_tx_data_read_byte_enable ]
   set gmac_tx_data_read_data [ create_bd_port -dir I -from 7 -to 0 gmac_tx_data_read_data ]
   set gmac_tx_data_read_enable [ create_bd_port -dir O gmac_tx_data_read_enable ]
-  set gmac_tx_data_write_address [ create_bd_port -dir O -from 12 -to 0 gmac_tx_data_write_address ]
+  set gmac_tx_data_write_address [ create_bd_port -dir O -from 10 -to 0 gmac_tx_data_write_address ]
   set gmac_tx_data_write_byte_enable [ create_bd_port -dir O -from 1 -to 0 gmac_tx_data_write_byte_enable ]
   set gmac_tx_data_write_data [ create_bd_port -dir O -from 7 -to 0 gmac_tx_data_write_data ]
   set gmac_tx_data_write_enable [ create_bd_port -dir O gmac_tx_data_write_enable ]
@@ -686,6 +698,7 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
    CONFIG.C_AREA_OPTIMIZED {1} \
    CONFIG.C_CACHE_BYTE_SIZE {8192} \
    CONFIG.C_DCACHE_ADDR_TAG {0} \
+   CONFIG.C_DCACHE_ALWAYS_USED {1} \
    CONFIG.C_DCACHE_BYTE_SIZE {8192} \
    CONFIG.C_DCACHE_USE_WRITEBACK {0} \
    CONFIG.C_DEBUG_ENABLED {2} \
@@ -693,6 +706,7 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
    CONFIG.C_D_AXI {1} \
    CONFIG.C_D_LMB {1} \
    CONFIG.C_FPU_EXCEPTION {0} \
+   CONFIG.C_ICACHE_ALWAYS_USED {1} \
    CONFIG.C_ICACHE_LINE_LEN {8} \
    CONFIG.C_ICACHE_STREAMS {0} \
    CONFIG.C_ICACHE_VICTIMS {0} \
@@ -748,6 +762,10 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
 
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
+  set_property -dict [ list \
+   CONFIG.RESET_BOARD_INTERFACE {reset} \
+   CONFIG.USE_BOARD_FLOW {true} \
+ ] $proc_sys_reset_0
 
   # Create interface connections
   connect_bd_intf_net -intf_net axi_uartlite_0_UART [get_bd_intf_ports rs232_uart] [get_bd_intf_pins axi_uartlite_0/UART]
@@ -758,9 +776,9 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   connect_bd_intf_net -intf_net microblaze_0_axi_periph_M04_AXI [get_bd_intf_pins axi_uartlite_0/S_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M04_AXI]
   connect_bd_intf_net -intf_net microblaze_0_axi_periph_M05_AXI [get_bd_intf_pins ethernetcore_mm_0/S00_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M05_AXI]
   connect_bd_intf_net -intf_net microblaze_0_axi_periph_M06_AXI [get_bd_intf_pins ethernetcore_mm_0/S01_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M06_AXI]
-  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M07_AXI [get_bd_intf_pins ethernetcore_mm_0/S_AXI_INTR] [get_bd_intf_pins microblaze_0_axi_periph/M07_AXI]
-  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M08_AXI [get_bd_intf_pins ethernetcore_mm_0/S02_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M08_AXI]
-  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M09_AXI [get_bd_intf_pins ethernetcore_mm_0/S03_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M09_AXI]
+  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M07_AXI [get_bd_intf_pins ethernetcore_mm_0/S02_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M07_AXI]
+  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M08_AXI [get_bd_intf_pins ethernetcore_mm_0/S03_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M08_AXI]
+  connect_bd_intf_net -intf_net microblaze_0_axi_periph_M09_AXI [get_bd_intf_pins ethernetcore_mm_0/S_AXI_INTR] [get_bd_intf_pins microblaze_0_axi_periph/M09_AXI]
   connect_bd_intf_net -intf_net microblaze_0_debug [get_bd_intf_pins mdm_0/MBDEBUG_0] [get_bd_intf_pins microblaze_0/DEBUG]
   connect_bd_intf_net -intf_net microblaze_0_dlmb_1 [get_bd_intf_pins microblaze_0/DLMB] [get_bd_intf_pins microblaze_0_local_memory/DLMB]
   connect_bd_intf_net -intf_net microblaze_0_ilmb_1 [get_bd_intf_pins microblaze_0/ILMB] [get_bd_intf_pins microblaze_0_local_memory/ILMB]
@@ -769,8 +787,10 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   connect_bd_intf_net -intf_net microblaze_0_mdm_axi [get_bd_intf_pins mdm_0/S_AXI] [get_bd_intf_pins microblaze_0_axi_periph/M01_AXI]
 
   # Create port connections
+  connect_bd_net -net ARESETN_1 [get_bd_pins microblaze_0_axi_periph/ARESETN] [get_bd_pins proc_sys_reset_0/interconnect_aresetn]
   connect_bd_net -net ClockStable_1 [get_bd_ports ClockStable] [get_bd_pins proc_sys_reset_0/dcm_locked]
   connect_bd_net -net PSReset_1 [get_bd_ports PSReset] [get_bd_pins proc_sys_reset_0/ext_reset_in]
+  connect_bd_net -net SYS_Rst_1 [get_bd_pins microblaze_0_local_memory/SYS_Rst] [get_bd_pins proc_sys_reset_0/bus_struct_reset]
   connect_bd_net -net axi_timebase_wdt_0_timebase_interrupt [get_bd_pins axi_timebase_wdt_0/timebase_interrupt] [get_bd_pins microblaze_0_xlconcat/In1]
   connect_bd_net -net axi_timebase_wdt_0_wdt_interrupt [get_bd_pins axi_timebase_wdt_0/wdt_interrupt] [get_bd_pins microblaze_0_xlconcat/In2]
   connect_bd_net -net axi_timer_0_interrupt [get_bd_pins axi_timer_0/interrupt] [get_bd_pins microblaze_0_xlconcat/In3]
@@ -795,7 +815,7 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_read_address [get_bd_ports gmac_rx_data_read_address] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_read_address]
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_read_enable [get_bd_ports gmac_rx_data_read_enable] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_read_enable]
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_write_address [get_bd_ports gmac_rx_data_write_address] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_write_address]
-  connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_write_byte_enable [get_bd_ports gmac_rx_data_write_byte_enable_0] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_write_byte_enable]
+  connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_write_byte_enable [get_bd_ports gmac_rx_data_write_byte_enable] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_write_byte_enable]
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_write_data [get_bd_ports gmac_rx_data_write_data] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_write_data]
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_data_write_enable [get_bd_ports gmac_rx_data_write_enable] [get_bd_pins ethernetcore_mm_0/gmac_rx_data_write_enable]
   connect_bd_net -net ethernetcore_mm_0_gmac_rx_ringbuffer_slot_clear [get_bd_ports gmac_rx_ringbuffer_slot_clear] [get_bd_pins ethernetcore_mm_0/gmac_rx_ringbuffer_slot_clear]
@@ -839,39 +859,222 @@ proc create_hier_cell_microblaze_0_local_memory { parentCell nameHier } {
   connect_bd_net -net gmac_tx_data_read_data_0_1 [get_bd_ports gmac_tx_data_read_data] [get_bd_pins ethernetcore_mm_0/gmac_tx_data_read_data]
   connect_bd_net -net gmac_tx_ringbuffer_number_slots_filled_0_1 [get_bd_ports gmac_tx_ringbuffer_number_slots_filled] [get_bd_pins ethernetcore_mm_0/gmac_tx_ringbuffer_number_slots_filled]
   connect_bd_net -net gmac_tx_ringbuffer_slot_status_0_1 [get_bd_ports gmac_tx_ringbuffer_slot_status] [get_bd_pins ethernetcore_mm_0/gmac_tx_ringbuffer_slot_status]
+  connect_bd_net -net mdm_0_Debug_SYS_Rst [get_bd_pins mdm_0/Debug_SYS_Rst] [get_bd_pins proc_sys_reset_0/mb_debug_sys_rst]
   connect_bd_net -net mdm_0_Interrupt [get_bd_pins mdm_0/Interrupt] [get_bd_pins microblaze_0_xlconcat/In4]
-  connect_bd_net -net mdm_1_debug_sys_rst [get_bd_pins mdm_0/Debug_SYS_Rst] [get_bd_pins proc_sys_reset_0/mb_debug_sys_rst]
   connect_bd_net -net microblaze_0_Clk [get_bd_ports PSClock] [get_bd_pins axi_timebase_wdt_0/s_axi_aclk] [get_bd_pins axi_timer_0/s_axi_aclk] [get_bd_pins axi_uartlite_0/s_axi_aclk] [get_bd_pins ethernetcore_mm_0/s00_axi_aclk] [get_bd_pins ethernetcore_mm_0/s01_axi_aclk] [get_bd_pins ethernetcore_mm_0/s02_axi_aclk] [get_bd_pins ethernetcore_mm_0/s03_axi_aclk] [get_bd_pins ethernetcore_mm_0/s_axi_intr_aclk] [get_bd_pins mdm_0/M_AXI_ACLK] [get_bd_pins mdm_0/S_AXI_ACLK] [get_bd_pins microblaze_0/Clk] [get_bd_pins microblaze_0_axi_intc/processor_clk] [get_bd_pins microblaze_0_axi_intc/s_axi_aclk] [get_bd_pins microblaze_0_axi_periph/ACLK] [get_bd_pins microblaze_0_axi_periph/M00_ACLK] [get_bd_pins microblaze_0_axi_periph/M01_ACLK] [get_bd_pins microblaze_0_axi_periph/M02_ACLK] [get_bd_pins microblaze_0_axi_periph/M03_ACLK] [get_bd_pins microblaze_0_axi_periph/M04_ACLK] [get_bd_pins microblaze_0_axi_periph/M05_ACLK] [get_bd_pins microblaze_0_axi_periph/M06_ACLK] [get_bd_pins microblaze_0_axi_periph/M07_ACLK] [get_bd_pins microblaze_0_axi_periph/M08_ACLK] [get_bd_pins microblaze_0_axi_periph/M09_ACLK] [get_bd_pins microblaze_0_axi_periph/S00_ACLK] [get_bd_pins microblaze_0_axi_periph/S01_ACLK] [get_bd_pins microblaze_0_local_memory/LMB_Clk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
   connect_bd_net -net microblaze_0_intr [get_bd_pins microblaze_0_axi_intc/intr] [get_bd_pins microblaze_0_xlconcat/dout]
-  connect_bd_net -net proc_sys_reset_0_bus_struct_reset [get_bd_pins microblaze_0_local_memory/SYS_Rst] [get_bd_pins proc_sys_reset_0/bus_struct_reset]
-  connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins microblaze_0_axi_periph/ARESETN] [get_bd_pins proc_sys_reset_0/interconnect_aresetn]
   connect_bd_net -net proc_sys_reset_0_mb_reset [get_bd_pins microblaze_0/Reset] [get_bd_pins microblaze_0_axi_intc/processor_rst] [get_bd_pins proc_sys_reset_0/mb_reset]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_timebase_wdt_0/s_axi_aresetn] [get_bd_pins axi_timer_0/s_axi_aresetn] [get_bd_pins axi_uartlite_0/s_axi_aresetn] [get_bd_pins ethernetcore_mm_0/s00_axi_aresetn] [get_bd_pins ethernetcore_mm_0/s01_axi_aresetn] [get_bd_pins ethernetcore_mm_0/s02_axi_aresetn] [get_bd_pins ethernetcore_mm_0/s03_axi_aresetn] [get_bd_pins ethernetcore_mm_0/s_axi_intr_aresetn] [get_bd_pins mdm_0/M_AXI_ARESETN] [get_bd_pins mdm_0/S_AXI_ARESETN] [get_bd_pins microblaze_0_axi_intc/s_axi_aresetn] [get_bd_pins microblaze_0_axi_periph/M00_ARESETN] [get_bd_pins microblaze_0_axi_periph/M01_ARESETN] [get_bd_pins microblaze_0_axi_periph/M02_ARESETN] [get_bd_pins microblaze_0_axi_periph/M03_ARESETN] [get_bd_pins microblaze_0_axi_periph/M04_ARESETN] [get_bd_pins microblaze_0_axi_periph/M05_ARESETN] [get_bd_pins microblaze_0_axi_periph/M06_ARESETN] [get_bd_pins microblaze_0_axi_periph/M07_ARESETN] [get_bd_pins microblaze_0_axi_periph/M08_ARESETN] [get_bd_pins microblaze_0_axi_periph/M09_ARESETN] [get_bd_pins microblaze_0_axi_periph/S00_ARESETN] [get_bd_pins microblaze_0_axi_periph/S01_ARESETN] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
 
   # Create address segments
-  create_bd_addr_seg -range 0x00010000 -offset 0x41A00000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_timebase_wdt_0/S_AXI/Reg] SEG_axi_timebase_wdt_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41C00000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_timer_0/S_AXI/Reg] SEG_axi_timer_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x40600000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_uartlite_0/S_AXI/Reg] SEG_axi_uartlite_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x44A00000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S00_AXI/S00_AXI_reg] SEG_ethernetcore_mm_0_S00_AXI_reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x76000000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S01_AXI/S01_AXI_mem] SEG_ethernetcore_mm_0_S01_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x76010000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S02_AXI/S02_AXI_mem] SEG_ethernetcore_mm_0_S02_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x76020000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S03_AXI/S03_AXI_mem] SEG_ethernetcore_mm_0_S03_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x44A10000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S_AXI_INTR/S_AXI_INTR_reg] SEG_ethernetcore_mm_0_S_AXI_INTR_reg
-  create_bd_addr_seg -range 0x00001000 -offset 0x41400000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs mdm_0/S_AXI/Reg] SEG_mdm_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41200000 [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs microblaze_0_axi_intc/S_AXI/Reg] SEG_microblaze_0_axi_intc_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41A00000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_timebase_wdt_0/S_AXI/Reg] SEG_axi_timebase_wdt_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41C00000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_timer_0/S_AXI/Reg] SEG_axi_timer_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x40600000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_uartlite_0/S_AXI/Reg] SEG_axi_uartlite_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x00000000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs microblaze_0_local_memory/dlmb_bram_if_cntlr/SLMB/Mem] SEG_dlmb_bram_if_cntlr_Mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x44A00000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S00_AXI/S00_AXI_reg] SEG_ethernetcore_mm_0_S00_AXI_reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x76000000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S01_AXI/S01_AXI_mem] SEG_ethernetcore_mm_0_S01_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x76010000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S02_AXI/S02_AXI_mem] SEG_ethernetcore_mm_0_S02_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x76020000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S03_AXI/S03_AXI_mem] SEG_ethernetcore_mm_0_S03_AXI_mem
-  create_bd_addr_seg -range 0x00010000 -offset 0x44A10000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S_AXI_INTR/S_AXI_INTR_reg] SEG_ethernetcore_mm_0_S_AXI_INTR_reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x00000000 [get_bd_addr_spaces microblaze_0/Instruction] [get_bd_addr_segs microblaze_0_local_memory/ilmb_bram_if_cntlr/SLMB/Mem] SEG_ilmb_bram_if_cntlr_Mem
-  create_bd_addr_seg -range 0x00001000 -offset 0x41400000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs mdm_0/S_AXI/Reg] SEG_mdm_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41200000 [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs microblaze_0_axi_intc/S_AXI/Reg] SEG_microblaze_0_axi_intc_Reg
+  assign_bd_address -offset 0x41A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_timebase_wdt_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_timer_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x40600000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x44A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S00_AXI/S00_AXI_reg] -force
+  assign_bd_address -offset 0x76000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S01_AXI/S01_AXI_mem] -force
+  assign_bd_address -offset 0x76010000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S02_AXI/S02_AXI_mem] -force
+  assign_bd_address -offset 0x76020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S03_AXI/S03_AXI_mem] -force
+  assign_bd_address -offset 0x44A10000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S_AXI_INTR/S_AXI_INTR_reg] -force
+  assign_bd_address -offset 0x41400000 -range 0x00001000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs mdm_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces mdm_0/Data] [get_bd_addr_segs microblaze_0_axi_intc/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_timebase_wdt_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_timer_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x40600000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x00000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs microblaze_0_local_memory/dlmb_bram_if_cntlr/SLMB/Mem] -force
+  assign_bd_address -offset 0x44A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S00_AXI/S00_AXI_reg] -force
+  assign_bd_address -offset 0x76000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S01_AXI/S01_AXI_mem] -force
+  assign_bd_address -offset 0x76010000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S02_AXI/S02_AXI_mem] -force
+  assign_bd_address -offset 0x76020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S03_AXI/S03_AXI_mem] -force
+  assign_bd_address -offset 0x44A10000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs ethernetcore_mm_0/S_AXI_INTR/S_AXI_INTR_reg] -force
+  assign_bd_address -offset 0x00000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Instruction] [get_bd_addr_segs microblaze_0_local_memory/ilmb_bram_if_cntlr/SLMB/Mem] -force
+  assign_bd_address -offset 0x41400000 -range 0x00001000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs mdm_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces microblaze_0/Data] [get_bd_addr_segs microblaze_0_axi_intc/S_AXI/Reg] -force
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.277259",
+   "Default View_TopLeft":"-429,-87",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0.21  2019-05-29 bk=1.5064 VDI=41 GEI=36 GUI=JA:9.0 TLS
+#  -string -flagsOSRD
+preplace port rs232_uart -pg 1 -lvl 6 -x 3100 -y 690 -defaultsOSRD
+preplace port ClockStable -pg 1 -lvl 0 -x -60 -y 220 -defaultsOSRD
+preplace port PSClock -pg 1 -lvl 0 -x -60 -y 80 -defaultsOSRD
+preplace port PSReset -pg 1 -lvl 0 -x -60 -y 160 -defaultsOSRD
+preplace port gmac_reg_mac_promiscous_mode -pg 1 -lvl 6 -x 3100 -y 1150 -defaultsOSRD
+preplace port gmac_arp_cache_write_enable -pg 1 -lvl 6 -x 3100 -y 1190 -defaultsOSRD
+preplace port gmac_reg_counters_reset -pg 1 -lvl 6 -x 3100 -y 1170 -defaultsOSRD
+preplace port gmac_reg_mac_enable -pg 1 -lvl 6 -x 3100 -y 1130 -defaultsOSRD
+preplace port gmac_arp_cache_read_enable -pg 1 -lvl 6 -x 3100 -y 1210 -defaultsOSRD
+preplace port gmac_tx_data_write_enable -pg 1 -lvl 6 -x 3100 -y 1290 -defaultsOSRD
+preplace port gmac_tx_data_read_enable -pg 1 -lvl 6 -x 3100 -y 1310 -defaultsOSRD
+preplace port gmac_rx_data_write_enable -pg 1 -lvl 6 -x 3100 -y 1450 -defaultsOSRD
+preplace port gmac_tx_ringbuffer_slot_set -pg 1 -lvl 6 -x 3100 -y 1430 -defaultsOSRD
+preplace port gmac_rx_data_read_enable -pg 1 -lvl 6 -x 3100 -y 1470 -defaultsOSRD
+preplace port gmac_rx_ringbuffer_slot_clear -pg 1 -lvl 6 -x 3100 -y 1590 -defaultsOSRD
+preplace port gmac_rx_ringbuffer_slot_status -pg 1 -lvl 0 -x -60 -y 1500 -defaultsOSRD
+preplace port gmac_tx_ringbuffer_slot_status -pg 1 -lvl 0 -x -60 -y 1420 -defaultsOSRD
+preplace portBus gmac_reg_phy_control_l -pg 1 -lvl 6 -x 3100 -y 970 -defaultsOSRD
+preplace portBus gmac_reg_mac_address -pg 1 -lvl 6 -x 3100 -y 990 -defaultsOSRD
+preplace portBus gmac_reg_local_ip_address -pg 1 -lvl 6 -x 3100 -y 1010 -defaultsOSRD
+preplace portBus gmac_reg_phy_control_h -pg 1 -lvl 6 -x 3100 -y 950 -defaultsOSRD
+preplace portBus gmac_reg_gateway_ip_address -pg 1 -lvl 6 -x 3100 -y 1030 -defaultsOSRD
+preplace portBus gmac_reg_multicast_ip_address -pg 1 -lvl 6 -x 3100 -y 1050 -defaultsOSRD
+preplace portBus gmac_reg_multicast_ip_mask -pg 1 -lvl 6 -x 3100 -y 1070 -defaultsOSRD
+preplace portBus gmac_reg_udp_port -pg 1 -lvl 6 -x 3100 -y 1090 -defaultsOSRD
+preplace portBus gmac_reg_udp_port_mask -pg 1 -lvl 6 -x 3100 -y 1110 -defaultsOSRD
+preplace portBus gmac_arp_cache_write_data -pg 1 -lvl 6 -x 3100 -y 1230 -defaultsOSRD
+preplace portBus gmac_arp_cache_write_address -pg 1 -lvl 6 -x 3100 -y 1250 -defaultsOSRD
+preplace portBus gmac_tx_data_write_data -pg 1 -lvl 6 -x 3100 -y 1330 -defaultsOSRD
+preplace portBus gmac_arp_cache_read_address -pg 1 -lvl 6 -x 3100 -y 1270 -defaultsOSRD
+preplace portBus gmac_tx_data_write_byte_enable -pg 1 -lvl 6 -x 3100 -y 1350 -defaultsOSRD
+preplace portBus gmac_tx_data_write_address -pg 1 -lvl 6 -x 3100 -y 1370 -defaultsOSRD
+preplace portBus gmac_tx_data_read_address -pg 1 -lvl 6 -x 3100 -y 1390 -defaultsOSRD
+preplace portBus gmac_tx_ringbuffer_slot_id -pg 1 -lvl 6 -x 3100 -y 1410 -defaultsOSRD
+preplace portBus gmac_rx_data_write_data -pg 1 -lvl 6 -x 3100 -y 1490 -defaultsOSRD
+preplace portBus gmac_rx_data_write_address -pg 1 -lvl 6 -x 3100 -y 1530 -defaultsOSRD
+preplace portBus gmac_rx_data_write_byte_enable -pg 1 -lvl 6 -x 3100 -y 1510 -defaultsOSRD
+preplace portBus gmac_rx_data_read_address -pg 1 -lvl 6 -x 3100 -y 1550 -defaultsOSRD
+preplace portBus gmac_rx_ringbuffer_slot_id -pg 1 -lvl 6 -x 3100 -y 1570 -defaultsOSRD
+preplace portBus gmac_rx_ringbuffer_number_slots_filled -pg 1 -lvl 0 -x -60 -y 1520 -defaultsOSRD
+preplace portBus gmac_tx_data_read_data -pg 1 -lvl 0 -x -60 -y 1380 -defaultsOSRD
+preplace portBus gmac_reg_rx_overflow_count -pg 1 -lvl 0 -x -60 -y 1200 -defaultsOSRD
+preplace portBus gmac_tx_data_read_byte_enable -pg 1 -lvl 0 -x -60 -y 1400 -defaultsOSRD
+preplace portBus gmac_reg_rx_almost_full_count -pg 1 -lvl 0 -x -60 -y 1220 -defaultsOSRD
+preplace portBus gmac_reg_rx_bad_packet_count -pg 1 -lvl 0 -x -60 -y 1240 -defaultsOSRD
+preplace portBus gmac_tx_ringbuffer_number_slots_filled -pg 1 -lvl 0 -x -60 -y 1440 -defaultsOSRD
+preplace portBus gmac_reg_arp_size -pg 1 -lvl 0 -x -60 -y 1260 -defaultsOSRD
+preplace portBus gmac_reg_tx_word_size -pg 1 -lvl 0 -x -60 -y 1280 -defaultsOSRD
+preplace portBus gmac_reg_rx_word_size -pg 1 -lvl 0 -x -60 -y 1300 -defaultsOSRD
+preplace portBus gmac_reg_tx_buffer_max_size -pg 1 -lvl 0 -x -60 -y 1320 -defaultsOSRD
+preplace portBus gmac_rx_data_read_data -pg 1 -lvl 0 -x -60 -y 1460 -defaultsOSRD
+preplace portBus gmac_reg_rx_buffer_max_size -pg 1 -lvl 0 -x -60 -y 1340 -defaultsOSRD
+preplace portBus gmac_arp_cache_read_data -pg 1 -lvl 0 -x -60 -y 1360 -defaultsOSRD
+preplace portBus gmac_rx_data_read_byte_enable -pg 1 -lvl 0 -x -60 -y 1480 -defaultsOSRD
+preplace portBus gmac_reg_rx_valid_count -pg 1 -lvl 0 -x -60 -y 1180 -defaultsOSRD
+preplace portBus gmac_reg_tx_valid_count -pg 1 -lvl 0 -x -60 -y 1060 -defaultsOSRD
+preplace portBus gmac_reg_phy_status_l -pg 1 -lvl 0 -x -60 -y 980 -defaultsOSRD
+preplace portBus gmac_reg_tx_packet_rate -pg 1 -lvl 0 -x -60 -y 1000 -defaultsOSRD
+preplace portBus gmac_reg_tx_overflow_count -pg 1 -lvl 0 -x -60 -y 1080 -defaultsOSRD
+preplace portBus gmac_reg_tx_afull_count -pg 1 -lvl 0 -x -60 -y 1100 -defaultsOSRD
+preplace portBus gmac_reg_tx_packet_count -pg 1 -lvl 0 -x -60 -y 1020 -defaultsOSRD
+preplace portBus gmac_reg_rx_packet_rate -pg 1 -lvl 0 -x -60 -y 1120 -defaultsOSRD
+preplace portBus gmac_reg_rx_packet_count -pg 1 -lvl 0 -x -60 -y 1140 -defaultsOSRD
+preplace portBus gmac_reg_rx_valid_rate -pg 1 -lvl 0 -x -60 -y 1160 -defaultsOSRD
+preplace portBus gmac_reg_phy_status_h -pg 1 -lvl 0 -x -60 -y 960 -defaultsOSRD
+preplace portBus gmac_reg_tx_valid_rate -pg 1 -lvl 0 -x -60 -y 1040 -defaultsOSRD
+preplace portBus gmac_reg_core_type -pg 1 -lvl 0 -x -60 -y 940 -defaultsOSRD
+preplace inst microblaze_0_local_memory -pg 1 -lvl 4 -x 2180 -y 220 -defaultsOSRD
+preplace inst ethernetcore_mm_0 -pg 1 -lvl 5 -x 2740 -y 1280 -defaultsOSRD
+preplace inst axi_timebase_wdt_0 -pg 1 -lvl 5 -x 2740 -y 330 -defaultsOSRD
+preplace inst axi_timer_0 -pg 1 -lvl 5 -x 2740 -y 530 -defaultsOSRD
+preplace inst mdm_0 -pg 1 -lvl 2 -x 1300 -y 560 -defaultsOSRD
+preplace inst microblaze_0 -pg 1 -lvl 3 -x 1740 -y 210 -defaultsOSRD
+preplace inst microblaze_0_axi_intc -pg 1 -lvl 2 -x 1300 -y 160 -defaultsOSRD
+preplace inst microblaze_0_axi_periph -pg 1 -lvl 4 -x 2180 -y 670 -defaultsOSRD
+preplace inst microblaze_0_xlconcat -pg 1 -lvl 1 -x 540 -y 420 -defaultsOSRD
+preplace inst axi_uartlite_0 -pg 1 -lvl 5 -x 2740 -y 700 -defaultsOSRD
+preplace inst proc_sys_reset_0 -pg 1 -lvl 1 -x 540 -y 220 -defaultsOSRD
+preplace netloc axi_timebase_wdt_0_timebase_interrupt 1 0 6 -10 10 N 10 NJ 10 NJ 10 NJ 10 3050
+preplace netloc axi_timebase_wdt_0_wdt_interrupt 1 0 6 20 120 750 310 NJ 310 NJ 310 2350J 240 3040
+preplace netloc axi_timer_0_interrupt 1 0 6 10 110 760 340 NJ 340 NJ 340 2350J 420 3040
+preplace netloc mdm_0_Interrupt 1 0 3 30 530 740 460 1450
+preplace netloc microblaze_0_Clk 1 0 5 -30 100 770 320 1500 320 2020 1070 2380
+preplace netloc microblaze_0_intr 1 1 1 720 170n
+preplace netloc proc_sys_reset_0_mb_reset 1 1 2 790 270 1490J
+preplace netloc proc_sys_reset_0_peripheral_aresetn 1 1 4 780 660 NJ 660 2030 1090 2390
+preplace netloc ethernetcore_mm_0_irq 1 0 6 -20 30 N 30 NJ 30 NJ 30 NJ 30 3060
+preplace netloc ethernetcore_mm_0_gmac_reg_mac_promiscous_mode 1 5 1 NJ 1150
+preplace netloc ethernetcore_mm_0_gmac_arp_cache_write_enable 1 5 1 NJ 1190
+preplace netloc ethernetcore_mm_0_gmac_reg_counters_reset 1 5 1 NJ 1170
+preplace netloc ethernetcore_mm_0_gmac_reg_phy_control_l 1 5 1 NJ 970
+preplace netloc ethernetcore_mm_0_gmac_reg_mac_address 1 5 1 NJ 990
+preplace netloc ethernetcore_mm_0_gmac_reg_local_ip_address 1 5 1 NJ 1010
+preplace netloc ethernetcore_mm_0_gmac_reg_phy_control_h 1 5 1 NJ 950
+preplace netloc ethernetcore_mm_0_gmac_reg_gateway_ip_address 1 5 1 NJ 1030
+preplace netloc ethernetcore_mm_0_gmac_reg_multicast_ip_address 1 5 1 NJ 1050
+preplace netloc ethernetcore_mm_0_gmac_reg_multicast_ip_mask 1 5 1 NJ 1070
+preplace netloc ethernetcore_mm_0_gmac_reg_udp_port 1 5 1 NJ 1090
+preplace netloc ethernetcore_mm_0_gmac_reg_udp_port_mask 1 5 1 NJ 1110
+preplace netloc ethernetcore_mm_0_gmac_arp_cache_write_data 1 5 1 NJ 1230
+preplace netloc ethernetcore_mm_0_gmac_reg_mac_enable 1 5 1 NJ 1130
+preplace netloc ethernetcore_mm_0_gmac_arp_cache_read_enable 1 5 1 NJ 1210
+preplace netloc ethernetcore_mm_0_gmac_arp_cache_write_address 1 5 1 NJ 1250
+preplace netloc ethernetcore_mm_0_gmac_tx_data_write_data 1 5 1 NJ 1330
+preplace netloc ethernetcore_mm_0_gmac_arp_cache_read_address 1 5 1 NJ 1270
+preplace netloc ethernetcore_mm_0_gmac_tx_data_write_byte_enable 1 5 1 NJ 1350
+preplace netloc ethernetcore_mm_0_gmac_tx_data_write_address 1 5 1 NJ 1370
+preplace netloc ethernetcore_mm_0_gmac_tx_data_write_enable 1 5 1 NJ 1290
+preplace netloc ethernetcore_mm_0_gmac_tx_data_read_address 1 5 1 NJ 1390
+preplace netloc ethernetcore_mm_0_gmac_tx_ringbuffer_slot_id 1 5 1 NJ 1410
+preplace netloc ethernetcore_mm_0_gmac_tx_data_read_enable 1 5 1 NJ 1310
+preplace netloc ethernetcore_mm_0_gmac_rx_data_write_data 1 5 1 NJ 1490
+preplace netloc ethernetcore_mm_0_gmac_rx_data_write_address 1 5 1 NJ 1530
+preplace netloc ethernetcore_mm_0_gmac_rx_data_write_byte_enable 1 5 1 NJ 1510
+preplace netloc ethernetcore_mm_0_gmac_rx_data_write_enable 1 5 1 NJ 1450
+preplace netloc ethernetcore_mm_0_gmac_rx_data_read_address 1 5 1 NJ 1550
+preplace netloc ethernetcore_mm_0_gmac_rx_ringbuffer_slot_id 1 5 1 NJ 1570
+preplace netloc ethernetcore_mm_0_gmac_tx_ringbuffer_slot_set 1 5 1 NJ 1430
+preplace netloc ethernetcore_mm_0_gmac_rx_data_read_enable 1 5 1 NJ 1470
+preplace netloc ethernetcore_mm_0_gmac_rx_ringbuffer_slot_clear 1 5 1 NJ 1590
+preplace netloc gmac_rx_ringbuffer_number_slots_filled_0_1 1 0 5 NJ 1520 N 1520 NJ 1520 NJ 1520 NJ
+preplace netloc gmac_tx_data_read_data_0_1 1 0 5 NJ 1380 N 1380 NJ 1380 NJ 1380 NJ
+preplace netloc gmac_reg_rx_overflow_count_0_1 1 0 5 NJ 1200 N 1200 NJ 1200 NJ 1200 NJ
+preplace netloc gmac_tx_data_read_byte_enable_0_1 1 0 5 NJ 1400 N 1400 NJ 1400 NJ 1400 NJ
+preplace netloc gmac_rx_ringbuffer_slot_status_0_1 1 0 5 NJ 1500 N 1500 NJ 1500 NJ 1500 NJ
+preplace netloc gmac_reg_rx_almost_full_count_0_1 1 0 5 NJ 1220 N 1220 NJ 1220 NJ 1220 NJ
+preplace netloc gmac_reg_rx_bad_packet_count_0_1 1 0 5 NJ 1240 N 1240 NJ 1240 NJ 1240 NJ
+preplace netloc gmac_tx_ringbuffer_number_slots_filled_0_1 1 0 5 NJ 1440 N 1440 NJ 1440 NJ 1440 NJ
+preplace netloc gmac_reg_arp_size_0_1 1 0 5 NJ 1260 N 1260 NJ 1260 NJ 1260 NJ
+preplace netloc gmac_reg_tx_word_size_0_1 1 0 5 NJ 1280 N 1280 NJ 1280 NJ 1280 NJ
+preplace netloc gmac_tx_ringbuffer_slot_status_0_1 1 0 5 NJ 1420 N 1420 NJ 1420 NJ 1420 NJ
+preplace netloc gmac_reg_rx_word_size_0_1 1 0 5 NJ 1300 N 1300 NJ 1300 NJ 1300 NJ
+preplace netloc gmac_reg_tx_buffer_max_size_0_1 1 0 5 NJ 1320 N 1320 NJ 1320 NJ 1320 NJ
+preplace netloc gmac_rx_data_read_data_0_1 1 0 5 NJ 1460 N 1460 NJ 1460 NJ 1460 NJ
+preplace netloc gmac_reg_rx_buffer_max_size_0_1 1 0 5 NJ 1340 N 1340 NJ 1340 NJ 1340 NJ
+preplace netloc gmac_arp_cache_read_data_0_1 1 0 5 NJ 1360 N 1360 NJ 1360 NJ 1360 NJ
+preplace netloc gmac_rx_data_read_byte_enable_0_1 1 0 5 NJ 1480 N 1480 NJ 1480 NJ 1480 NJ
+preplace netloc gmac_reg_rx_valid_count_0_1 1 0 5 NJ 1180 N 1180 NJ 1180 NJ 1180 NJ
+preplace netloc gmac_reg_tx_valid_count_0_1 1 0 5 NJ 1060 N 1060 NJ 1060 NJ 1060 NJ
+preplace netloc gmac_reg_phy_status_l_0_1 1 0 5 NJ 980 750 1010 NJ 1010 1980J 1050 2420J
+preplace netloc gmac_reg_tx_packet_rate_0_1 1 0 5 NJ 1000 730 1020 NJ 1020 1990J 1010 2410J
+preplace netloc gmac_reg_tx_overflow_count_0_1 1 0 5 NJ 1080 N 1080 NJ 1080 NJ 1080 NJ
+preplace netloc gmac_reg_tx_afull_count_0_1 1 0 5 NJ 1100 N 1100 NJ 1100 NJ 1100 NJ
+preplace netloc gmac_reg_tx_packet_count_0_1 1 0 5 NJ 1020 720 1030 NJ 1030 NJ 1030 2430J
+preplace netloc gmac_reg_rx_packet_rate_0_1 1 0 5 NJ 1120 N 1120 NJ 1120 NJ 1120 NJ
+preplace netloc gmac_reg_rx_packet_count_0_1 1 0 5 NJ 1140 N 1140 NJ 1140 NJ 1140 NJ
+preplace netloc gmac_reg_rx_valid_rate_0_1 1 0 5 NJ 1160 N 1160 NJ 1160 NJ 1160 NJ
+preplace netloc gmac_reg_phy_status_h_0_1 1 0 5 NJ 960 770 1000 NJ 1000 2000J 1020 2400J
+preplace netloc gmac_reg_tx_valid_rate_0_1 1 0 5 NJ 1040 N 1040 NJ 1040 NJ 1040 NJ
+preplace netloc gmac_reg_core_type_0_1 1 0 5 NJ 940 780 990 NJ 990 2010J 1000 2350J
+preplace netloc axi_uartlite_0_interrupt 1 0 6 0 20 N 20 NJ 20 NJ 20 NJ 20 3070
+preplace netloc PSReset_1 1 0 1 -40 160n
+preplace netloc ClockStable_1 1 0 1 -30 220n
+preplace netloc mdm_0_Debug_SYS_Rst 1 0 3 30 40 NJ 40 1460
+preplace netloc SYS_Rst_1 1 1 3 740J 300 NJ 300 2000
+preplace netloc ARESETN_1 1 1 3 730J 280 1470J 350 2030
+preplace netloc microblaze_0_interrupt 1 2 1 1500 160n
+preplace netloc microblaze_0_axi_periph_M03_AXI 1 4 1 2370 480n
+preplace netloc microblaze_0_debug 1 2 1 1480 200n
+preplace netloc microblaze_0_axi_periph_M08_AXI 1 4 1 2340 740n
+preplace netloc microblaze_0_ilmb_1 1 3 1 N 210
+preplace netloc microblaze_0_mdm_axi 1 1 4 790 330 NJ 330 NJ 330 2330
+preplace netloc microblaze_0_axi_dp 1 3 1 2010 230n
+preplace netloc microblaze_0_axi_periph_M02_AXI 1 4 1 2360 300n
+preplace netloc mdm_0_M_AXI 1 2 2 NJ 520 2000
+preplace netloc microblaze_0_dlmb_1 1 3 1 N 190
+preplace netloc microblaze_0_axi_periph_M06_AXI 1 4 1 2360 700n
+preplace netloc microblaze_0_axi_periph_M07_AXI 1 4 1 2350 720n
+preplace netloc microblaze_0_intc_axi 1 1 4 790 50 NJ 50 NJ 50 2340
+preplace netloc microblaze_0_axi_periph_M09_AXI 1 4 1 2330 760n
+preplace netloc microblaze_0_axi_periph_M05_AXI 1 4 1 2370 680n
+preplace netloc microblaze_0_axi_periph_M04_AXI 1 4 1 2420 660n
+preplace netloc axi_uartlite_0_UART 1 5 1 N 690
+levelinfo -pg 1 -60 540 1300 1740 2180 2740 3100
+pagesize -pg 1 -db -bbox -sgen -430 0 3430 1780
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -1078,6 +1281,7 @@ if { $obj != "" } {
 }
 set obj [get_runs synth_1]
 set_property -name "constrset" -value "blinker_rm_constr" -objects $obj
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 
 # Create 'partialblinker_synth_1' run (if not found)
@@ -1140,7 +1344,202 @@ set obj [get_runs impl_1]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'impl_1_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'impl_1_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_drc_0] "" ] } {
+  create_report_config -report_name impl_1_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_io_0] "" ] } {
+  create_report_config -report_name impl_1_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_utilization_0] "" ] } {
+  create_report_config -report_name impl_1_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name impl_1_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'impl_1_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_1_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_1_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name impl_1_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_1_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_drc_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_methodology_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_power_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_route_status_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_1_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_1_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_1_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_1_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_1_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_1_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_1_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs impl_1
+}
+set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs impl_1]
 set_property -name "constrset" -value "blinker_rm_constr" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
@@ -1159,7 +1558,202 @@ set obj [get_runs partialblinker_impl_1]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'partialblinker_impl_1_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'partialblinker_impl_1_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_opt_report_drc_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_opt_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_io_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_utilization_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_drc_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_methodology_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_power_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_route_status_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'partialblinker_impl_1_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'partialblinker_impl_1_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name partialblinker_impl_1_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs partialblinker_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialblinker_impl_1] partialblinker_impl_1_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs partialblinker_impl_1]
 set_property -name "constrset" -value "partialblinker" -objects $obj
 set_property -name "include_in_archive" -value "0" -objects $obj
@@ -1178,8 +1772,202 @@ set obj [get_runs partialflasher_impl_1]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'partialflasher_impl_1_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'partialflasher_impl_1_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_opt_report_drc_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_opt_report_drc_0]
+if { $obj != "" } {
 
+}
+# Create 'partialflasher_impl_1_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_io_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_utilization_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_drc_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_methodology_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_power_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_route_status_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'partialflasher_impl_1_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'partialflasher_impl_1_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name partialflasher_impl_1_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs partialflasher_impl_1
+}
+set obj [get_report_configs -of_objects [get_runs partialflasher_impl_1] partialflasher_impl_1_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs partialflasher_impl_1]
 set_property -name "constrset" -value "partialflasher" -objects $obj
 set_property -name "include_in_archive" -value "0" -objects $obj
@@ -1199,10 +1987,208 @@ set obj [get_runs impl_blinker]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'impl_blinker_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'impl_blinker_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_opt_report_drc_0] "" ] } {
+  create_report_config -report_name impl_blinker_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_opt_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_io_0] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_utilization_0] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'impl_blinker_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_blinker_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_blinker_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_drc_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_methodology_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_power_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_route_status_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_blinker_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_blinker_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_blinker_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_blinker_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_blinker_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_blinker_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_blinker_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs impl_blinker
+}
+set obj [get_report_configs -of_objects [get_runs impl_blinker] impl_blinker_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs impl_blinker]
 set_property -name "constrset" -value "blinker_rm_constr" -objects $obj
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
+set_property -name "steps.write_bitstream.args.raw_bitfile" -value "1" -objects $obj
+set_property -name "steps.write_bitstream.args.bin_file" -value "1" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
 
@@ -1217,11 +2203,208 @@ set obj [get_runs impl_flasher]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'impl_flasher_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'impl_flasher_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_opt_report_drc_0] "" ] } {
+  create_report_config -report_name impl_flasher_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_opt_report_drc_0]
+if { $obj != "" } {
 
+}
+# Create 'impl_flasher_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_io_0] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_utilization_0] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'impl_flasher_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_flasher_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_flasher_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_drc_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_methodology_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_power_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_route_status_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_flasher_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_flasher_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_flasher_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_flasher_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_flasher_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_flasher_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_flasher_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs impl_flasher
+}
+set obj [get_report_configs -of_objects [get_runs impl_flasher] impl_flasher_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs impl_flasher]
 set_property -name "constrset" -value "flasher_rm_constr" -objects $obj
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
+set_property -name "steps.write_bitstream.args.raw_bitfile" -value "1" -objects $obj
+set_property -name "steps.write_bitstream.args.bin_file" -value "1" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
 
@@ -1236,10 +2419,205 @@ set obj [get_runs impl_empty]
 set_property set_report_strategy_name 1 $obj
 set_property report_strategy {Vivado Implementation Default Reports} $obj
 set_property set_report_strategy_name 0 $obj
+# Create 'impl_empty_init_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_init_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_init_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps init_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_init_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
 
+}
+# Create 'impl_empty_opt_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_opt_report_drc_0] "" ] } {
+  create_report_config -report_name impl_empty_opt_report_drc_0 -report_type report_drc:1.0 -steps opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_opt_report_drc_0]
+if { $obj != "" } {
 
+}
+# Create 'impl_empty_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps power_opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_place_report_io_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_io_0] "" ] } {
+  create_report_config -report_name impl_empty_place_report_io_0 -report_type report_io:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_io_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_place_report_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_utilization_0] "" ] } {
+  create_report_config -report_name impl_empty_place_report_utilization_0 -report_type report_utilization:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_place_report_control_sets_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_control_sets_0] "" ] } {
+  create_report_config -report_name impl_empty_place_report_control_sets_0 -report_type report_control_sets:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_control_sets_0]
+if { $obj != "" } {
+set_property -name "options.verbose" -value "1" -objects $obj
+
+}
+# Create 'impl_empty_place_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_empty_place_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_incremental_reuse_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_empty_place_report_incremental_reuse_1' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_incremental_reuse_1] "" ] } {
+  create_report_config -report_name impl_empty_place_report_incremental_reuse_1 -report_type report_incremental_reuse:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_incremental_reuse_1]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+
+}
+# Create 'impl_empty_place_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_place_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps place_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_place_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_post_place_power_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_place_power_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_post_place_power_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_place_power_opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_place_power_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps phys_opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "is_enabled" -value "0" -objects $obj
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_route_report_drc_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_drc_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_drc_0 -report_type report_drc:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_drc_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_methodology_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_methodology_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_methodology_0 -report_type report_methodology:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_methodology_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_power_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_power_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_power_0 -report_type report_power:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_power_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_route_status_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_route_status_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_route_status_0 -report_type report_route_status:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_route_status_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+
+}
+# Create 'impl_empty_route_report_incremental_reuse_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_incremental_reuse_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_incremental_reuse_0 -report_type report_incremental_reuse:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_incremental_reuse_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_clock_utilization_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_clock_utilization_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_clock_utilization_0 -report_type report_clock_utilization:1.0 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_clock_utilization_0]
+if { $obj != "" } {
+
+}
+# Create 'impl_empty_route_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_empty_route_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps route_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_route_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_empty_post_route_phys_opt_report_timing_summary_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_route_phys_opt_report_timing_summary_0] "" ] } {
+  create_report_config -report_name impl_empty_post_route_phys_opt_report_timing_summary_0 -report_type report_timing_summary:1.0 -steps post_route_phys_opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_route_phys_opt_report_timing_summary_0]
+if { $obj != "" } {
+set_property -name "options.max_paths" -value "10" -objects $obj
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
+# Create 'impl_empty_post_route_phys_opt_report_bus_skew_0' report (if not found)
+if { [ string equal [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_route_phys_opt_report_bus_skew_0] "" ] } {
+  create_report_config -report_name impl_empty_post_route_phys_opt_report_bus_skew_0 -report_type report_bus_skew:1.1 -steps post_route_phys_opt_design -runs impl_empty
+}
+set obj [get_report_configs -of_objects [get_runs impl_empty] impl_empty_post_route_phys_opt_report_bus_skew_0]
+if { $obj != "" } {
+set_property -name "options.warn_on_violation" -value "1" -objects $obj
+
+}
 set obj [get_runs impl_empty]
 set_property -name "constrset" -value "ethconstrs" -objects $obj
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
@@ -1248,26 +2626,54 @@ set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
 current_run -implementation [get_runs impl_blinker]
 
 puts "INFO: Project created:${_xil_proj_name_}"
+# Create 'drc_1' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "drc_1" ] ] ""]} {
+create_dashboard_gadget -name {drc_1} -type drc
+}
+set obj [get_dashboard_gadgets [ list "drc_1" ] ]
+set_property -name "reports" -value "impl_1#impl_1_route_report_drc_0" -objects $obj
 
-update_compile_order -fileset sources_1
+# Create 'methodology_1' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "methodology_1" ] ] ""]} {
+create_dashboard_gadget -name {methodology_1} -type methodology
+}
+set obj [get_dashboard_gadgets [ list "methodology_1" ] ]
+set_property -name "reports" -value "impl_1#impl_1_route_report_methodology_0" -objects $obj
 
+# Create 'power_1' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "power_1" ] ] ""]} {
+create_dashboard_gadget -name {power_1} -type power
+}
+set obj [get_dashboard_gadgets [ list "power_1" ] ]
+set_property -name "reports" -value "impl_1#impl_1_route_report_power_0" -objects $obj
 
-# Start processing
-puts "INFO: Project Flow is starting..."
+# Create 'timing_1' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "timing_1" ] ] ""]} {
+create_dashboard_gadget -name {timing_1} -type timing
+}
+set obj [get_dashboard_gadgets [ list "timing_1" ] ]
+set_property -name "reports" -value "impl_1#impl_1_route_report_timing_summary_0" -objects $obj
 
-# Run synthesis
-#set_property constrset ethconstrs [get_runs synth_1]
+# Create 'utilization_1' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "utilization_1" ] ] ""]} {
+create_dashboard_gadget -name {utilization_1} -type utilization
+}
+set obj [get_dashboard_gadgets [ list "utilization_1" ] ]
+set_property -name "reports" -value "synth_1#synth_1_synth_report_utilization_0" -objects $obj
+set_property -name "run.step" -value "synth_design" -objects $obj
+set_property -name "run.type" -value "synthesis" -objects $obj
+set_property -name "view.type" -value "graph" -objects $obj
 
-#launch_runs synth_1
-#wait_on_run synth_1
+# Create 'utilization_2' gadget (if not found)
+if {[string equal [get_dashboard_gadgets  [ list "utilization_2" ] ] ""]} {
+create_dashboard_gadget -name {utilization_2} -type utilization
+}
+set obj [get_dashboard_gadgets [ list "utilization_2" ] ]
+set_property -name "reports" -value "impl_1#impl_1_place_report_utilization_0" -objects $obj
 
-#  Run implementation
-#set_property constrset ethconstrs [get_runs impl_1]
-
-#set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
-
-#launch_runs impl_1 -to_step write_bitstream
-#wait_on_run impl_1
-#puts "implementation done!"
-
-puts "INFO: Project Flow has completed successfully"
+move_dashboard_gadget -name {utilization_1} -row 0 -col 0
+move_dashboard_gadget -name {power_1} -row 1 -col 0
+move_dashboard_gadget -name {drc_1} -row 2 -col 0
+move_dashboard_gadget -name {timing_1} -row 0 -col 1
+move_dashboard_gadget -name {utilization_2} -row 1 -col 1
+move_dashboard_gadget -name {methodology_1} -row 2 -col 1

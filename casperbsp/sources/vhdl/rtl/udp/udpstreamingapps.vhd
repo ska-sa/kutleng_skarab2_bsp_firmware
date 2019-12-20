@@ -123,6 +123,7 @@ entity udpstreamingapps is
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
         axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+        DataRateBackOff                             : in  STD_LOGIC;        
         ------------------------------------------------------------------------
         -- Ethernet MAC Streaming Interface                                   --
         ------------------------------------------------------------------------
@@ -201,6 +202,7 @@ architecture rtl of udpstreamingapps is
             axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
             axis_streaming_data_tx_tlast                : in  STD_LOGIC;
             axis_streaming_data_tx_tready               : out STD_LOGIC;
+            DataRateBackOff                             : in  STD_LOGIC;            
             ------------------------------------------------------------------------
             -- Ethernet MAC Streaming Interface                                   --
             ------------------------------------------------------------------------
@@ -351,6 +353,7 @@ begin
                 axis_streaming_data_tx_tkeep                => axis_streaming_data_tx_tkeep(((i + 1) * (G_AXIS_DATA_WIDTH / 8)) - 1 downto ((i) * (G_AXIS_DATA_WIDTH / 8))),
                 axis_streaming_data_tx_tlast                => axis_streaming_data_tx_tlast(i),
                 axis_streaming_data_tx_tready               => axis_streaming_data_tx_tready(i),
+                DataRateBackOff                             => DataRateBackOff,
                 ------------------------------------------------------------------------
                 -- Ethernet MAC Streaming Interface                                   --
                 ------------------------------------------------------------------------

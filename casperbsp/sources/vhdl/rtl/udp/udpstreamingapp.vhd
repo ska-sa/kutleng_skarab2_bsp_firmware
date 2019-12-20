@@ -98,7 +98,7 @@ entity udpstreamingapp is
         -- Streaming data clock 
         axis_streaming_data_clk                     : in  STD_LOGIC;
         -- Received data packet length 
-        axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR(15 downto 0);        
+        axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR(15 downto 0);
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
         axis_streaming_data_rx_tvalid               : out STD_LOGIC;
@@ -130,6 +130,8 @@ entity udpstreamingapp is
         axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
         axis_streaming_data_tx_tlast                : in  STD_LOGIC;
         axis_streaming_data_tx_tready               : out STD_LOGIC;
+        DataRateBackOff                             : in  STD_LOGIC;
+        
         ------------------------------------------------------------------------
         -- Ethernet MAC Streaming Interface                                   --
         ------------------------------------------------------------------------
@@ -159,7 +161,7 @@ architecture rtl of udpstreamingapp is
         );
         port(
             axis_clk                       : in  STD_LOGIC;
-            axis_app_clk                   : in  STD_LOGIC;            
+            axis_app_clk                   : in  STD_LOGIC;
             axis_reset                     : in  STD_LOGIC;
             -- Setup information
             ServerMACAddress               : in  STD_LOGIC_VECTOR(47 downto 0);
@@ -215,28 +217,29 @@ architecture rtl of udpstreamingapp is
             G_ADDR_WIDTH : natural := 5
         );
         port(
-            axis_clk                     : in  STD_LOGIC;
-            axis_reset                   : in  STD_LOGIC;
-            EthernetMACEnable            : in  STD_LOGIC;
+            axis_clk                 : in  STD_LOGIC;
+            axis_reset               : in  STD_LOGIC;
+            EthernetMACEnable        : in  STD_LOGIC;
+            DataRateBackOff          : in  STD_LOGIC;
             -- Packet Readout in addressed bus format
-            RecvRingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            RecvRingBufferSlotClear      : out STD_LOGIC;
-            RecvRingBufferSlotStatus     : in  STD_LOGIC;
-            RecvRingBufferDataRead       : out STD_LOGIC;
+            RecvRingBufferSlotID     : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            RecvRingBufferSlotClear  : out STD_LOGIC;
+            RecvRingBufferSlotStatus : in  STD_LOGIC;
+            RecvRingBufferDataRead   : out STD_LOGIC;
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RecvRingBufferDataEnable     : in  STD_LOGIC_VECTOR(63 downto 0);
-            RecvRingBufferDataOut        : in  STD_LOGIC_VECTOR(511 downto 0);
-            RecvRingBufferAddress        : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+            RecvRingBufferDataEnable : in  STD_LOGIC_VECTOR(63 downto 0);
+            RecvRingBufferDataOut    : in  STD_LOGIC_VECTOR(511 downto 0);
+            RecvRingBufferAddress    : out STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             --
-            UDPPacketLength              : out STD_LOGIC_VECTOR(15 downto 0);
+            UDPPacketLength          : out STD_LOGIC_VECTOR(15 downto 0);
             --
-            axis_tuser                   : out STD_LOGIC;
-            axis_tdata                   : out STD_LOGIC_VECTOR(511 downto 0);
-            axis_tvalid                  : out STD_LOGIC;
-            axis_tready                  : in  STD_LOGIC;
-            axis_tkeep                   : out STD_LOGIC_VECTOR(63 downto 0);
-            axis_tlast                   : out STD_LOGIC
+            axis_tuser               : out STD_LOGIC;
+            axis_tdata               : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tvalid              : out STD_LOGIC;
+            axis_tready              : in  STD_LOGIC;
+            axis_tkeep               : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tlast               : out STD_LOGIC
         );
     end component udpdatastripper;
 
@@ -305,7 +308,41 @@ architecture rtl of udpstreamingapp is
     signal UDPTXRingBufferDataEnable     : STD_LOGIC_VECTOR(63 downto 0);
     signal UDPTXRingBufferData           : STD_LOGIC_VECTOR(511 downto 0);
     signal UDPTXRingBufferAddress        : STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
+
+    component axis_ila_server is
+        port(
+            clk     : IN STD_LOGIC;
+            probe0  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe1  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe2  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe3  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe4  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe5  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe6  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+            probe7  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+            probe8  : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+            probe9  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe10 : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+            probe11 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe13 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+            probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
+        );
+    end component axis_ila_server;
+
+    signal laxis_tx_tpriority : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+    signal laxis_tx_tdata     : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
+    signal laxis_tx_tvalid    : STD_LOGIC;
+    signal laxis_tx_tkeep     : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal laxis_tx_tlast     : STD_LOGIC;
+
 begin
+
+    axis_tx_tpriority <= laxis_tx_tpriority;
+    axis_tx_tdata     <= laxis_tx_tdata;
+    axis_tx_tvalid    <= laxis_tx_tvalid;
+    axis_tx_tkeep     <= laxis_tx_tkeep;
+    axis_tx_tlast     <= laxis_tx_tlast;
 
     UDPRECEIVER_i : udpdatastripper
         generic map(
@@ -313,27 +350,28 @@ begin
             G_ADDR_WIDTH => G_ADDR_WIDTH
         )
         port map(
-            axis_clk                     => axis_streaming_data_clk,
-            axis_reset                   => axis_reset,
-            EthernetMACEnable            => aximm_gmac_reg_mac_enable,
+            axis_clk                 => axis_streaming_data_clk,
+            axis_reset               => axis_reset,
+            EthernetMACEnable        => aximm_gmac_reg_mac_enable,
+            DataRateBackOff          => DataRateBackOff,
             -- Packet Readout in addressed bus format
-            RecvRingBufferSlotID         => UDPRXRingBufferSlotID,
-            RecvRingBufferSlotClear      => UDPRXRingBufferSlotClear,
-            RecvRingBufferSlotStatus     => UDPRXRingBufferSlotStatus,
-            RecvRingBufferDataRead       => UDPRXRingBufferDataRead,
+            RecvRingBufferSlotID     => UDPRXRingBufferSlotID,
+            RecvRingBufferSlotClear  => UDPRXRingBufferSlotClear,
+            RecvRingBufferSlotStatus => UDPRXRingBufferSlotStatus,
+            RecvRingBufferDataRead   => UDPRXRingBufferDataRead,
             -- Enable[0] is a special bit (we assume always 1 when packet is valid)
             -- we use it to save TLAST
-            RecvRingBufferDataEnable     => UDPRXRingBufferDataEnable,
-            RecvRingBufferDataOut        => UDPRXRingBufferData,
-            RecvRingBufferAddress        => UDPRXRingBufferAddress,
-            UDPPacketLength              => axis_streaming_data_rx_packet_length,            
+            RecvRingBufferDataEnable => UDPRXRingBufferDataEnable,
+            RecvRingBufferDataOut    => UDPRXRingBufferData,
+            RecvRingBufferAddress    => UDPRXRingBufferAddress,
+            UDPPacketLength          => axis_streaming_data_rx_packet_length,
             -- Receive AXIS interface
-            axis_tuser                   => axis_streaming_data_rx_tuser,
-            axis_tdata                   => axis_streaming_data_rx_tdata,
-            axis_tvalid                  => axis_streaming_data_rx_tvalid,
-            axis_tready                  => axis_streaming_data_rx_tready,
-            axis_tkeep                   => axis_streaming_data_rx_tkeep,
-            axis_tlast                   => axis_streaming_data_rx_tlast
+            axis_tuser               => axis_streaming_data_rx_tuser,
+            axis_tdata               => axis_streaming_data_rx_tdata,
+            axis_tvalid              => axis_streaming_data_rx_tvalid,
+            axis_tready              => axis_streaming_data_rx_tready,
+            axis_tkeep               => axis_streaming_data_rx_tkeep,
+            axis_tlast               => axis_streaming_data_rx_tlast
         );
 
     UDPAPPSENDER_i : udpdatapacker
@@ -382,6 +420,27 @@ begin
             axis_tkeep                     => axis_streaming_data_tx_tkeep,
             axis_tlast                     => axis_streaming_data_tx_tlast
         );
+
+    ILAUDPSERVER_i : axis_ila_server
+        port map(
+            clk        => axis_clk,
+            probe0     => UDPTXRingBufferSlotID,
+            probe1(0)  => UDPTXRingBufferSlotClear,
+            probe2(0)  => UDPTXRingBufferSlotStatus,
+            probe3(0)  => UDPTXRingBufferSlotTypeStatus,
+            probe4     => UDPTXRingBufferSlotsFilled,
+            probe5(0)  => UDPTXRingBufferDataRead,
+            probe6     => UDPTXRingBufferDataEnable,
+            probe7     => UDPTXRingBufferData,
+            probe8     => UDPTXRingBufferAddress,
+            probe9     => laxis_tx_tpriority,
+            probe10    => laxis_tx_tdata,
+            probe11(0) => laxis_tx_tvalid,
+            probe12(0) => axis_tx_tready,
+            probe13    => laxis_tx_tkeep,
+            probe14(0) => laxis_tx_tlast
+        );
+
     UDPDATAApp_i : macifudpserver
         generic map(
             G_SLOT_WIDTH => G_SLOT_WIDTH,
@@ -423,12 +482,12 @@ begin
             SenderRingBufferDataIn         => UDPTXRingBufferData,
             SenderRingBufferAddress        => UDPTXRingBufferAddress,
             --Outputs to AXIS bus MAC side 
-            axis_tx_tpriority              => axis_tx_tpriority,
-            axis_tx_tdata                  => axis_tx_tdata,
-            axis_tx_tvalid                 => axis_tx_tvalid,
+            axis_tx_tpriority              => laxis_tx_tpriority,
+            axis_tx_tdata                  => laxis_tx_tdata,
+            axis_tx_tvalid                 => laxis_tx_tvalid,
             axis_tx_tready                 => axis_tx_tready,
-            axis_tx_tkeep                  => axis_tx_tkeep,
-            axis_tx_tlast                  => axis_tx_tlast,
+            axis_tx_tkeep                  => laxis_tx_tkeep,
+            axis_tx_tlast                  => laxis_tx_tlast,
             --Inputs from AXIS bus of the MAC side
             axis_rx_tdata                  => axis_rx_tdata,
             axis_rx_tvalid                 => axis_rx_tvalid,

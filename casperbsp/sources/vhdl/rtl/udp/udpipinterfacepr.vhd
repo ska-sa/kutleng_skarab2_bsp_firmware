@@ -68,6 +68,7 @@ use ieee.numeric_std.all;
 entity udpipinterfacepr is
     generic(
         G_INCLUDE_ICAP               : boolean                          := false;
+        G_INCLUDE_HARDWARE_ARP       : boolean                          := false;
         G_AXIS_DATA_WIDTH            : natural                          := 512;
         G_SLOT_WIDTH                 : natural                          := 4;
         -- Number of UDP Streaming Data Server Modules 
@@ -182,7 +183,7 @@ entity udpipinterfacepr is
         ------------------------------------------------------------------------
         -- Streaming data clocks 
         axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-        axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
+        axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         -- Streaming data outputs to AXIS of the Yellow Blocks
         axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -194,7 +195,7 @@ entity udpipinterfacepr is
         axis_streaming_data_tx_destination_ip        : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_destination_udp_port  : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-        axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);         
+        axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
         axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -220,6 +221,7 @@ entity udpipinterfacepr is
         gmac_reg_rx_bad_packet_count                 : in  STD_LOGIC_VECTOR(31 downto 0);
         gmac_reg_counters_reset                      : out STD_LOGIC;
         gmac_reg_mac_enable                          : out STD_LOGIC;
+        DataRateBackOff                              : in  STD_LOGIC;
         ------------------------------------------------------------------------
         -- Ethernet MAC Streaming Interface                                   --
         ------------------------------------------------------------------------
@@ -255,7 +257,7 @@ architecture rtl of udpipinterfacepr is
             aximm_gmac_reg_udp_port                      : in  STD_LOGIC_VECTOR(15 downto 0);
             aximm_gmac_reg_udp_port_mask                 : in  STD_LOGIC_VECTOR(15 downto 0);
             aximm_gmac_reg_mac_promiscous_mode           : in  STD_LOGIC;
-            aximm_gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);            
+            aximm_gmac_reg_local_ip_address              : in  STD_LOGIC_VECTOR(31 downto 0);
             ------------------------------------------------------------------------
             -- Transmit Ring Buffer Interface according to EthernetCore Memory MAP--
             ------------------------------------------------------------------------ 
@@ -307,7 +309,31 @@ architecture rtl of udpipinterfacepr is
             axis_rx_tlast                                : in  STD_LOGIC
         );
     end component cpuethernetmacif;
-
+    component arpmodule is
+        generic(
+            G_SLOT_WIDTH : natural := 4
+        );
+        port(
+            axis_clk          : in  STD_LOGIC;
+            axis_reset        : in  STD_LOGIC;
+            -- Setup information
+            ARPMACAddress     : in  STD_LOGIC_VECTOR(47 downto 0);
+            ARPIPAddress      : in  STD_LOGIC_VECTOR(31 downto 0);
+            --Inputs from AXIS bus 
+            axis_rx_tdata     : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tvalid    : in  STD_LOGIC;
+            axis_rx_tuser     : in  STD_LOGIC;
+            axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tlast     : in  STD_LOGIC;
+            --Outputs to AXIS bus 
+            axis_tx_tpriority : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+            axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tvalid    : out STD_LOGIC;
+            axis_tx_tready    : in  STD_LOGIC;
+            axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tlast     : out STD_LOGIC
+        );
+    end component arpmodule;
     component arpcache is
         generic(
             G_WRITE_DATA_WIDTH : natural range 32 to 64 := 32;
@@ -375,7 +401,7 @@ architecture rtl of udpipinterfacepr is
             ------------------------------------------------------------------------
             -- Streaming data clocks 
             axis_streaming_data_clk                     : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
-            axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                     
+            axis_streaming_data_rx_packet_length        : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_rx_tvalid               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -387,13 +413,14 @@ architecture rtl of udpipinterfacepr is
             axis_streaming_data_tx_destination_ip       : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_destination_udp_port : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_source_udp_port      : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
-            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);                     
+            axis_streaming_data_tx_packet_length        : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tdata                : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid               : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tuser                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tkeep                : in  STD_LOGIC_VECTOR(((G_AXIS_DATA_WIDTH / 8) * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tlast                : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
             axis_streaming_data_tx_tready               : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            DataRateBackOff                             : in  STD_LOGIC;
             ------------------------------------------------------------------------
             -- Ethernet MAC Streaming Interface                                   --
             ------------------------------------------------------------------------
@@ -456,6 +483,54 @@ architecture rtl of udpipinterfacepr is
             ICAP_DataIn       : out std_logic_vector(31 downto 0)
         );
     end component prconfigcontroller;
+
+    component axisfourportfabricmultiplexer is
+        generic(
+            G_MAX_PACKET_BLOCKS_SIZE : natural := 64;
+            G_PRIORITY_WIDTH         : natural := 4;
+            G_DATA_WIDTH             : natural := 8
+        );
+        port(
+            axis_clk            : in  STD_LOGIC;
+            axis_reset          : in  STD_LOGIC;
+            --Inputs from AXIS bus of the MAC side
+            --Outputs to AXIS bus MAC side 
+            axis_tx_tdata       : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_tx_tvalid      : out STD_LOGIC;
+            axis_tx_tready      : in  STD_LOGIC;
+            axis_tx_tkeep       : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_tx_tlast       : out STD_LOGIC;
+            axis_tx_tuser       : out STD_LOGIC;
+            -- Port 1
+            axis_rx_tpriority_1 : in  STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
+            axis_rx_tdata_1     : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_rx_tvalid_1    : in  STD_LOGIC;
+            axis_rx_tready_1    : out STD_LOGIC;
+            axis_rx_tkeep_1     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_rx_tlast_1     : in  STD_LOGIC;
+            -- Port 2
+            axis_rx_tpriority_2 : in  STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
+            axis_rx_tdata_2     : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_rx_tvalid_2    : in  STD_LOGIC;
+            axis_rx_tready_2    : out STD_LOGIC;
+            axis_rx_tkeep_2     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_rx_tlast_2     : in  STD_LOGIC;
+            -- Port 3
+            axis_rx_tpriority_3 : in  STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
+            axis_rx_tdata_3     : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_rx_tvalid_3    : in  STD_LOGIC;
+            axis_rx_tready_3    : out STD_LOGIC;
+            axis_rx_tkeep_3     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_rx_tlast_3     : in  STD_LOGIC;
+            -- Port 4
+            axis_rx_tpriority_4 : in  STD_LOGIC_VECTOR(G_PRIORITY_WIDTH - 1 downto 0);
+            axis_rx_tdata_4     : in  STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
+            axis_rx_tvalid_4    : in  STD_LOGIC;
+            axis_rx_tready_4    : out STD_LOGIC;
+            axis_rx_tkeep_4     : in  STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
+            axis_rx_tlast_4     : in  STD_LOGIC
+        );
+    end component axisfourportfabricmultiplexer;
 
     component axisthreeportfabricmultiplexer is
         generic(
@@ -553,6 +628,13 @@ architecture rtl of udpipinterfacepr is
     constant C_MAX_PACKET_BLOCKS_SIZE : natural := 64;
     constant C_PRIORITY_WIDTH         : natural := 4;
 
+    signal axis_tx_tpriority_1_arp : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
+    signal axis_tx_tdata_1_arp     : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
+    signal axis_tx_tvalid_1_arp    : STD_LOGIC;
+    signal axis_tx_tkeep_1_arp     : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal axis_tx_tlast_1_arp     : STD_LOGIC;
+    signal axis_tx_tready_1_arp    : STD_LOGIC;
+
     signal axis_tx_tpriority_1_cpu : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
     signal axis_tx_tdata_1_cpu     : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal axis_tx_tvalid_1_cpu    : STD_LOGIC;
@@ -574,10 +656,12 @@ architecture rtl of udpipinterfacepr is
     signal axis_tx_tlast_1_pr     : STD_LOGIC;
     signal axis_tx_tready_1_pr    : STD_LOGIC;
 
-    constant C_ARP_REG_BUFFER_SIZE         : NATURAL := 512;
-    constant C_READ_REG_BUFFER_SIZE        : NATURAL := 2048;
-    constant C_WRITE_REG_BUFFER_SIZE       : NATURAL := 2048;
-    constant C_REG_READ_WRITE_WORD_LENGTHS : NATURAL := 16; -- Word lengths are 16 bits at a time
+    constant C_ARP_REG_BUFFER_SIZE         : NATURAL                       := 512;
+    constant C_READ_REG_BUFFER_SIZE        : NATURAL                       := 2048;
+    constant C_WRITE_REG_BUFFER_SIZE       : NATURAL                       := 2048;
+    constant C_REG_READ_WRITE_WORD_LENGTHS : NATURAL                       := 16; -- Word lengths are 16 bits at a time
+    constant C_EMAC_ADDR_1                 : std_logic_vector(47 downto 0) := X"000A_3502_4192";
+    constant C_IP_ADDR_1                   : std_logic_vector(31 downto 0) := X"C0A8_640A";
     signal ARPReadDataEnable               : STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
     signal ARPReadData                     : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * G_ARP_DATA_WIDTH * 2) - 1 downto 0);
     signal ARPReadAddress                  : STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS * (G_ARP_CACHE_ASIZE - 1)) - 1 downto 0);
@@ -591,9 +675,41 @@ architecture rtl of udpipinterfacepr is
     signal ICAP_RDWRB                      : std_logic;
     signal ICAP_DataOut                    : std_logic_vector(31 downto 0);
     signal ICAP_DataIn                     : std_logic_vector(31 downto 0);
+    component axis_ila_server is
+        port(
+            clk     : IN STD_LOGIC;
+            probe0  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe1  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe2  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe3  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe4  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe5  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe6  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+            probe7  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+            probe8  : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+            probe9  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            probe10 : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+            probe11 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+            probe13 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+            probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
+        );
+    end component axis_ila_server;
 
+    signal laxis_tx_tdata  : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
+    signal laxis_tx_tvalid : STD_LOGIC;
+    signal laxis_tx_tkeep  : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
+    signal laxis_tx_tlast  : STD_LOGIC;
+    signal laxis_tx_tuser  : STD_LOGIC;
 begin
-    gmac_reg_mac_enable  <= aximm_gmac_reg_mac_enable;
+
+    axis_tx_tuser  <= laxis_tx_tuser;
+    axis_tx_tdata  <= laxis_tx_tdata;
+    axis_tx_tvalid <= laxis_tx_tvalid;
+    axis_tx_tkeep  <= laxis_tx_tkeep;
+    axis_tx_tlast  <= laxis_tx_tlast;
+
+    gmac_reg_mac_enable <= aximm_gmac_reg_mac_enable;
 
     aximm_gmac_reg_rx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
     aximm_gmac_reg_tx_word_size        <= std_logic_vector(to_unsigned(C_REG_READ_WRITE_WORD_LENGTHS, 16));
@@ -664,7 +780,7 @@ begin
             ARPReadData                                 => ARPReadData,
             ARPReadAddress                              => ARPReadAddress,
             axis_streaming_data_clk                     => axis_streaming_data_clk,
-            axis_streaming_data_rx_packet_length        => axis_streaming_data_rx_packet_length,                                 
+            axis_streaming_data_rx_packet_length        => axis_streaming_data_rx_packet_length,
             axis_streaming_data_rx_tdata                => axis_streaming_data_rx_tdata,
             axis_streaming_data_rx_tvalid               => axis_streaming_data_rx_tvalid,
             axis_streaming_data_rx_tready               => axis_streaming_data_rx_tready,
@@ -674,13 +790,14 @@ begin
             axis_streaming_data_tx_destination_ip       => axis_streaming_data_tx_destination_ip,
             axis_streaming_data_tx_destination_udp_port => axis_streaming_data_tx_destination_udp_port,
             axis_streaming_data_tx_source_udp_port      => axis_streaming_data_tx_source_udp_port,
-            axis_streaming_data_tx_packet_length        => axis_streaming_data_tx_packet_length,                                 
+            axis_streaming_data_tx_packet_length        => axis_streaming_data_tx_packet_length,
             axis_streaming_data_tx_tdata                => axis_streaming_data_tx_tdata,
             axis_streaming_data_tx_tvalid               => axis_streaming_data_tx_tvalid,
             axis_streaming_data_tx_tuser                => axis_streaming_data_tx_tuser,
             axis_streaming_data_tx_tkeep                => axis_streaming_data_tx_tkeep,
             axis_streaming_data_tx_tlast                => axis_streaming_data_tx_tlast,
             axis_streaming_data_tx_tready               => axis_streaming_data_tx_tready,
+            DataRateBackOff                             => DataRateBackOff,
             --Outputs to AXIS bus MAC side 
             axis_tx_tpriority                           => axis_tx_tpriority_1_udp,
             axis_tx_tdata                               => axis_tx_tdata_1_udp,
@@ -806,83 +923,243 @@ begin
                 ICAP_DataOut    => ICAP_DataOut,
                 ICAP_DataIn     => ICAP_DataIn
             );
-
-        AXISMUX_i : axisthreeportfabricmultiplexer
-            generic map(
-                G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
-                G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
-                G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
-            )
-            port map(
-                axis_clk            => axis_clk,
-                axis_reset          => axis_reset,
-                axis_tx_tdata       => axis_tx_tdata,
-                axis_tx_tvalid      => axis_tx_tvalid,
-                axis_tx_tready      => axis_tx_tready,
-                axis_tx_tkeep       => axis_tx_tkeep,
-                axis_tx_tlast       => axis_tx_tlast,
-                axis_tx_tuser       => axis_tx_tuser,
-                -- Port 1 - ARP Controller Module
-                axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
-                axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
-                axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
-                axis_rx_tready_1    => axis_tx_tready_1_cpu,
-                axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
-                axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
-                -- Port 2 - Streaming Data Module
-                axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
-                axis_rx_tdata_2     => axis_tx_tdata_1_udp,
-                axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
-                axis_rx_tready_2    => axis_tx_tready_1_udp,
-                axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
-                axis_rx_tlast_2     => axis_tx_tlast_1_udp,
-                -- Port 3 - Partial Reconfiguration Controller Module
-                axis_rx_tpriority_3 => axis_tx_tpriority_1_pr,
-                axis_rx_tdata_3     => axis_tx_tdata_1_pr,
-                axis_rx_tvalid_3    => axis_tx_tvalid_1_pr,
-                axis_rx_tready_3    => axis_tx_tready_1_pr,
-                axis_rx_tkeep_3     => axis_tx_tkeep_1_pr,
-                axis_rx_tlast_3     => axis_tx_tlast_1_pr
-            );
+        NOHWARPi : if G_INCLUDE_HARDWARE_ARP = false generate
+        begin
+            AXISMUX_i : axisthreeportfabricmultiplexer
+                generic map(
+                    G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
+                    G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
+                    G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
+                )
+                port map(
+                    axis_clk            => axis_clk,
+                    axis_reset          => axis_reset,
+                    axis_tx_tdata       => laxis_tx_tdata,
+                    axis_tx_tvalid      => laxis_tx_tvalid,
+                    axis_tx_tready      => axis_tx_tready,
+                    axis_tx_tkeep       => laxis_tx_tkeep,
+                    axis_tx_tlast       => laxis_tx_tlast,
+                    axis_tx_tuser       => laxis_tx_tuser,
+                    -- Port 1 - ARP Controller Module
+                    axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
+                    axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
+                    axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
+                    axis_rx_tready_1    => axis_tx_tready_1_cpu,
+                    axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
+                    axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
+                    -- Port 2 - Streaming Data Module
+                    axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
+                    axis_rx_tdata_2     => axis_tx_tdata_1_udp,
+                    axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
+                    axis_rx_tready_2    => axis_tx_tready_1_udp,
+                    axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
+                    axis_rx_tlast_2     => axis_tx_tlast_1_udp,
+                    -- Port 3 - Partial Reconfiguration Controller Module
+                    axis_rx_tpriority_3 => axis_tx_tpriority_1_pr,
+                    axis_rx_tdata_3     => axis_tx_tdata_1_pr,
+                    axis_rx_tvalid_3    => axis_tx_tvalid_1_pr,
+                    axis_rx_tready_3    => axis_tx_tready_1_pr,
+                    axis_rx_tkeep_3     => axis_tx_tkeep_1_pr,
+                    axis_rx_tlast_3     => axis_tx_tlast_1_pr
+                );
+        end generate;
+        HWARPi : if G_INCLUDE_HARDWARE_ARP = true generate
+        begin
+            ARP1_i : arpmodule
+                generic map(
+                    G_SLOT_WIDTH => C_PRIORITY_WIDTH
+                )
+                port map(
+                    axis_clk          => axis_clk,
+                    axis_reset        => axis_reset,
+                    ARPMACAddress     => C_EMAC_ADDR_1,
+                    ARPIPAddress      => C_IP_ADDR_1,
+                    --
+                    axis_tx_tpriority => axis_tx_tpriority_1_arp,
+                    axis_tx_tdata     => axis_tx_tdata_1_arp,
+                    axis_tx_tvalid    => axis_tx_tvalid_1_arp,
+                    axis_tx_tready    => axis_tx_tready_1_arp,
+                    axis_tx_tkeep     => axis_tx_tkeep_1_arp,
+                    axis_tx_tlast     => axis_tx_tlast_1_arp,
+                    --
+                    axis_rx_tdata     => axis_rx_tdata,
+                    axis_rx_tvalid    => axis_rx_tvalid,
+                    axis_rx_tuser     => axis_rx_tuser,
+                    axis_rx_tkeep     => axis_rx_tkeep,
+                    axis_rx_tlast     => axis_rx_tlast
+                );
 
             -- Include ICAP and PR module instantiation
+            AXISMUX_i : axisfourportfabricmultiplexer
+                generic map(
+                    G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
+                    G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
+                    G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
+                )
+                port map(
+                    axis_clk            => axis_clk,
+                    axis_reset          => axis_reset,
+                    axis_tx_tdata       => laxis_tx_tdata,
+                    axis_tx_tvalid      => laxis_tx_tvalid,
+                    axis_tx_tready      => axis_tx_tready,
+                    axis_tx_tkeep       => laxis_tx_tkeep,
+                    axis_tx_tlast       => laxis_tx_tlast,
+                    axis_tx_tuser       => laxis_tx_tuser,
+                    -- Port 1 - ARP Controller Module
+                    axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
+                    axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
+                    axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
+                    axis_rx_tready_1    => axis_tx_tready_1_cpu,
+                    axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
+                    axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
+                    -- Port 2 - Streaming Data Module
+                    axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
+                    axis_rx_tdata_2     => axis_tx_tdata_1_udp,
+                    axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
+                    axis_rx_tready_2    => axis_tx_tready_1_udp,
+                    axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
+                    axis_rx_tlast_2     => axis_tx_tlast_1_udp,
+                    -- Port 3 - Partial Reconfiguration Controller Module
+                    axis_rx_tpriority_3 => axis_tx_tpriority_1_pr,
+                    axis_rx_tdata_3     => axis_tx_tdata_1_pr,
+                    axis_rx_tvalid_3    => axis_tx_tvalid_1_pr,
+                    axis_rx_tready_3    => axis_tx_tready_1_pr,
+                    axis_rx_tkeep_3     => axis_tx_tkeep_1_pr,
+                    axis_rx_tlast_3     => axis_tx_tlast_1_pr,
+                    -- Port 4 - Partial Reconfiguration Controller Module
+                    axis_rx_tpriority_4 => axis_tx_tpriority_1_arp,
+                    axis_rx_tdata_4     => axis_tx_tdata_1_arp,
+                    axis_rx_tvalid_4    => axis_tx_tvalid_1_arp,
+                    axis_rx_tready_4    => axis_tx_tready_1_arp,
+                    axis_rx_tkeep_4     => axis_tx_tkeep_1_arp,
+                    axis_rx_tlast_4     => axis_tx_tlast_1_arp
+                );
 
+        end generate;
     end generate;
 
     NOPRCFGi : if G_INCLUDE_ICAP = false generate
     begin
-        -- When not using ICAP we only need two ports for the multiplexer 
-        AXISMUX_i : axistwoportfabricmultiplexer
-            generic map(
-                G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
-                G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
-                G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
-            )
-            port map(
-                axis_clk            => axis_clk,
-                axis_reset          => axis_reset,
-                axis_tx_tdata       => axis_tx_tdata,
-                axis_tx_tvalid      => axis_tx_tvalid,
-                axis_tx_tready      => axis_tx_tready,
-                axis_tx_tkeep       => axis_tx_tkeep,
-                axis_tx_tlast       => axis_tx_tlast,
-                axis_tx_tuser       => axis_tx_tuser,
-                -- Port 1 - ARP Controller Module
-                axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
-                axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
-                axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
-                axis_rx_tready_1    => axis_tx_tready_1_cpu,
-                axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
-                axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
-                -- Port 2 - Streaming Data Module
-                axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
-                axis_rx_tdata_2     => axis_tx_tdata_1_udp,
-                axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
-                axis_rx_tready_2    => axis_tx_tready_1_udp,
-                axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
-                axis_rx_tlast_2     => axis_tx_tlast_1_udp
-            );
+        NOHWARPi : if G_INCLUDE_HARDWARE_ARP = false generate
+        begin
+            -- When not using ICAP we only need two ports for the multiplexer 
+            AXISMUX_i : axistwoportfabricmultiplexer
+                generic map(
+                    G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
+                    G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
+                    G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
+                )
+                port map(
+                    axis_clk            => axis_clk,
+                    axis_reset          => axis_reset,
+                    axis_tx_tdata       => laxis_tx_tdata,
+                    axis_tx_tvalid      => laxis_tx_tvalid,
+                    axis_tx_tready      => axis_tx_tready,
+                    axis_tx_tkeep       => laxis_tx_tkeep,
+                    axis_tx_tlast       => laxis_tx_tlast,
+                    axis_tx_tuser       => laxis_tx_tuser,
+                    -- Port 1 - ARP Controller Module
+                    axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
+                    axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
+                    axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
+                    axis_rx_tready_1    => axis_tx_tready_1_cpu,
+                    axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
+                    axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
+                    -- Port 2 - Streaming Data Module
+                    axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
+                    axis_rx_tdata_2     => axis_tx_tdata_1_udp,
+                    axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
+                    axis_rx_tready_2    => axis_tx_tready_1_udp,
+                    axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
+                    axis_rx_tlast_2     => axis_tx_tlast_1_udp
+                );
+        end generate;
+
+        HWARPi : if G_INCLUDE_HARDWARE_ARP = true generate
+        begin
+            ARP1_i : arpmodule
+                generic map(
+                    G_SLOT_WIDTH => C_PRIORITY_WIDTH
+                )
+                port map(
+                    axis_clk          => axis_clk,
+                    axis_reset        => axis_reset,
+                    ARPMACAddress     => C_EMAC_ADDR_1,
+                    ARPIPAddress      => C_IP_ADDR_1,
+                    --
+                    axis_tx_tpriority => axis_tx_tpriority_1_arp,
+                    axis_tx_tdata     => axis_tx_tdata_1_arp,
+                    axis_tx_tvalid    => axis_tx_tvalid_1_arp,
+                    axis_tx_tready    => axis_tx_tready_1_arp,
+                    axis_tx_tkeep     => axis_tx_tkeep_1_arp,
+                    axis_tx_tlast     => axis_tx_tlast_1_arp,
+                    --
+                    axis_rx_tdata     => axis_rx_tdata,
+                    axis_rx_tvalid    => axis_rx_tvalid,
+                    axis_rx_tuser     => axis_rx_tuser,
+                    axis_rx_tkeep     => axis_rx_tkeep,
+                    axis_rx_tlast     => axis_rx_tlast
+                );
+            -- When not using ICAP we only need two ports for the multiplexer 
+            AXISMUX_i : axisthreeportfabricmultiplexer
+                generic map(
+                    G_MAX_PACKET_BLOCKS_SIZE => C_MAX_PACKET_BLOCKS_SIZE,
+                    G_PRIORITY_WIDTH         => C_PRIORITY_WIDTH,
+                    G_DATA_WIDTH             => G_AXIS_DATA_WIDTH
+                )
+                port map(
+                    axis_clk            => axis_clk,
+                    axis_reset          => axis_reset,
+                    axis_tx_tdata       => laxis_tx_tdata,
+                    axis_tx_tvalid      => laxis_tx_tvalid,
+                    axis_tx_tready      => axis_tx_tready,
+                    axis_tx_tkeep       => laxis_tx_tkeep,
+                    axis_tx_tlast       => laxis_tx_tlast,
+                    axis_tx_tuser       => laxis_tx_tuser,
+                    -- Port 1 - ARP Controller Module
+                    axis_rx_tpriority_1 => axis_tx_tpriority_1_cpu,
+                    axis_rx_tdata_1     => axis_tx_tdata_1_cpu,
+                    axis_rx_tvalid_1    => axis_tx_tvalid_1_cpu,
+                    axis_rx_tready_1    => axis_tx_tready_1_cpu,
+                    axis_rx_tkeep_1     => axis_tx_tkeep_1_cpu,
+                    axis_rx_tlast_1     => axis_tx_tlast_1_cpu,
+                    -- Port 2 - Streaming Data Module
+                    axis_rx_tpriority_2 => axis_tx_tpriority_1_udp,
+                    axis_rx_tdata_2     => axis_tx_tdata_1_udp,
+                    axis_rx_tvalid_2    => axis_tx_tvalid_1_udp,
+                    axis_rx_tready_2    => axis_tx_tready_1_udp,
+                    axis_rx_tkeep_2     => axis_tx_tkeep_1_udp,
+                    axis_rx_tlast_2     => axis_tx_tlast_1_udp,
+                    -- Port 3 - ARP Module
+                    axis_rx_tpriority_3 => axis_tx_tpriority_1_arp,
+                    axis_rx_tdata_3     => axis_tx_tdata_1_arp,
+                    axis_rx_tvalid_3    => axis_tx_tvalid_1_arp,
+                    axis_rx_tready_3    => axis_tx_tready_1_arp,
+                    axis_rx_tkeep_3     => axis_tx_tkeep_1_arp,
+                    axis_rx_tlast_3     => axis_tx_tlast_1_arp
+                );
+        end generate;
 
     end generate;
 
+    ILAMUXAPSS_i : axis_ila_server
+        port map(
+            clk                => axis_clk,
+            probe0             => axis_tx_tpriority_1_cpu,
+            probe1(0)          => axis_tx_tready,
+            probe2(0)          => laxis_tx_tuser,
+            probe3(0)          => laxis_tx_tlast,
+            probe4             => axis_tx_tpriority_1_arp,
+            probe5(0)          => laxis_tx_tvalid,
+            probe6             => laxis_tx_tkeep,
+            probe7             => laxis_tx_tdata,
+            probe8(4)          => axis_tx_tpriority_1_pr(3),
+            probe8(3 downto 0) => axis_tx_tpriority_1_pr,
+            probe9             => axis_tx_tpriority_1_udp,
+            probe10            => axis_tx_tdata_1_udp,
+            probe11(0)         => axis_tx_tvalid_1_udp,
+            probe12(0)         => axis_tx_tready_1_udp,
+            probe13            => axis_tx_tkeep_1_udp,
+            probe14(0)         => axis_tx_tlast_1_udp
+        );
 end architecture rtl;

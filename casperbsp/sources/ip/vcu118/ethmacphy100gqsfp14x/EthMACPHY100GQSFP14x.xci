@@ -7,34 +7,34 @@
   <spirit:componentInstances>
     <spirit:componentInstance>
       <spirit:instanceName>EthMACPHY100GQSFP14x</spirit:instanceName>
-      <spirit:componentRef spirit:vendor="xilinx.com" spirit:library="ip" spirit:name="cmac_usplus" spirit:version="2.5"/>
+      <spirit:componentRef spirit:vendor="xilinx.com" spirit:library="ip" spirit:name="cmac_usplus" spirit:version="3.0"/>
       <spirit:configurableElementValues>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.CLK_DOMAIN"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.FREQ_HZ">100000000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TKEEP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TLAST">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TKEEP">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TLAST">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TREADY">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TSTRB">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.LAYERED_METADATA">undef</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.PHASE">0.000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TDATA_NUM_BYTES">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TDATA_NUM_BYTES">64</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TDEST_WIDTH">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TID_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TUSER_WIDTH">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.CLK_DOMAIN"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.FREQ_HZ">100000000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TKEEP">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TLAST">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TREADY">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TKEEP">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TLAST">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TREADY">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TSTRB">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.LAYERED_METADATA">undef</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.PHASE">0.000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TDATA_NUM_BYTES">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TDATA_NUM_BYTES">64</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TDEST_WIDTH">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TID_WIDTH">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TUSER_WIDTH">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TUSER_WIDTH">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXI_GT_RESET_ALL_RESET.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXI_USR_RX_RESET_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.AXI_USR_RX_SERDES_RESET_PORT.INSERT_VIP">0</spirit:configurableElementValue>
@@ -46,6 +46,10 @@
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DRP_CLK_PORT.FREQ_HZ">100000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DRP_CLK_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DRP_CLK_PORT.PHASE">0.000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DUAL0_GT_REF_CLK.CAN_DEBUG">false</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DUAL0_GT_REF_CLK.FREQ_HZ">100000000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DUAL1_GT_REF_CLK.CAN_DEBUG">false</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.DUAL1_GT_REF_CLK.FREQ_HZ">100000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.GTWIZ_RESET_QPLL0RESET_OUT_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.GTWIZ_RESET_QPLL1RESET_OUT_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.GTWIZ_RESET_RX_DATAPATH_PORT.INSERT_VIP">0</spirit:configurableElementValue>
@@ -84,6 +88,16 @@
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.INIT_CLK_PORT.FREQ_HZ">100000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.INIT_CLK_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.INIT_CLK_PORT.PHASE">0.000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_RX_SERDES_CLK_IN_PORT.ASSOCIATED_BUSIF"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_RX_SERDES_CLK_IN_PORT.ASSOCIATED_RESET"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_RX_SERDES_CLK_IN_PORT.CLK_DOMAIN"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_RX_SERDES_CLK_IN_PORT.INSERT_VIP">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_RX_SERDES_CLK_IN_PORT.PHASE">0.000</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_TX_SERDES_CLK_IN_PORT.ASSOCIATED_BUSIF"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_TX_SERDES_CLK_IN_PORT.ASSOCIATED_RESET"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_TX_SERDES_CLK_IN_PORT.CLK_DOMAIN"/>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_TX_SERDES_CLK_IN_PORT.INSERT_VIP">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.KP4_FEC_TX_SERDES_CLK_IN_PORT.PHASE">0.000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL0CLK_IN_PORT.ASSOCIATED_BUSIF"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL0CLK_IN_PORT.ASSOCIATED_RESET"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL0CLK_IN_PORT.CLK_DOMAIN"/>
@@ -108,7 +122,6 @@
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL1REFCLK_IN_PORT.FREQ_HZ">100000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL1REFCLK_IN_PORT.INSERT_VIP">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.QPLL1REFCLK_IN_PORT.PHASE">0.000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.RX_CLK_PORT.ASSOCIATED_BUSIF"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.RX_CLK_PORT.ASSOCIATED_RESET"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.RX_CLK_PORT.CLK_DOMAIN"/>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.RX_CLK_PORT.INSERT_VIP">0</spirit:configurableElementValue>
@@ -194,6 +207,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INCLUDE_AUTO_NEG_LT_LOGIC">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INCLUDE_RS_FEC">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INCLUDE_SHARED_LOGIC">2</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INCLUDE_STATISTICS_COUNTERS">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_INS_LOSS_NYQ">12</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LANE10_GT_LOC">NA</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LANE1_GT_LOC">X1Y52</spirit:configurableElementValue>
@@ -239,6 +253,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_PAUSE_DA_UCAST">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_PAUSE_SA">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_PROCESS_LFI">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_STATISTICS_REGS_TYPE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_DA_GPP">0x0180C2000001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_DA_PPP">0x0180C2000001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_ETHERTYPE_GPP">0x8808</spirit:configurableElementValue>
@@ -247,7 +262,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_FLOW_CONTROL">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_FRAME_CRC_CHECKING">Enable FCS Insertion</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_IGNORE_FCS">1</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_IPG_VALUE">12</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_IPG_VALUE">8</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_LANE0_VLM_BIP7_OVERRIDE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_OPCODE_GPP">0x0001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_OPCODE_PPP">0x0101</spirit:configurableElementValue>
@@ -257,7 +272,8 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_PTP_VLANE_ADJUST_MODE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_SA_GPP">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_SA_PPP">0x000000000000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USER_INTERFACE">LBUS</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_UPDATE_LT_COEFF">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USER_INTERFACE">AXIS</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.IS_BOARD_PROJECT">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ADD_GT_CNRL_STS_PORTS">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.CLOCKING_MODE">Asynchronous</spirit:configurableElementValue>
@@ -280,6 +296,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INCLUDE_AUTO_NEG_LT_LOGIC">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INCLUDE_RS_FEC">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INCLUDE_SHARED_LOGIC">2</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INCLUDE_STATISTICS_COUNTERS">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INS_LOSS_NYQ">12</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.LANE10_GT_LOC">NA</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.LANE1_GT_LOC">X1Y52</spirit:configurableElementValue>
@@ -291,7 +308,7 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.LANE7_GT_LOC">NA</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.LANE8_GT_LOC">NA</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.LANE9_GT_LOC">NA</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.NUM_LANES">4</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.NUM_LANES">4x25</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OPERATING_MODE">Duplex</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PLL_TYPE">QPLL0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PTP_TRANSPCLK_MODE">0</spirit:configurableElementValue>
@@ -321,13 +338,14 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RX_PAUSE_DA_UCAST">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RX_PAUSE_SA">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RX_PROCESS_LFI">1</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.STATISTICS_REGS_TYPE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_DA_GPP">0x0180C2000001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_DA_PPP">0x0180C2000001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_ETHERTYPE_GPP">0x8808</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_ETHERTYPE_PPP">0x8808</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_FLOW_CONTROL">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_FRAME_CRC_CHECKING">Enable FCS Insertion</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_IPG_VALUE">12</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_IPG_VALUE">8</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_LANE0_VLM_BIP7_OVERRIDE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_OPCODE_GPP">0x0001</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_OPCODE_PPP">0x0101</spirit:configurableElementValue>
@@ -337,10 +355,11 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_PTP_VLANE_ADJUST_MODE">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_SA_GPP">0x000000000000</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TX_SA_PPP">0x000000000000</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USER_INTERFACE">LBUS</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.UPDATE_LT_COEFF">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USER_INTERFACE">AXIS</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USE_BOARD_FLOW">false</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.ARCHITECTURE">virtexuplus</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BASE_BOARD_PART">xilinx.com:vcu118:part0:2.0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BASE_BOARD_PART">xilinx.com:vcu118:part0:2.3</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BOARD_CONNECTIONS"/>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.DEVICE">xcvu9p</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.PACKAGE">flga2104</spirit:configurableElementValue>
@@ -348,6 +367,7 @@
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SILICON_REVISION"/>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SIMULATOR_LANGUAGE">MIXED</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.SPEEDGRADE">-2L</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.STATIC_POWER"/>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.TEMPERATURE_GRADE">E</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_CUSTOMIZATION">TRUE</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.USE_RDI_GENERATION">TRUE</spirit:configurableElementValue>
@@ -357,22 +377,27 @@
         <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.OUTPUTDIR">.</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SELECTEDSIMMODEL"/>
         <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SHAREDDIR">.</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SWVERSION">2018.3</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SWVERSION">2019.2</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="RUNTIME_PARAM.SYNTHESISFLOW">OUT_OF_CONTEXT</spirit:configurableElementValue>
       </spirit:configurableElementValues>
       <spirit:vendorExtensions>
         <xilinx:componentInstanceExtensions>
           <xilinx:configElementInfos>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TKEEP" xilinx:valueSource="auto"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TLAST" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TREADY" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.HAS_TSTRB" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TDATA_NUM_BYTES" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TDEST_WIDTH" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TID_WIDTH" xilinx:valueSource="constant"/>
-            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TREADY" xilinx:valueSource="auto"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_RX.TUSER_WIDTH" xilinx:valueSource="auto"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TKEEP" xilinx:valueSource="auto"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TLAST" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.HAS_TSTRB" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TDATA_NUM_BYTES" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TDEST_WIDTH" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TID_WIDTH" xilinx:valueSource="constant"/>
+            <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.AXIS_TX.TUSER_WIDTH" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ADDR_WIDTH" xilinx:valueSource="auto"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.ARUSER_WIDTH" xilinx:valueSource="constant"/>
             <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.S_AXI.AWUSER_WIDTH" xilinx:valueSource="constant"/>
@@ -399,6 +424,7 @@
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.ETHERNET_BOARD_INTERFACE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.GT_GROUP_SELECT" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.GT_REF_CLK_FREQ" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.INCLUDE_STATISTICS_COUNTERS" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.LANE10_GT_LOC" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.LANE1_GT_LOC" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.LANE2_GT_LOC" xilinx:valueSource="user"/>
@@ -416,7 +442,9 @@
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_FLOW_CONTROL" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.RX_PROCESS_LFI" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TX_FLOW_CONTROL" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TX_IPG_VALUE" xilinx:valueSource="user"/>
             <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.TX_OTN_INTERFACE" xilinx:valueSource="user"/>
+            <xilinx:configElementInfo xilinx:referenceId="PARAM_VALUE.USER_INTERFACE" xilinx:valueSource="user"/>
           </xilinx:configElementInfos>
         </xilinx:componentInstanceExtensions>
       </spirit:vendorExtensions>

@@ -81,6 +81,7 @@ entity mac100gphy is
         -- Global System Enable
         Enable                       : in  STD_LOGIC;
         Reset                        : in  STD_LOGIC;
+        DataRateBackOff              : out STD_LOGIC;        
         -- Statistics interface
         gmac_reg_core_type           : out STD_LOGIC_VECTOR(31 downto 0);
         gmac_reg_phy_status_h        : out STD_LOGIC_VECTOR(31 downto 0);
@@ -249,51 +250,108 @@ architecture rtl of mac100gphy is
             axis_tx_tuser                : out STD_LOGIC
         );
     end component gmacqsfp2top;
-    component axispacketbufferfifo
+    component macaxisdecoupler is
         port(
-            s_aclk        : IN  STD_LOGIC;
-            s_aresetn     : IN  STD_LOGIC;
-            s_axis_tvalid : IN  STD_LOGIC;
-            s_axis_tready : OUT STD_LOGIC;
-            s_axis_tdata  : IN  STD_LOGIC_VECTOR(511 DOWNTO 0);
-            s_axis_tkeep  : IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
-            s_axis_tlast  : IN  STD_LOGIC;
-            s_axis_tuser  : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
-            m_axis_tvalid : OUT STD_LOGIC;
-            m_axis_tready : IN  STD_LOGIC;
-            m_axis_tdata  : OUT STD_LOGIC_VECTOR(511 DOWNTO 0);
-            m_axis_tkeep  : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
-            m_axis_tlast  : OUT STD_LOGIC;
-            m_axis_tuser  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+            axis_tx_clk       : in  STD_LOGIC;
+            axis_rx_clk       : in  STD_LOGIC;
+            axis_reset        : in  STD_LOGIC;
+            DataRateBackOff   : in  STD_LOGIC;           
+            TXOverFlowCount   : out STD_LOGIC_VECTOR(31 downto 0);
+            TXAlmostFullCount : out STD_LOGIC_VECTOR(31 downto 0);
+            --Outputs to AXIS bus MAC side 
+            axis_tx_tdata     : out STD_LOGIC_VECTOR(511 downto 0);
+            axis_tx_tvalid    : out STD_LOGIC;
+            axis_tx_tready    : in  STD_LOGIC;
+            axis_tx_tuser     : out STD_LOGIC;
+            axis_tx_tkeep     : out STD_LOGIC_VECTOR(63 downto 0);
+            axis_tx_tlast     : out STD_LOGIC;
+            --Inputs from AXIS bus of the MAC side
+            axis_rx_tready    : out STD_LOGIC;
+            axis_rx_tdata     : in  STD_LOGIC_VECTOR(511 downto 0);
+            axis_rx_tvalid    : in  STD_LOGIC;
+            axis_rx_tuser     : in  STD_LOGIC;
+            axis_rx_tkeep     : in  STD_LOGIC_VECTOR(63 downto 0);
+            axis_rx_tlast     : in  STD_LOGIC
         );
-    end component axispacketbufferfifo;
-    signal axis_tdata  : STD_LOGIC_VECTOR(511 downto 0);
-    signal axis_tvalid : STD_LOGIC;
-    signal axis_tready : STD_LOGIC;
-    signal axis_tkeep  : STD_LOGIC_VECTOR(63 downto 0);
-    signal axis_tlast  : STD_LOGIC;
-    signal axis_tuser  : STD_LOGIC;
-    signal ResetN      : STD_LOGIC;
+    end component macaxisdecoupler;
+        component axispacketbufferfifo
+            port(
+                s_aclk        : IN  STD_LOGIC;
+                s_aresetn     : IN  STD_LOGIC;
+                s_axis_tvalid : IN  STD_LOGIC;
+                s_axis_tready : OUT STD_LOGIC;
+                s_axis_tdata  : IN  STD_LOGIC_VECTOR(511 DOWNTO 0);
+                s_axis_tkeep  : IN  STD_LOGIC_VECTOR(63 DOWNTO 0);
+                s_axis_tlast  : IN  STD_LOGIC;
+                s_axis_tuser  : IN  STD_LOGIC_VECTOR(0 DOWNTO 0);
+                m_axis_tvalid : OUT STD_LOGIC;
+                m_axis_tready : IN  STD_LOGIC;
+                m_axis_tdata  : OUT STD_LOGIC_VECTOR(511 DOWNTO 0);
+                m_axis_tkeep  : OUT STD_LOGIC_VECTOR(63 DOWNTO 0);
+                m_axis_tlast  : OUT STD_LOGIC;
+                m_axis_tuser  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+                axis_prog_full: OUT STD_LOGIC                
+            );
+        end component axispacketbufferfifo;
+    signal axis_tdata   : STD_LOGIC_VECTOR(511 downto 0);
+    signal axis_tvalid  : STD_LOGIC;
+    signal axis_tready  : STD_LOGIC;
+    signal axis_tkeep   : STD_LOGIC_VECTOR(63 downto 0);
+    signal axis_tlast   : STD_LOGIC;
+    signal axis_tuser   : STD_LOGIC;
+    signal axis_cp_tdata   : STD_LOGIC_VECTOR(511 downto 0);
+    signal axis_cp_tvalid  : STD_LOGIC;
+    signal axis_cp_tready  : STD_LOGIC;
+    signal axis_cp_tkeep   : STD_LOGIC_VECTOR(63 downto 0);
+    signal axis_cp_tlast   : STD_LOGIC;
+    signal axis_cp_tuser   : STD_LOGIC;    
+    signal laxis_tx_clk : STD_LOGIC;
+    signal lDataRateBackOff : STD_LOGIC;
+    signal ResetN : STD_LOGIC;
 
 begin
     ResetN <= not Reset;
-
-    AXISPAcketBufferFIFO_i : axispacketbufferfifo
-        PORT MAP(
-            s_aclk          => axis_rx_clkin,
-            s_aresetn       => ResetN,
-            s_axis_tvalid   => axis_rx_tvalid,
-            s_axis_tready   => axis_rx_tready,
-            s_axis_tdata    => axis_rx_tdata,
-            s_axis_tkeep    => axis_rx_tkeep,
-            s_axis_tlast    => axis_rx_tlast,
-            s_axis_tuser(0) => axis_rx_tuser,
-            m_axis_tvalid   => axis_tvalid,
-            m_axis_tready   => axis_tready,
-            m_axis_tdata    => axis_tdata,
-            m_axis_tkeep    => axis_tkeep,
-            m_axis_tlast    => axis_tlast,
-            m_axis_tuser(0) => axis_tuser
+    DataRateBackOff <= lDataRateBackOff;
+    
+    axis_tx_clkout <= laxis_tx_clk;
+        AXISPAcketBufferFIFO_i : axispacketbufferfifo
+            PORT MAP(
+                s_aclk          => laxis_tx_clk,
+                s_aresetn       => ResetN,
+                s_axis_tvalid   => axis_cp_tvalid,
+                s_axis_tready   => axis_cp_tready,
+                s_axis_tdata    => axis_cp_tdata,
+                s_axis_tkeep    => axis_cp_tkeep,
+                s_axis_tlast    => axis_cp_tlast,
+                s_axis_tuser(0) => axis_cp_tuser,
+                m_axis_tvalid   => axis_tvalid,
+                m_axis_tready   => axis_tready,
+                m_axis_tdata    => axis_tdata,
+                m_axis_tkeep    => axis_tkeep,
+                m_axis_tlast    => axis_tlast,
+                m_axis_tuser(0) => axis_tuser,
+                axis_prog_full  => lDataRateBackOff
+          );
+    AXISDecoupleri : macaxisdecoupler
+        port map(
+            axis_tx_clk       => laxis_tx_clk,
+            axis_rx_clk       => axis_rx_clkin,
+            axis_reset        => Reset,
+            DataRateBackOff   => lDataRateBackOff,
+            TXOverFlowCount   => open,
+            TXAlmostFullCount => open,
+            axis_tx_tdata     => axis_cp_tdata,
+            axis_tx_tvalid    => axis_cp_tvalid,
+            axis_tx_tready    => axis_cp_tready,
+            axis_tx_tuser     => axis_cp_tuser,
+            axis_tx_tkeep     => axis_cp_tkeep,
+            axis_tx_tlast     => axis_cp_tlast,
+            axis_rx_tready    => axis_rx_tready,
+            axis_rx_tdata     => axis_rx_tdata,
+            axis_rx_tvalid    => axis_rx_tvalid,
+            axis_rx_tuser     => axis_rx_tuser,
+            axis_rx_tkeep     => axis_rx_tkeep,
+            axis_rx_tlast     => axis_rx_tlast
         );
 
     assert C_MAC_INSTANCE > 1 report "Error bad C_MAC_INSTANCE = " & integer'image(C_MAC_INSTANCE) severity failure;
@@ -336,7 +394,7 @@ begin
                 axis_rx_tkeep                => axis_tkeep,
                 axis_rx_tlast                => axis_tlast,
                 axis_rx_tuser                => axis_tuser,
-                axis_tx_clkout               => axis_tx_clkout,
+                axis_tx_clkout               => laxis_tx_clk,
                 axis_tx_tdata                => axis_tx_tdata,
                 axis_tx_tvalid               => axis_tx_tvalid,
                 axis_tx_tkeep                => axis_tx_tkeep,
@@ -383,7 +441,7 @@ begin
                 axis_rx_tkeep                => axis_tkeep,
                 axis_rx_tlast                => axis_tlast,
                 axis_rx_tuser                => axis_tuser,
-                axis_tx_clkout               => axis_tx_clkout,
+                axis_tx_clkout               => laxis_tx_clk,
                 axis_tx_tdata                => axis_tx_tdata,
                 axis_tx_tvalid               => axis_tx_tvalid,
                 axis_tx_tkeep                => axis_tx_tkeep,
