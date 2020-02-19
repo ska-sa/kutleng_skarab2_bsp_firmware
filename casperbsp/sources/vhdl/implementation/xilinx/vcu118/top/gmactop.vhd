@@ -359,8 +359,9 @@ architecture rtl of gmactop is
 
     component mac100gphy is
         generic(
-            C_MAC_INSTANCE : natural range 0 to 1 := 0
-        );
+            C_MAC_INSTANCE             : natural range 0 to 1 := 0;
+            C_COURSE_PACKET_THROTTLING : boolean              := false
+            );
         port(
             -- Ethernet reference clock for 156.25MHz
             -- QSFP+ 
@@ -937,7 +938,8 @@ begin
     ----------------------------------------------------------------------------
     GMAC1_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE => 0         -- Instantiate CMAC0 QSFP1
+            C_MAC_INSTANCE => 0,         -- Instantiate CMAC0 QSFP1
+            C_COURSE_PACKET_THROTTLING => true            
         )
         port map(
             Clk100MHz                    => RefClk100MHz,
@@ -1212,7 +1214,8 @@ begin
     ----------------------------------------------------------------------------
     GMAC2_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE => 1         -- Instantiate CMAC1 QSFP2
+            C_MAC_INSTANCE => 1,         -- Instantiate CMAC1 QSFP2
+            C_COURSE_PACKET_THROTTLING => false
         )
         port map(
             Clk100MHz                    => RefClk100MHz,
@@ -1382,46 +1385,46 @@ begin
             probe_in32    => port1_gmac_reg_rx_buffer_max_size
         );
 
-    CPUTXILAi : ila_cpu_tx
-        port map(
-            clk        => ICAPClk125MHz,
-            probe0(0)  => port1_gmac_tx_data_write_enable,
-            probe1(0)  => port1_gmac_tx_data_read_enable,
-            probe2     => port1_gmac_tx_data_write_data,
-            probe3     => port1_gmac_tx_data_write_byte_enable,
-            probe4     => port1_gmac_tx_data_read_data,
-            probe5     => port1_gmac_tx_data_read_byte_enable,
-            probe6     => port1_gmac_tx_data_write_address,
-            probe7     => port1_gmac_tx_data_read_address,
-            probe8     => port1_gmac_tx_ringbuffer_slot_id,
-            probe9(0)  => port1_gmac_tx_ringbuffer_slot_set,
-            probe10(0) => port1_gmac_tx_ringbuffer_slot_status,
-            probe11    => port1_gmac_tx_ringbuffer_number_slots_filled
-        );
+--    CPUTXILAi : ila_cpu_tx
+--        port map(
+--            clk        => ICAPClk125MHz,
+--            probe0(0)  => port1_gmac_tx_data_write_enable,
+--            probe1(0)  => port1_gmac_tx_data_read_enable,
+--            probe2     => port1_gmac_tx_data_write_data,
+--            probe3     => port1_gmac_tx_data_write_byte_enable,
+--            probe4     => port1_gmac_tx_data_read_data,
+--            probe5     => port1_gmac_tx_data_read_byte_enable,
+--            probe6     => port1_gmac_tx_data_write_address,
+--            probe7     => port1_gmac_tx_data_read_address,
+--            probe8     => port1_gmac_tx_ringbuffer_slot_id,
+--            probe9(0)  => port1_gmac_tx_ringbuffer_slot_set,
+--            probe10(0) => port1_gmac_tx_ringbuffer_slot_status,
+--            probe11    => port1_gmac_tx_ringbuffer_number_slots_filled
+--        );
 
-    CPURXILAi : ila_cpu_rx
-        port map(
-            clk       => ICAPClk125MHz,
-            probe0(0) => port1_gmac_rx_data_read_enable,
-            probe1    => port1_gmac_rx_data_read_data,
-            probe2    => port1_gmac_rx_data_read_byte_enable,
-            probe3    => port1_gmac_rx_data_read_address,
-            probe4    => port1_gmac_rx_ringbuffer_slot_id,
-            probe5(0) => port1_gmac_rx_ringbuffer_slot_clear,
-            probe6(0) => port1_gmac_rx_ringbuffer_slot_status,
-            probe7    => port1_gmac_rx_ringbuffer_number_slots_filled
-        );
+--    CPURXILAi : ila_cpu_rx
+--        port map(
+--            clk       => ICAPClk125MHz,
+--            probe0(0) => port1_gmac_rx_data_read_enable,
+--            probe1    => port1_gmac_rx_data_read_data,
+--            probe2    => port1_gmac_rx_data_read_byte_enable,
+--            probe3    => port1_gmac_rx_data_read_address,
+--            probe4    => port1_gmac_rx_ringbuffer_slot_id,
+--            probe5(0) => port1_gmac_rx_ringbuffer_slot_clear,
+--            probe6(0) => port1_gmac_rx_ringbuffer_slot_status,
+--            probe7    => port1_gmac_rx_ringbuffer_number_slots_filled
+--        );
 
-    ARPILAi : arp_ila
-        port map(
-            clk       => ICAPClk125MHz,
-            probe0(0) => port1_gmac_arp_cache_write_enable,
-            probe1(0) => port1_gmac_arp_cache_read_enable,
-            probe2    => port1_gmac_arp_cache_write_data,
-            probe3    => port1_gmac_arp_cache_read_data,
-            probe4    => port1_gmac_arp_cache_write_address,
-            probe5    => port1_gmac_arp_cache_read_address
-        );
+--    ARPILAi : arp_ila
+--        port map(
+--            clk       => ICAPClk125MHz,
+--            probe0(0) => port1_gmac_arp_cache_write_enable,
+--            probe1(0) => port1_gmac_arp_cache_read_enable,
+--            probe2    => port1_gmac_arp_cache_write_data,
+--            probe3    => port1_gmac_arp_cache_read_data,
+--            probe4    => port1_gmac_arp_cache_write_address,
+--            probe5    => port1_gmac_arp_cache_read_address
+--        );
     ----------------------------------------------------------------------------
     -- End of static portion of the design.                                   --       
     -- All modules after this portion must be fixed on partial reconfigurable --

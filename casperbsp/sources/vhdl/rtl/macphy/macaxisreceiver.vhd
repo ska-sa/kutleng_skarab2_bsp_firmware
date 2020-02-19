@@ -263,15 +263,23 @@ begin
             if (axis_reset = '1') then
                 -- Initialize SM on reset
                 StateVariable  <= InitialiseSt;
-                axis_rx_tready <= '0';
+				-- Always start by saying system is ready to accept data
+                axis_rx_tready <= '1';
             else
-                if (lFilledSlots = G_FILLED_SLOTS_MAX) then
-                    -- When all slots are filled then signal upstream no more
-                    -- slots left.
-                    axis_rx_tready <= '0';
-                else
-                    -- Signal ready when slots are still open
-                    axis_rx_tready <= '1';
+                if (axis_rx_tlast = '1') then
+                    if (lFilledSlots = (G_FILLED_SLOTS_MAX-1))  then
+                        -- When all slots are filled then signal upstream no more
+                        -- slots left.
+                        axis_rx_tready <= '0';
+                    else
+                        -- Signal ready when slots are still open
+                        axis_rx_tready <= '1';
+                    end if;
+				else
+                    if (lFilledSlots < G_FILLED_SLOTS_AFULL) then
+                        -- Signal ready when slots have opened up
+                        axis_rx_tready <= '1';					
+					end if;
                 end if;
                 case (StateVariable) is
                     when InitialiseSt =>
