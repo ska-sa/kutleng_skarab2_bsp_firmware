@@ -74,12 +74,7 @@ entity macaxissender is
     port(
         axis_clk                 : in  STD_LOGIC;
         axis_reset               : in  STD_LOGIC;
-        DataRateBackOff          : in  STD_LOGIC;        
-        
-        -- Packet Write in addressed bus format
---        MuxRequestSlot           : out STD_LOGIC;
---        MuxAckSlot               : in  STD_LOGIC;
---        MuxSlotID                : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
+        DataRateBackOff          : in  STD_LOGIC;
         -- Packet Readout in addressed bus format
         RingBufferSlotID         : out STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferSlotClear      : out STD_LOGIC;
@@ -106,7 +101,6 @@ architecture rtl of macaxissender is
 
     type AxisSenderSM_t is (
         InitialiseSt,                   -- On the reset state
---        RequestSlotSt,
         CheckSlotSt,
         NextSlotSt,
         ProcessPacketSt
@@ -141,31 +135,19 @@ begin
                     when InitialiseSt =>
                         -- Wait for packet after initialization
                         StateVariable       <= CheckSlotSt;
---                        StateVariable       <= RequestSlotSt;
---                        MuxRequestSlot      <= '0';
                         lRingBufferAddress  <= (others => '0');
                         lDataRead           <= '0';
                         RingBufferSlotClear <= '0';
                         lRingBufferSlotID   <= (others => '0');
-                        
---                    when RequestSlotSt =>
---                        if (MuxAckSlot = '1') then
---                            lRingBufferSlotID <= unsigned(MuxSlotID);
-                            -- Check the slot if it has data
---                            StateVariable       <= CheckSlotSt;
---                            MuxRequestSlot <= '0';                            
---                        else
---                            MuxRequestSlot <= '1';                            
---                        end if;
 
                     when CheckSlotSt =>
-                        
+
                         lRingBufferAddress <= (others => '0');
                         axis_tx_tvalid     <= '0';
                         if (RingBufferSlotStatus = '1') then
                             -- The current slot has data and the fifo has emptyness 
                             --  for a complete packet slot
-                            if ((DataRateBackOff = '0') and (axis_tx_tready = '1')) then 
+                            if ((DataRateBackOff = '0') and (axis_tx_tready = '1')) then
                                 -- Pull the data when the is no backoff signals
                                 -- When there is a ready signal pull the data                                
                                 lDataRead     <= '1';
@@ -187,8 +169,7 @@ begin
                         RingBufferSlotClear <= '0';
                         lDataRead           <= '0';
                         -- Go to nesxt slot ID
-                        lRingBufferSlotID <= lRingBufferSlotID + 1;
---                        StateVariable       <= RequestSlotSt;
+                        lRingBufferSlotID   <= lRingBufferSlotID + 1;
                         StateVariable       <= CheckSlotSt;
 
                     when ProcessPacketSt =>
@@ -198,10 +179,10 @@ begin
                             lRingBufferAddress <= lRingBufferAddress + 1;
                             if ((RingBufferDataEnable(0) = '1') or (lRingBufferAddress = C_RING_BUFFER_MAX_ADDRESS)) then
                                 -- This is the last one, or there was an error
-							    RingBufferSlotClear <= RingBufferSlotTypeStatus;
-                                axis_tx_tvalid <= '0';
+                                RingBufferSlotClear <= RingBufferSlotTypeStatus;
+                                axis_tx_tvalid      <= '0';
                                 -- Go to next slot
-                                StateVariable  <= NextSlotSt;
+                                StateVariable       <= NextSlotSt;
                             else
                                 -- read next address
                                 axis_tx_tvalid <= '1';

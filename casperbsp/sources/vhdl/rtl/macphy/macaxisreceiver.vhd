@@ -79,7 +79,7 @@ entity macaxisreceiver is
         axis_ringbuffer_clk      : in  STD_LOGIC;
         axis_rx_clk              : in  STD_LOGIC;
         axis_reset               : in  STD_LOGIC;
---        DataRateBackOff          : out STD_LOGIC;        
+        --        DataRateBackOff          : out STD_LOGIC;        
         -- MAC Statistics
         RXOverFlowCount          : out STD_LOGIC_VECTOR(31 downto 0);
         RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0);
@@ -143,7 +143,7 @@ architecture rtl of macaxisreceiver is
     );
     signal StateVariable          : AxisReaderSM_t                      := InitialiseSt;
     constant G_FILLED_SLOTS_MAX   : unsigned(G_SLOT_WIDTH - 1 downto 0) := (others => '1');
-    constant G_FILLED_SLOTS_AFULL : unsigned(G_SLOT_WIDTH - 1 downto 0) := (G_FILLED_SLOTS_MAX/2) + (G_FILLED_SLOTS_MAX/4);
+    constant G_FILLED_SLOTS_AFULL : unsigned(G_SLOT_WIDTH - 1 downto 0) := (G_FILLED_SLOTS_MAX / 2) + (G_FILLED_SLOTS_MAX / 4);
     signal lPacketByteEnable      : std_logic_vector(RingBufferDataEnable'length - 1 downto 0);
     signal lPacketDataWrite       : std_logic;
     signal lPacketData            : std_logic_vector(RingBufferDataOut'length - 1 downto 0);
@@ -198,14 +198,8 @@ begin
                 lFilledSlots    <= (others => '0');
                 OverFlowCount   <= (others => '0');
                 AlmostFullCount <= (others => '0');
---                DataRateBackOff <= '0';
             else
---                if (lFilledSlots > G_FILLED_SLOTS_AFULL) then
---                    DataRateBackOff <= '1';
---                else
---                    DataRateBackOff <= '0';
---                end if;    
-                    
+
                 if ((lSlotClear = '0') and (lSlotSet = '1')) then
                     if (lFilledSlots /= G_FILLED_SLOTS_MAX) then
                         lFilledSlots <= lFilledSlots + 1;
@@ -263,11 +257,11 @@ begin
             if (axis_reset = '1') then
                 -- Initialize SM on reset
                 StateVariable  <= InitialiseSt;
-				-- Always start by saying system is ready to accept data
+                -- Always start by saying system is ready to accept data
                 axis_rx_tready <= '1';
             else
                 if (axis_rx_tlast = '1') then
-                    if (lFilledSlots = (G_FILLED_SLOTS_MAX-1))  then
+                    if (lFilledSlots = (G_FILLED_SLOTS_MAX - 1)) then
                         -- When all slots are filled then signal upstream no more
                         -- slots left.
                         axis_rx_tready <= '0';
@@ -275,11 +269,11 @@ begin
                         -- Signal ready when slots are still open
                         axis_rx_tready <= '1';
                     end if;
-				else
+                else
                     if (lFilledSlots < G_FILLED_SLOTS_AFULL) then
                         -- Signal ready when slots have opened up
-                        axis_rx_tready <= '1';					
-					end if;
+                        axis_rx_tready <= '1';
+                    end if;
                 end if;
                 case (StateVariable) is
                     when InitialiseSt =>
