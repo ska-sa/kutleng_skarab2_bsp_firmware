@@ -66,11 +66,11 @@ use ieee.numeric_std.all;
 
 entity macifudpreceiver is
     generic(
-        G_SLOT_WIDTH      : natural                          := 4;
+        G_SLOT_WIDTH : natural := 4;
         -- For normal maximum ethernet frame packet size = ceil(1522)=2048 Bytes 
         -- The address width is log2(2048/(512/8))=5 bits wide
         -- 1 x (16KBRAM) per slot = 1 x 4 = 4 (16K BRAMS)/ 2 (32K BRAMS)   
-        G_ADDR_WIDTH      : natural                          := 5
+        G_ADDR_WIDTH : natural := 5
         -- For 9600 Jumbo ethernet frame packet size = ceil(9600)=16384 Bytes 
         -- The address width is log2(16384/(512/8))=8 bits wide
         -- 64 x (16KBRAM) per slot = 32 x 4 = 128 (32K BRAMS)! 
@@ -86,7 +86,7 @@ entity macifudpreceiver is
         ReceiverUDPPort          : in  STD_LOGIC_VECTOR(15 downto 0);
         -- MAC Statistics
         RXOverFlowCount          : out STD_LOGIC_VECTOR(31 downto 0);
-        RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0);                      
+        RXAlmostFullCount        : out STD_LOGIC_VECTOR(31 downto 0);
         -- Packet Readout in addressed bus format
         RingBufferSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
         RingBufferSlotClear      : in  STD_LOGIC;
@@ -111,14 +111,14 @@ end entity macifudpreceiver;
 architecture rtl of macifudpreceiver is
 
     component dualportpacketringbuffer is
-    generic(
-        G_SLOT_WIDTH : natural := 4;
-        G_ADDR_WIDTH : natural := 8;
-        G_DATA_WIDTH : natural := 64
-    );
-    port(
-        RxClk                  : in  STD_LOGIC;
-        TxClk                  : in  STD_LOGIC;
+        generic(
+            G_SLOT_WIDTH : natural := 4;
+            G_ADDR_WIDTH : natural := 8;
+            G_DATA_WIDTH : natural := 64
+        );
+        port(
+            RxClk                  : in  STD_LOGIC;
+            TxClk                  : in  STD_LOGIC;
             -- Transmission port
             TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_DATA_WIDTH / 8) - 1 downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
@@ -152,12 +152,13 @@ architecture rtl of macifudpreceiver is
     -- Packet Type DVLAN=0x88A8 
     --constant C_DVLAN_TYPE     : std_logic_vector(15 downto 0)       := X"88A8";
     -- IPV4 Type=0x0800 
-    constant C_IPV4_TYPE         : std_logic_vector(15 downto 0) := X"0800";
+    constant C_IPV4_TYPE         : std_logic_vector(15 downto 0)       := X"0800";
     -- IP Version and Header Length =0x45 
-    constant C_IPV_IHL           : std_logic_vector(7 downto 0)  := X"45";
+    constant C_IPV_IHL           : std_logic_vector(7 downto 0)        := X"45";
     -- UDP Protocol =0x06 	
-    constant C_UDP_PROTOCOL      : std_logic_vector(7 downto 0)  := X"11";
+    constant C_UDP_PROTOCOL      : std_logic_vector(7 downto 0)        := X"11";
     -- Tuples registers
+    constant C_FILLED_SLOT_MAX   : unsigned(G_SLOT_WIDTH - 1 downto 0) := (others => '1');
     signal lPacketByteEnable     : std_logic_vector(RingBufferDataEnable'length - 1 downto 0);
     signal lPacketDataWrite      : std_logic;
     signal lPacketData           : std_logic_vector(RingBufferDataOut'length - 1 downto 0);
@@ -222,13 +223,16 @@ architecture rtl of macifudpreceiver is
         end if;
     end byteswap;
 
-    signal lSlotClearBuffer               : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-    signal lSlotClear                     : STD_LOGIC;
-    signal lSlotSetBuffer                 : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-    signal lSlotSet                       : STD_LOGIC;
+    signal lSlotClearBuffer : STD_LOGIC_VECTOR(1 downto 0);
+    signal lSlotClear       : STD_LOGIC;
+    signal lSlotSetBuffer   : STD_LOGIC_VECTOR(1 downto 0);
+    signal lSlotSet         : STD_LOGIC;
 
 begin
-    --These slot clear and set operations are assynchronous and must have CDC.
+
+    -- These slot clear and set operations are slow and must be spaced atleast
+    -- 2 clock cycles apart for a conflict not to exist
+    -- These will work well for long packets (not the case where only 64 byte packets are sent)
     SlotSetClearProc : process(axis_clk)
     begin
         if rising_edge(axis_clk) then
@@ -236,16 +240,14 @@ begin
                 lSlotClear <= '0';
                 lSlotSet   <= '0';
             else
-                lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 2 downto 0) & RingBufferSlotClear;
-                lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 2 downto 0) & lPacketSlotSet;
-                -- Slot clear is late processed
-                if (lSlotClearBuffer = X"1100") then
+                lSlotSetBuffer   <= lSlotSetBuffer(0) & lPacketSlotSet;
+                lSlotClearBuffer <= lSlotClearBuffer(0) & RingBufferSlotClear;
+                if (lSlotClearBuffer = B"01") then
                     lSlotClear <= '1';
                 else
                     lSlotClear <= '0';
                 end if;
-                -- Slot set is early processed
-                if (lSlotSetBuffer = X"0001") then
+                if (lSlotSetBuffer = B"01") then
                     lSlotSet <= '1';
                 else
                     lSlotSet <= '0';
@@ -254,7 +256,12 @@ begin
             end if;
         end if;
     end process SlotSetClearProc;
-        
+
+    --Generate the number of slots filled using the axis_clk
+    --Synchronize it with the slow Ingress slot set
+    -- Send the number of slots filled to the CPU for status update
+    RingBufferSlotsFilled <= std_logic_vector(lFilledSlots);
+
     FilledSlotCounterProc : process(axis_clk)
     begin
         if rising_edge(axis_clk) then
@@ -262,11 +269,13 @@ begin
                 lFilledSlots <= (others => '0');
             else
                 if ((lSlotClear = '0') and (lSlotSet = '1')) then
-                    if (lFilledSlots /= X"F") then
+                    if (lFilledSlots /= C_FILLED_SLOT_MAX) then
+                        -- Saturating add
                         lFilledSlots <= lFilledSlots + 1;
                     end if;
                 elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
                     if (lFilledSlots /= 0) then
+                        -- Saturating subtract
                         lFilledSlots <= lFilledSlots - 1;
                     end if;
                 else
@@ -277,7 +286,6 @@ begin
         end if;
     end process FilledSlotCounterProc;
 
-    RingBufferSlotsFilled <= std_logic_vector(lFilledSlots);
     PacketBuffer_i : dualportpacketringbuffer
         generic map(
             G_SLOT_WIDTH => RingBufferSlotID'length,

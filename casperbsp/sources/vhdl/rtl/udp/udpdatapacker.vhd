@@ -371,8 +371,8 @@ begin
                 lSlotClear <= '0';
                 lSlotSet   <= '0';
             else
-                lSlotSetBuffer   <= lSlotSetBuffer(1) & lPacketSlotSet;
-                lSlotClearBuffer <= lSlotClearBuffer(1) & SenderRingBufferSlotClear;
+                lSlotSetBuffer   <= lSlotSetBuffer(0) & lPacketSlotSet;
+                lSlotClearBuffer <= lSlotClearBuffer(0) & SenderRingBufferSlotClear;
                 -- Slot clear is late processed
                 if (lSlotClearBuffer = B"10") then
                     lSlotClear <= '1';
