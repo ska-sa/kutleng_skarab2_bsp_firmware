@@ -596,7 +596,7 @@ set file "ethmacphy100gqsfp14x/EthMACPHY100GQSFP14x.xci"
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "generate_files_for_reference" -value "0" -objects $file_obj
 if { ![get_property "is_locked" $file_obj] } {
-  set_property -name "is_locked" -value "1" -objects $file_obj
+  set_property -name "is_locked" -value "0" -objects $file_obj
 }
 set_property -name "registered_with_manager" -value "1" -objects $file_obj
 
@@ -619,7 +619,7 @@ set file "ethmacphy100gqsfp24x/EthMACPHY100GQSFP24x.xci"
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "generate_files_for_reference" -value "0" -objects $file_obj
 if { ![get_property "is_locked" $file_obj] } {
-  set_property -name "is_locked" -value "1" -objects $file_obj
+  set_property -name "is_locked" -value "0" -objects $file_obj
 }
 set_property -name "registered_with_manager" -value "1" -objects $file_obj
 
