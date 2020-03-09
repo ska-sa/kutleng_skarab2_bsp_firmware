@@ -5,7 +5,7 @@ This is the work for the port of the 100G Ethernet to the VCU118+VCU1525 board.
 
 The Vivado version being used is Vivado 2019.2.1_AR72614
 
-Use code at Git tag v1.8
+Use code at Git tag v1.9
 
 To run the code clone it first to a directory
 
@@ -38,6 +38,6 @@ source ../{vcu118|vcu1525}/ethmac{vcu118|vcu1525}pr.tcl
 The design assumes a network at 192.168.100.10/15 for port 1 and port 2 of the QFSP28+ ports
 
 The latest Git tag that contains the working fileset is:
-tag 1.8
+tag 1.9
 
 
