@@ -12,7 +12,7 @@ To run the code clone it first to a directory
 git clone https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware.git
 
 
-cd kutleng_skarab2_bsp_firmware/casperbsp/projects/
+cd kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado
 
 mkdir project_flow
 
