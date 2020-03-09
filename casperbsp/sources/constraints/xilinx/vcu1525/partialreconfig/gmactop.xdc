@@ -14,9 +14,7 @@ set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_rxd]
 set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_txd]
 
 
-
 set_property LOC CMACE4_X0Y7 [get_cells -hierarchical -filter {NAME =~ *inst/i_EthMACPHY100GQSFP14x_top/* && REF_NAME==CMACE4}]
-
 
 
 set_property LOC CMACE4_X0Y6 [get_cells -hierarchical -filter {NAME =~ *inst/i_EthMACPHY100GQSFP24x_top/* && REF_NAME==CMACE4}]
@@ -133,19 +131,7 @@ set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_modsell_ls]
 set_property PACKAGE_PIN BC18 [get_ports qsfp1_resetl_ls]
 set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_resetl_ls]
 
-
-
-
-# Exceptions
-#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets GMAC1_i/MACPHY_QSFP1_i/inst/gt_ref_clk]
-#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets GMAC2_i/MACPHY_QSFP2_i/inst/gt_ref_clk]
-
 # Timing exceptions
-
-#set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
-
-
-
 
 create_clock -period 3.333 [get_ports sysclk1_300_p]
 
@@ -163,6 +149,8 @@ set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks {rxoutclk_out[0]}]
 
 set_property CONFIG_MODE S_SELECTMAP32 [current_design]
+
+#Remove these for non debug designs
 
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
