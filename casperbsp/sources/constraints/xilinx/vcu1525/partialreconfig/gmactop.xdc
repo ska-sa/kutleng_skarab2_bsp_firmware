@@ -10,10 +10,8 @@ set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_p]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports sysclk1_300_n]
 
 # UART (USB Based)
-set_property PACKAGE_PIN BB20 [get_ports rs232_uart_rxd];
-set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_rxd];
-set_property PACKAGE_PIN BF18 [get_ports rs232_uart_txd];
-set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_txd];
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_rxd]
+set_property IOSTANDARD LVCMOS12 [get_ports rs232_uart_txd]
 
 
 
@@ -148,10 +146,6 @@ set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
 
 
 
-set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[0][1158]}]
-set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[1][1158]}]
-set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[0][1162]}]
-set_property ASYNC_REG true [get_cells {RXAXIS_i/U0/PROBE_PIPE.shift_probes_reg[1][1162]}]
 
 create_clock -period 3.333 [get_ports sysclk1_300_p]
 
@@ -162,9 +156,11 @@ create_clock -period 6.400 [get_ports mgt_qsfp1_clock_p]
 set_false_path -from [get_cells *ClockGen100MHz_i/inst/seq_reg* -filter is_sequential]
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks clk_out2_clockgen100mhz]
 set_clock_groups -asynchronous -group [get_clocks clk_out2_clockgen100mhz] -group [get_clocks {txoutclk_out[0]}]
+set_clock_groups -asynchronous -group [get_clocks clk_out2_clockgen100mhz] -group [get_clocks {txoutclk_out[0]_1}]
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks {txoutclk_out[0]_1}]
 
 set_property CONFIG_MODE S_SELECTMAP32 [current_design]
+
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
