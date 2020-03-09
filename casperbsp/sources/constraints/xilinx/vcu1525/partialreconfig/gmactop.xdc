@@ -142,7 +142,7 @@ set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_resetl_ls]
 
 # Timing exceptions
 
-set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
+#set_false_path -to [get_pins -hier {*sync_reg[0]/D}]
 
 
 
@@ -153,11 +153,14 @@ set_input_jitter [get_clocks -of_objects [get_ports sysclk1_300_p]] 0.010
 
 create_clock -period 6.400 [get_ports mgt_qsfp2_clock_p]
 create_clock -period 6.400 [get_ports mgt_qsfp1_clock_p]
-set_false_path -from [get_cells *ClockGen100MHz_i/inst/seq_reg* -filter is_sequential]
+#For both the ethernet MACs txclock and the 100MHz clock are independant and asynchronous
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks clk_out2_clockgen100mhz]
-set_clock_groups -asynchronous -group [get_clocks clk_out2_clockgen100mhz] -group [get_clocks {txoutclk_out[0]}]
-set_clock_groups -asynchronous -group [get_clocks clk_out2_clockgen100mhz] -group [get_clocks {txoutclk_out[0]_1}]
+#For both the ethernet MACs derived txclock and the 100MHz clock are independant and asynchronous
+set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]_1}] -group [get_clocks clk_out2_clockgen100mhz]
+#For both the ethernet MACs txclock and derived txclock are independant and asynchronous
 set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks {txoutclk_out[0]_1}]
+#For both the ethernet MACs tx and RX clocks are independant and asynchronous 
+set_clock_groups -asynchronous -group [get_clocks {txoutclk_out[0]}] -group [get_clocks {rxoutclk_out[0]}]
 
 set_property CONFIG_MODE S_SELECTMAP32 [current_design]
 
