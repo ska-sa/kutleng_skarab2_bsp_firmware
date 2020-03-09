@@ -1,21 +1,7 @@
 #############################################################################################################
-create_clock -period 10.000 -name sys_clk [get_ports sys_clk_p]
-#
-#############################################################################################################
-set_false_path -from [get_ports sys_rst_n]
-set_property PULLUP true [get_ports sys_rst_n]
-set_property IOSTANDARD LVCMOS18 [get_ports sys_rst_n]
-set_property PACKAGE_PIN BD21 [get_ports sys_rst_n]
-#
-set_property CONFIG_VOLTAGE 1.8 [current_design]
+#set_property CONFIG_VOLTAGE 1.8 [current_design]
 set_property CFGBVS GND [current_design]
-#
 #############################################################################################################
-#
-set_property PACKAGE_PIN AM10 [get_ports sys_clk_n]
-set_property PACKAGE_PIN AM11 [get_ports sys_clk_p]
-
-
 # Base Reference Clock
 
 set_property PACKAGE_PIN AW20 [get_ports sysclk1_300_p]
@@ -40,12 +26,12 @@ set_property LOC CMACE4_X0Y6 [get_cells -hierarchical -filter {NAME =~ *inst/i_E
 # Debug LEDs
 set_property PACKAGE_PIN BA20 [get_ports {blink_led[0]}]
 set_property PACKAGE_PIN BB21 [get_ports {blink_led[1]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {blink_led[*]}]
+set_property IOSTANDARD LVCMOS12 [get_ports {blink_led[*]}]
 set_false_path -to [get_ports -filter NAME=~blink_led*]
 
 #This is the partial loaded pins
 set_property PACKAGE_PIN BC21 [get_ports partial_bit_led]
-set_property IOSTANDARD LVCMOS18 [get_ports partial_bit_led]
+set_property IOSTANDARD LVCMOS12 [get_ports partial_bit_led]
 set_false_path -to [get_ports -filter NAME=~partial_bit_led*]
 
 # QSFP0 Clock
@@ -86,15 +72,15 @@ set_property PACKAGE_PIN P6 [get_ports {qsfp2_mgt_tx_n[3]}]
 
 # QSFP0 Settings
 set_property PACKAGE_PIN BE21 [get_ports qsfp2_intl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_intl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_intl_ls]
 set_property PACKAGE_PIN BD18 [get_ports qsfp2_lpmode_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_lpmode_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_lpmode_ls]
 set_property PACKAGE_PIN BE20 [get_ports qsfp2_modprsl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_modprsl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_modprsl_ls]
 set_property PACKAGE_PIN BE16 [get_ports qsfp2_modsell_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_modsell_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_modsell_ls]
 set_property PACKAGE_PIN BE17 [get_ports qsfp2_resetl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp2_resetl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp2_resetl_ls]
 
 
 
@@ -139,19 +125,16 @@ set_property PACKAGE_PIN K6 [get_ports {qsfp1_mgt_tx_n[3]}]
 # QSFP1 Settings
 
 set_property PACKAGE_PIN AV21 [get_ports qsfp1_intl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_intl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_intl_ls]
 set_property PACKAGE_PIN AV22 [get_ports qsfp1_lpmode_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_lpmode_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_lpmode_ls]
 set_property PACKAGE_PIN BC19 [get_ports qsfp1_modprsl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_modprsl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_modprsl_ls]
 set_property PACKAGE_PIN AY20 [get_ports qsfp1_modsell_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_modsell_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_modsell_ls]
 set_property PACKAGE_PIN BC18 [get_ports qsfp1_resetl_ls]
-set_property IOSTANDARD LVCMOS18 [get_ports qsfp1_resetl_ls]
+set_property IOSTANDARD LVCMOS12 [get_ports qsfp1_resetl_ls]
 
-#USB UART for Microblaze
-set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_rxd]
-set_property IOSTANDARD LVCMOS18 [get_ports rs232_uart_txd]
 
 
 
