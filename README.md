@@ -1,60 +1,46 @@
 # kutleng_skarab2_bsp_firmware
 The vivado firmware for the skarab2
 
-This is the initial work for the port of the 100G Ethernet to the VCU118 board.
+This is the work for the port of the 100G Ethernet to the VCU118+VCU1525 board.
 
-The Vivado version being used is Vivado 2018.1/2018.3/2019.1
+The Vivado version being used is Vivado 2019.2.1_AR72614
 
-Added Git tag v1.0
-
-Updated code with VCU1525
-
+Use code at Git tag v1.7 
 
 To run the code clone it first to a directory
 
 git clone https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware.git
 
-cd kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118
+Switch the branch to the kutlengdev/r0072_100g_rb_rearchitecture branch
+
+git checkout kutlengdev/r0072_100g_rb_rearchitecture
+
+cd kutleng_skarab2_bsp_firmware/casperbsp/projects/
+
+mkdir project_flow
+
+cd project_flow
 
 vivado
 
-#on vivado prompt source the project file for the vcu118
-
-#on my machine it is as follows
-
-source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/ethmacvcu118.tcl
-
-#Yours maybe source ethmacvcu118.tcl
-
-#You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu118/} folder
-
-#This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/vcu118project/vcu118project.xpr}
+Replace {vcu118|vcu1525} with whichever platform you intend to build for e.g. 
+for vcu118 use vcu118.
 
 
+#on vivado prompt source the project file for the vcu118 or the vcu1525
 
 
-cd kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525
-
-vivado
-
-#on vivado prompt source the project file for the vcu1525
-
-#on my machine it is as follows
-
-source /home/hectorh/Documents/projects/sarao/skarab2/kutlengrepo/kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525/ethmacvcu1525.tcl
-
-#Yours maybe source ethmacvcu1525.tcl
-
-#You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado/vcu1525/} folder
-
-#This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/vcu1525project/vcu1525project.xpr}
+source ../{vcu118|vcu1525}/ethmac{vcu118|vcu1525}pr.tcl
 
 
-Fixed 100G links on VCU1525 Using IP Address 192.168.100.10/15
+#You need to launch vivado when you are on the ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow} folder
 
-Tagging this to V1.1
+#This will create a vivado project on a folder ${kutleng_skarab2_bsp_firmware/casperbsp/projects/project_flow/{vcu118|vcu1525}project/{vcu118|vcu1525}projectpr.xpr}
 
-Updated code on this branch to work with partial reconfiguration.
 
-For the partial reconfiguration build replace ethmacvcu1525.tcl with ethmacvcu1525pr.tcl and ethmacvcu118.tcl with ethmacvcu118pr.tcl
+The design assumes a network at 192.168.100.10/15 for port 1 and port 2 of the QFSP28+ ports
+
+The latest Git tag that contains the working fileset is:
+tag 1.7
+
 
