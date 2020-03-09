@@ -938,7 +938,7 @@ begin
     ----------------------------------------------------------------------------
     GMAC1_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE             => 0, -- Instantiate CMAC0 QSFP1
+            C_MAC_INSTANCE             => 1, -- Instantiate CMAC0 QSFP1
             C_COURSE_PACKET_THROTTLING => true
         )
         port map(
@@ -1214,7 +1214,7 @@ begin
     ----------------------------------------------------------------------------
     GMAC2_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE             => 1, -- Instantiate CMAC1 QSFP2
+            C_MAC_INSTANCE             => 0, -- Instantiate CMAC1 QSFP2
             C_COURSE_PACKET_THROTTLING => false
         )
         port map(
