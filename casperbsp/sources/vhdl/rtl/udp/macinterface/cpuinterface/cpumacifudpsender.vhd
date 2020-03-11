@@ -346,31 +346,31 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
             axis_tx_tlast            => axis_tx_tlast
         );
         
---        CPUTXILAi : ila_cpu_tx
---            port map(
---                clk        => axis_clk,
---                probe0(0)  => data_write_enable,
---                probe1(0)  => data_read_enable,
---                probe2     => data_write_data,
---                probe3     => data_write_byte_enable,
---                probe4     => ldata_read_data,
---                probe5     => ldata_read_byte_enable,
---                probe6     => data_write_address,
---                probe7     => data_read_address,
---                probe8     => ringbuffer_slot_id,
---                probe9(0)  => ringbuffer_slot_set,
---                probe10(0) => lringbuffer_slot_status,
---                probe11    => std_logic_vector(lFilledSlots),
---                probe12    => EgressRingBufferDataEnable,
---                probe13(0) => EgressRingBufferDataRead,
---                probe14    => EgressRingBufferDataIn,
---                probe15    => EgressRingBufferAddress,
---                probe16(0) => EgressRingBufferSlotClear,
---                probe17    => EgressRingBufferSlotID,
---                probe18(0) => EgressRingBufferSlotStatus,
---                probe19(0) => lSlotSet,
---                probe20(0) => lSlotClear,                                
---                probe21    => lSlotSetBuffer,
---                probe22    => lSlotClearBuffer                                
---            );         
+        CPUTXILAi : ila_cpu_tx
+            port map(
+                clk        => axis_clk,
+                probe0(0)  => data_write_enable,
+                probe1(0)  => data_read_enable,
+                probe2     => data_write_data,
+                probe3     => data_write_byte_enable,
+                probe4     => ldata_read_data,
+                probe5     => ldata_read_byte_enable,
+                probe6     => data_write_address,
+                probe7     => data_read_address,
+                probe8     => ringbuffer_slot_id,
+                probe9(0)  => ringbuffer_slot_set,
+                probe10(0) => lringbuffer_slot_status,
+                probe11    => std_logic_vector(lFilledSlots),
+                probe12    => EgressRingBufferDataEnable,
+                probe13(0) => EgressRingBufferDataRead,
+                probe14    => EgressRingBufferDataIn,
+                probe15    => EgressRingBufferAddress,
+                probe16(0) => EgressRingBufferSlotClear,
+                probe17    => EgressRingBufferSlotID,
+                probe18(0) => EgressRingBufferSlotStatus,
+                probe19(0) => lSlotSet,
+                probe20(0) => lSlotClear,                                
+                probe21    => lSlotSetBuffer,
+                probe22    => lSlotClearBuffer                                
+            );         
 end architecture rtl;
