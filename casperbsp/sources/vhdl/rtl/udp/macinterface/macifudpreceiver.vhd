@@ -186,6 +186,8 @@ architecture rtl of macifudpreceiver is
     alias lUDPDataStreamLength   : std_logic_vector(15 downto 0) is axis_rx_tdata(319 downto 304);
     alias lUDPCheckSum           : std_logic_vector(15 downto 0) is axis_rx_tdata(335 downto 320);
     signal lFilledSlots          : unsigned(G_SLOT_WIDTH - 1 downto 0);
+    signal lRXOverFlowCount      : unsigned(31 downto 0);
+    signal lRXAlmostFullCount    : unsigned(31 downto 0);
     -- The left over is 22 bytes
     function byteswap(DataIn : in std_logic_vector)
     return std_logic_vector is
@@ -229,6 +231,8 @@ architecture rtl of macifudpreceiver is
     signal lSlotSet         : STD_LOGIC;
 
 begin
+        RXOverFlowCount <= std_logic_vector(lRXOverFlowCount);
+        RXAlmostFullCount <= std_logic_vector(lRXAlmostFullCount);
 
     -- These slot clear and set operations are slow and must be spaced atleast
     -- 2 clock cycles apart for a conflict not to exist
@@ -267,12 +271,21 @@ begin
         if rising_edge(axis_clk) then
             if (axis_reset = '1') then
                 lFilledSlots <= (others => '0');
+                lRXOverFlowCount <= (others => '0');
+                lRXAlmostFullCount <= (others => '0');
             else
                 if ((lSlotClear = '0') and (lSlotSet = '1')) then
                     if (lFilledSlots /= C_FILLED_SLOT_MAX) then
                         -- Saturating add
                         lFilledSlots <= lFilledSlots + 1;
                     end if;
+                    if (lFilledSlots = C_FILLED_SLOT_MAX) then
+                        lRXOverFlowCount <= lRXOverFlowCount + 1;
+                    end if;
+                    if (lFilledSlots >= (C_FILLED_SLOT_MAX/2)) then
+                        lRXAlmostFullCount <= lRXAlmostFullCount + 1;
+                    end if;
+                    
                 elsif ((lSlotClear = '1') and (lSlotSet = '0')) then
                     if (lFilledSlots /= 0) then
                         -- Saturating subtract

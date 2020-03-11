@@ -63,8 +63,6 @@ use ieee.numeric_std.all;
 entity cpumacifudpreceiver is
     generic(
         G_SLOT_WIDTH         : natural := 4;
-        G_CPU_DATA_WIDTH     : natural := 8;
-        G_INGRESS_ADDR_WIDTH : natural := 5;
         G_AXIS_DATA_WIDTH    : natural := 512;
         -- The address width is log2(2048/8))=11 bits wide
         G_ADDR_WIDTH         : natural := 11
@@ -101,6 +99,9 @@ entity cpumacifudpreceiver is
 end entity cpumacifudpreceiver;
 
 architecture rtl of cpumacifudpreceiver is
+    constant    G_CPU_DATA_WIDTH     : natural := 8;
+    constant    G_INGRESS_ADDR_WIDTH : natural := 5;
+
     component cpumacifethernetreceiver is
         generic(
             G_SLOT_WIDTH : natural := 4;
@@ -147,32 +148,56 @@ architecture rtl of cpumacifudpreceiver is
     component cpuifreceiverpacketringbuffer is
         generic(
             G_SLOT_WIDTH  : natural := 4;
-            G_ADDR_AWIDTH : natural := 8;
-            G_ADDR_BWIDTH : natural := 8;
-            G_DATA_AWIDTH : natural := 64;
-            G_DATA_BWIDTH : natural := 64
-        );
+            constant G_RX_ADDR_WIDTH : natural := 5;
+            constant G_TX_ADDR_WIDTH : natural := 11;
+            constant G_RX_DATA_WIDTH : natural := 512;
+            constant G_TX_DATA_WIDTH : natural := 8            
+            );
         port(
             RxClk                  : in  STD_LOGIC;
             TxClk                  : in  STD_LOGIC;
+            Reset                  : in  STD_LOGIC;
             -- Reception port
-            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_DATA_AWIDTH / 8) - 1 downto 0);
+            RxPacketByteEnable     : in  STD_LOGIC_VECTOR((G_RX_DATA_WIDTH / 8) - 1 downto 0);
             RxPacketDataWrite      : in  STD_LOGIC;
-            RxPacketData           : in  STD_LOGIC_VECTOR(G_DATA_AWIDTH - 1 downto 0);
-            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_AWIDTH - 1 downto 0);
+            RxPacketData           : in  STD_LOGIC_VECTOR(G_RX_DATA_WIDTH - 1 downto 0);
+            RxPacketAddress        : in  STD_LOGIC_VECTOR(G_RX_ADDR_WIDTH - 1 downto 0);
             RxPacketSlotSet        : in  STD_LOGIC;
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             RxPacketSlotStatus     : out STD_LOGIC;
             -- Transmission port
-            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_DATA_BWIDTH / 8) downto 0);
-            TxPacketDataOut        : out STD_LOGIC_VECTOR(G_DATA_BWIDTH - 1 downto 0);
-            TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_ADDR_BWIDTH - 1 downto 0);
+            TxPacketReadByteEnable : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) downto 0);
+            TxPacketDataOut        : out STD_LOGIC_VECTOR(G_TX_DATA_WIDTH - 1 downto 0);
+            TxPacketReadAddress    : in  STD_LOGIC_VECTOR(G_TX_ADDR_WIDTH - 1 downto 0);
             TxPacketDataRead       : in  STD_LOGIC;
             TxPacketSlotClear      : in  STD_LOGIC;
             TxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
             TxPacketSlotStatus     : out STD_LOGIC
         );
-    end component cpuifreceiverpacketringbuffer;
+        end component cpuifreceiverpacketringbuffer;
+    component ila_cpu_rx is
+        port(
+            clk    : in STD_LOGIC;
+            probe0 : in STD_LOGIC_VECTOR(0 to 0);
+            probe1 : in STD_LOGIC_VECTOR(7 downto 0);
+            probe2 : in STD_LOGIC_VECTOR(1 downto 0);
+            probe3 : in STD_LOGIC_VECTOR(10 downto 0);
+            probe4 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe5 : in STD_LOGIC_VECTOR(0 to 0);
+            probe6 : in STD_LOGIC_VECTOR(0 to 0);
+            probe7 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe8 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe9 : in STD_LOGIC_VECTOR(0 downto 0);
+            probe10 : in STD_LOGIC_VECTOR(0 downto 0);
+            probe11 : in STD_LOGIC_VECTOR(63 downto 0);
+            probe12 : in STD_LOGIC_VECTOR(511 downto 0);
+            probe13 : in STD_LOGIC_VECTOR(4 downto 0);
+            probe14 : in STD_LOGIC_VECTOR(0 downto 0);
+            probe15 : in STD_LOGIC_VECTOR(0 downto 0);
+            probe16 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe17 : in STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component ila_cpu_rx;    
 
     signal IngressRingBufferDataEnable : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataWrite  : STD_LOGIC;
@@ -186,8 +211,14 @@ architecture rtl of cpumacifudpreceiver is
     signal lSlotClear                  : STD_LOGIC;
     signal lSlotSetBuffer              : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal lSlotSet                    : STD_LOGIC;
-
+    --Debug
+    signal ldata_read_data             : STD_LOGIC_VECTOR(7 downto 0);
+    signal ldata_read_byte_enable      : STD_LOGIC_VECTOR(1 downto 0);
+    signal lringbuffer_slot_status     : STD_LOGIC;
 begin
+data_read_data <= ldata_read_data;
+data_read_byte_enable <= ldata_read_byte_enable;
+ringbuffer_slot_status <= lringbuffer_slot_status;
     --These slot clear and set operations are slow and must be spaced atleast
     -- 8 clock cycles apart for a conflict not to exist
     -- As these are controlled by the CPU this is not a problem
@@ -207,7 +238,7 @@ begin
                     lSlotClear <= '0';
                 end if;
                 -- Slot set is early processed
-                if (lSlotSetBuffer = b"0001") then
+                if (lSlotSetBuffer = b"0011") then
                     lSlotSet <= '1';
                 else
                     lSlotSet <= '0';
@@ -247,14 +278,15 @@ begin
     RXCPURBi : cpuifreceiverpacketringbuffer
         generic map(
             G_SLOT_WIDTH  => G_SLOT_WIDTH,
-            G_ADDR_BWIDTH => G_ADDR_WIDTH,
-            G_ADDR_AWIDTH => G_INGRESS_ADDR_WIDTH,
-            G_DATA_BWIDTH => G_CPU_DATA_WIDTH,
-            G_DATA_AWIDTH => G_AXIS_DATA_WIDTH
+            G_TX_ADDR_WIDTH => G_ADDR_WIDTH,
+            G_RX_ADDR_WIDTH => G_INGRESS_ADDR_WIDTH,
+            G_TX_DATA_WIDTH => G_CPU_DATA_WIDTH,
+            G_RX_DATA_WIDTH => G_AXIS_DATA_WIDTH
         )
         port map(
             TxClk                  => aximm_clk,
             RxClk                  => axis_clk,
+            Reset                  => axis_reset,
             RxPacketByteEnable     => IngressRingBufferDataEnable,
             RxPacketDataWrite      => IngressRingBufferDataWrite,
             RxPacketData           => IngressRingBufferDataOut,
@@ -263,13 +295,13 @@ begin
             RxPacketSlotID         => IngressRingBufferSlotID,
             RxPacketSlotStatus     => IngressRingBufferSlotStatus,
             -- Transmission port   => data_write_address,
-            TxPacketReadByteEnable => data_read_byte_enable,
-            TxPacketDataOut        => data_read_data,
+            TxPacketReadByteEnable => ldata_read_byte_enable,
+            TxPacketDataOut        => ldata_read_data,
             TxPacketReadAddress    => data_read_address,
             TxPacketDataRead       => data_read_enable,
             TxPacketSlotClear      => ringbuffer_slot_clear,
             TxPacketSlotID         => ringbuffer_slot_id,
-            TxPacketSlotStatus     => ringbuffer_slot_status
+            TxPacketSlotStatus     => lringbuffer_slot_status
         );
 
     RXRECEIVERi : cpumacifethernetreceiver
@@ -296,4 +328,27 @@ begin
             axis_rx_tkeep          => axis_rx_tkeep,
             axis_rx_tlast          => axis_rx_tlast
         );
+
+--        CPURXILAi : ila_cpu_rx
+--            port map(
+--                clk       => axis_clk,
+--                probe0(0) => data_read_enable,
+--                probe1    => ldata_read_data,
+--                probe2    => ldata_read_byte_enable,
+--                probe3    => data_read_address,
+--                probe4    => ringbuffer_slot_id,
+--                probe5(0) => ringbuffer_slot_clear,
+--                probe6(0) => lringbuffer_slot_status,
+--                probe7    => std_logic_vector(lFilledSlots),
+--                probe8    => IngressRingBufferSlotID,
+--                probe9(0) => IngressRingBufferSlotSet,
+--                probe10(0)=> IngressRingBufferDataWrite,
+--                probe11   => IngressRingBufferDataEnable,
+--                probe12   => IngressRingBufferDataOut,
+--                probe13   => IngressRingBufferAddress,
+--                probe14(0)=> lSlotClear,
+--                probe15(0)=> lSlotSet,                            
+--                probe16   => lSlotClearBuffer,
+--                probe17   => lSlotSetBuffer                            
+--                );        
 end architecture rtl;

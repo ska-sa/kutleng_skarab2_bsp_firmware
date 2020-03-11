@@ -490,6 +490,10 @@ architecture rtl of gmactop is
             gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
             gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
             gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+            gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(7 downto 0 );
+            gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0 );
+            gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(1 downto 0 );
+            gmac_rx_data_write_enable              : out STD_LOGIC;            
             gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
             gmac_rx_ringbuffer_slot_clear          : out STD_LOGIC;
             gmac_rx_ringbuffer_slot_status         : in  STD_LOGIC;

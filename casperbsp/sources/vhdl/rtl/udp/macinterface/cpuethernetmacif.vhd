@@ -173,10 +173,10 @@ architecture rtl of cpuethernetmacif is
 
     component cpumacifudpreceiver is
         generic(
-            G_SLOT_WIDTH      : natural := 4;
-            G_AXIS_DATA_WIDTH : natural := 512;
-            -- The address width is log2(2048/(512/8))=5 bits wide
-            G_ADDR_WIDTH      : natural := 5
+            G_SLOT_WIDTH         : natural := 4;
+            G_AXIS_DATA_WIDTH    : natural := 512;
+            -- The address width is log2(2048/8))=11 bits wide
+            G_ADDR_WIDTH         : natural := 11
         );
         port(
             axis_clk                       : in  STD_LOGIC;
@@ -248,7 +248,7 @@ begin
         generic map(
             G_SLOT_WIDTH      => G_SLOT_WIDTH,
             G_AXIS_DATA_WIDTH => G_AXIS_DATA_WIDTH,
-            G_ADDR_WIDTH      => G_CPU_RX_DATA_BUFFER_ASIZE
+            G_ADDR_WIDTH      => G_CPU_RX_DATA_BUFFER_ASIZE            
         )
         port map(
             axis_clk                       => axis_clk,
