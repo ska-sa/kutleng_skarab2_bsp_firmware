@@ -1,0 +1,13 @@
+# The Sigasi Studio XPRT product combines the com.sigasi.hdt.xl and com.sigasi.hdt.xl.doc FlexNet features.
+INCREMENT com.sigasi.hdt.xl sigasi 4.0 17-apr-2020 uncounted \
+	VENDOR_STRING=company:none;mac:4CCC6A8EFE70;mail:b.hlophe@cranfield.ac.uk;stamp:1571290712.9456105;start:2019-10-17;type:edu \
+	HOSTID=ANY ISSUER=Sigasi ISSUED=17-Oct-2019 SIGN="1D5C 7F3A \
+	46EB 002A 06ED 6212 21C5 9214 E078 5FDC 5D96 238D A9A6 9387 \
+	2229 05F4 C612 F54F A7B2 2605 DD8F 080E C71E 2989 F4D2 892A \
+	4678 976D CC02 2E05"
+INCREMENT com.sigasi.hdt.xl.doc sigasi 4.0 17-apr-2020 uncounted \
+	VENDOR_STRING=company:none;mac:4CCC6A8EFE70;mail:b.hlophe@cranfield.ac.uk;stamp:1571290712.9456918;start:2019-10-17;type:edu \
+	HOSTID=ANY ISSUER=Sigasi ISSUED=17-Oct-2019 SIGN="171E DB2E \
+	C1E3 18A2 C7C8 F067 DE7B A6A9 3E39 288F 82E9 D5A2 1F63 4AF0 \
+	4002 0C0D 7E92 A724 7EEE 5513 25E1 8EE4 8EDB EA5E FE7F 17D1 \
+	7147 281B A283 BF13"
