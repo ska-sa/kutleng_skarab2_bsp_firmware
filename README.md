@@ -35,6 +35,8 @@ source ../{vcu118|vcu1525}/ethmac{vcu118|vcu1525}pr.tcl
 
 The design assumes a network at 192.168.100.10/15 for port 1 and port 2 of the QFSP28+ ports
 
+![alt text](./images/vitiscreate0.png)
+
 
 
 
