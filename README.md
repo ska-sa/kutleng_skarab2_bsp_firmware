@@ -312,6 +312,10 @@ This module has a generic to enable/disable partial reconfiguration.
 ![alt text](./images/udpipnoprblock.png)
 
 
+The module uses DataRateBackOff signal for rate control to throttle data and prevent overflows.
+
+![alt text](./images/udpipprblockratecontrol.png)
+
 The partial reconfigration module is made up of the following blocks
 *receive ring buffer
 
