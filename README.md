@@ -54,6 +54,7 @@ After the design is finished building it is necessary to launch Vitis and export
 The know working version of the build with the corresponding git hash are updated on the list as follows:
 
 The Firmware Repository is: [https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware](https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware.git)
+
 The Software Repository is: [https://github.com/hectorkutleng/kutleng_skarab2_control_software](https://github.com/hectorkutleng/kutleng_skarab2_control_software.git)
 
 
@@ -73,7 +74,8 @@ To export the design,in Vivado select File->Export->Export Hardware
 
 ![alt text](./images/vivado3.png)
 
-Make sure to tick Include bitstresm
+Make sure to tick Include bitstream
+
 ![alt text](./images/vivado5.png)
 
 Select the path you need to export to:
@@ -122,6 +124,7 @@ Select yes when prompted.
 
 
 Build the testharness 
+
 ![alt text](./images/vitiscreate11.png)
 
 Select the tesh harness elf executable to start debug
@@ -175,4 +178,155 @@ On Vivado Select the hw_vio_2
 ![alt text](./images/vivado8.png)
 
 The design will now run and be ready for tests.
+
+# Test setup
+
+The standard test setup for the design needs the following equipment:
+
+*VCU118/VCU1525 - The FPGA board with 100G links
+*100G Ethernet Switch - With a minimum of 3 ports
+*Workstation running Linux - With a 100G Netowrk Interface Card
+*Xilinx JTAG Cable - For initial configuration and ILA/VIO setup
+*3 100G Cables - The cables must not be > 3m if they are copper else there will be errors
+
+The test setup is shown on the figure below:
+
+![alt text](./images/devsetup.png)
+
+
+
+#Bandwidth test
+
+To start the bandwidth test it is important to have the test setup as shown below:
+
+![alt text](./images/bandwidthtest.png)
+
+First make sure to ping both ports so that the switch can have the ARP tables populated.
+
+```bash
+ping 192.168.100.10
+
+ping 192.168.100.15
+ 
+```
+
+After pinging the ports you should be able to observe the ARP packets on WireShark.
+
+The standard test for bandwidth test requires data to be sent to port 2.
+Port 2 has the IP address 192.168.100.15
+
+Every packet sent to port 2 will be **echoed** back to the sender IP.
+
+Port one with IP address 192.168.100.10 has a UDP packet sender that first receives packets from the Workstation,
+buffer the packets and then send them untill the ring buffers are filled in both the transmit and receive path.
+
+First stop Wireshark before starting the bandwidth test.
+ 
+To start the bandwidth test run the following commands to generate packets on the Workstation:
+
+```bash
+
+cd /kutleng_skarab2_control_software/casperbsp/ethernettests/bandwidth
+
+make
+
+./ethbwtest
+
+```
+
+
+After the packet are filled the Signal StripperClearEnable on the VIO can be switched on since the test has reached line rate.
+
+The expected line rate is 98.6 Gbps on the FPGA ports both TX and RX.
+
+![alt text](./images/vivado8.png)
+
+
+
+#Partial reconfiguration test
+
+The partial reconfiguration test requires the same setup as the bandwith test.
+The only difference is that patial reconfiguration data is programmed to the FPGA.
+
+![alt text](./images/partialreconfigtest.png)
+
+To run the partial reconfig make sure that all bit streams have been produced.
+
+Copy all the bitsreams to the /kutleng_skarab2_control_software/casperbsp/partialreconfigapp/bitfiles folder.
+Inside this folder there is VCU118 and VCU1525 copy the correct bitstreams.bin to the board you are using.
+
+There is a Python script to load the partial reconfiguration bitstreams.
+
+THe script will 
+*first clear the RM module (all LEDs will be off)
+*wait for 5 seconds
+*load the blinker RM (4 leds will run like a Johnson counter)
+*wait for 5 seconds
+*clear the RM module (all LEDs will be off)
+*wait 5 seconds
+*load the flasher module (4 LEDs will all flash at the same time)
+*exit
+
+Run the partial reconfiguration Python script as follows:
+
+```bash
+
+cd /kutleng_skarab2_control_software/casperbsp/partialreconfigapp/
+
+make
+
+python xilinxbitstream.py
+
+```
+
+This will begin the partial reconfiguration process.
+
+---
+
+#Module layout
+
+The Firmware is made up of a top module called casper100gethernetblock.vhd
+
+This module has two modules
+
+*udpipinterfacepr.vhd
+*mac100gphy.vhd
+
+![alt text](./images/udpipprblock.png)
+
+This module has a generic to enable/disable partial reconfiguration.
+ 
+![alt text](./images/udpipnoprblock.png)
+
+
+The partial reconfigration module is made up of the following blocks
+*receive ring buffer
+*transmit ring buffer
+*protocol checker state machine
+*protocol responder state machine
+*retry ring buffer
+*ICAP writer state machine
+
+The module block diagram is shown ins the figure below:
+
+![alt text](./images/prmodule.png)
+
+The partial reconfiguration ICAP runs at 125MHz clock.
+
+
+#Yellow block interface
+
+The interface to Yellowblock streaming data is done using the AXIS streaming interface on the casper100gethernetblock.vhd
+
+The interface ports have both receive and transmit interface and follows the AXIS protocol.
+
+The interface will leave all the addressing information on the first 512-bit word i.e the first 336 bits wil be discarded.
+
+Addressing information must come from the udpdatapacker module.
+
+
+
+
+
+
 
