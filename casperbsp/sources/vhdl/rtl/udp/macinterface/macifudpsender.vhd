@@ -200,7 +200,7 @@ begin
                             lRingBufferAddress         <= lRingBufferAddress + 1;
 
                             if (RingBufferDataEnable(0) = '1') then
-                                axis_tx_tlast       <= RingBufferSlotTypeStatus;
+                                axis_tx_tlast       <= '1';
                                 axis_tx_tkeep(0)    <= RingBufferDataEnable(0);
                                 -- This is the last one
                                 -- Clear the current slot
