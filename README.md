@@ -1,5 +1,5 @@
 # kutleng_skarab2_bsp_firmware
-===
+
 The Vivado firmware for the skarab2 100G Ethernet and Partial Reconfiguration 
 
 This is the work for the port of the 100G Ethernet to the VCU118+VCU1525 board.
@@ -8,7 +8,6 @@ The Vivado version being used is Vivado 2019.2.1_AR72614
 
 
 # Building the Vivado Project
-===
 
 To run the code clone it first to a directory
 
@@ -48,7 +47,7 @@ The design assumes a network at 192.168.100.10/15 for port 1 and port 2 of the Q
 
 After the design is finished building it is necessary to launch Vitis and export the design to Vitis.
 
-===
+---
 
 # Version Description Document
 
@@ -65,6 +64,8 @@ The Software Repository is: [https://github.com/hectorkutleng/kutleng_skarab2_co
 |**228339bcb88fd459f06655977baedb34692d9987**   | **7be16ccf864662586db49b18158ef5bd76c5cadc**  |30/03/2020|Fixed Issues with CPU TX and RX Interface|
 
 The latest version is the version in **bold** as the per the hash and the date.
+
+---
 
 # Design Export to Vitis
 
