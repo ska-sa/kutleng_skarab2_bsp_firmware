@@ -184,9 +184,13 @@ The design will now run and be ready for tests.
 The standard test setup for the design needs the following equipment:
 
 *VCU118/VCU1525 - The FPGA board with 100G links
+
 *100G Ethernet Switch - With a minimum of 3 ports
+
 *Workstation running Linux - With a 100G Netowrk Interface Card
+
 *Xilinx JTAG Cable - For initial configuration and ILA/VIO setup
+
 *3 100G Cables - The cables must not be > 3m if they are copper else there will be errors
 
 The test setup is shown on the figure below:
@@ -257,14 +261,22 @@ Inside this folder there is VCU118 and VCU1525 copy the correct bitstreams.bin t
 
 There is a Python script to load the partial reconfiguration bitstreams.
 
-THe script will 
+The script will:
+ 
 *first clear the RM module (all LEDs will be off)
+
 *wait for 5 seconds
+
 *load the blinker RM (4 leds will run like a Johnson counter)
+
 *wait for 5 seconds
+
 *clear the RM module (all LEDs will be off)
+
 *wait 5 seconds
+
 *load the flasher module (4 LEDs will all flash at the same time)
+
 *exit
 
 Run the partial reconfiguration Python script as follows:
@@ -290,6 +302,7 @@ The Firmware is made up of a top module called casper100gethernetblock.vhd
 This module has two modules
 
 *udpipinterfacepr.vhd
+
 *mac100gphy.vhd
 
 ![alt text](./images/udpipprblock.png)
@@ -301,10 +314,15 @@ This module has a generic to enable/disable partial reconfiguration.
 
 The partial reconfigration module is made up of the following blocks
 *receive ring buffer
+
 *transmit ring buffer
+
 *protocol checker state machine
+
 *protocol responder state machine
+
 *retry ring buffer
+
 *ICAP writer state machine
 
 The module block diagram is shown ins the figure below:
