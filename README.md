@@ -1,13 +1,20 @@
 # kutleng_skarab2_bsp_firmware
 
-The Vivado firmware for the skarab2 100G Ethernet and Partial Reconfiguration 
+# Table of Contents
+
+[TOC]
+
+
+## Introduction
+
+In this document the Vivado firmware for the skarab2 100G Ethernet and Partial Reconfiguration is describe together with the different modes of operation and testing.
 
 This is the work for the port of the 100G Ethernet to the VCU118+VCU1525 board.
 
 The Vivado version being used is Vivado 2019.2.1_AR72614
 
 
-# Building the Vivado Project
+## Building the Vivado Project
 
 To run the code clone it first to a directory
 
@@ -49,7 +56,7 @@ After the design is finished building it is necessary to launch Vitis and export
 
 ---
 
-# Version Description Document
+## Version Description Document
 
 The know working version of the build with the corresponding git hash are updated on the list as follows:
 
@@ -68,7 +75,7 @@ The latest version is the version in **bold** as the per the hash and the date.
 
 ---
 
-# Design Export to Vitis
+## Design Export to Vitis
 
 To export the design,in Vivado select File->Export->Export Hardware
 
@@ -84,7 +91,7 @@ Select the path you need to export to:
 
 The design will be exported to the destination path folder.
 
-# Creating a new hardware plaform in Vitis
+### Creating a new hardware plaform in Vitis
 
 On Vitis Create a new hardware platform
 
@@ -179,19 +186,19 @@ On Vivado Select the hw_vio_2
 
 The design will now run and be ready for tests.
 
-# Test setup
+## Test setup
 
 The standard test setup for the design needs the following equipment:
 
-*VCU118/VCU1525 - The FPGA board with 100G links
+* VCU118/VCU1525 - The FPGA board with 100G links
 
-*100G Ethernet Switch - With a minimum of 3 ports
+* 100G Ethernet Switch - With a minimum of 3 ports
 
-*Workstation running Linux - With a 100G Netowrk Interface Card
+* Workstation running Linux - With a 100G Netowrk Interface Card
 
-*Xilinx JTAG Cable - For initial configuration and ILA/VIO setup
+* Xilinx JTAG Cable - For initial configuration and ILA/VIO setup
 
-*3 100G Cables - The cables must not be > 3m if they are copper else there will be errors
+* 3 100G Cables - The cables must not be > 3m if they are copper else there will be errors
 
 The test setup is shown on the figure below:
 
@@ -199,7 +206,7 @@ The test setup is shown on the figure below:
 
 
 
-#Bandwidth test
+### Bandwidth test
 
 To start the bandwidth test it is important to have the test setup as shown below:
 
@@ -238,7 +245,6 @@ make
 
 ```
 
-
 After the packet are filled the Signal StripperClearEnable on the VIO can be switched on since the test has reached line rate.
 
 The expected line rate is 98.6 Gbps on the FPGA ports both TX and RX.
@@ -246,8 +252,7 @@ The expected line rate is 98.6 Gbps on the FPGA ports both TX and RX.
 ![alt text](./images/vivado8.png)
 
 
-
-#Partial reconfiguration test
+### Partial reconfiguration test
 
 The partial reconfiguration test requires the same setup as the bandwith test.
 The only difference is that patial reconfiguration data is programmed to the FPGA.
@@ -263,21 +268,21 @@ There is a Python script to load the partial reconfiguration bitstreams.
 
 The script will:
  
-*first clear the RM module (all LEDs will be off)
+* first clear the RM module (all LEDs will be off)
 
-*wait for 5 seconds
+* wait for 5 seconds
 
-*load the blinker RM (4 leds will run like a Johnson counter)
+* load the blinker RM (4 leds will run like a Johnson counter)
 
-*wait for 5 seconds
+* wait for 5 seconds
 
-*clear the RM module (all LEDs will be off)
+* clear the RM module (all LEDs will be off)
 
-*wait 5 seconds
+* wait 5 seconds
 
-*load the flasher module (4 LEDs will all flash at the same time)
+* load the flasher module (4 LEDs will all flash at the same time)
 
-*exit
+* exit
 
 Run the partial reconfiguration Python script as follows:
 
@@ -295,15 +300,15 @@ This will begin the partial reconfiguration process.
 
 ---
 
-#Module layout
+## Firmware Module Layout
 
 The Firmware is made up of a top module called casper100gethernetblock.vhd
 
 This module has two modules
 
-*udpipinterfacepr.vhd
+* udpipinterfacepr.vhd
 
-*mac100gphy.vhd
+* mac100gphy.vhd
 
 ![alt text](./images/udpipprblock.png)
 
@@ -316,27 +321,8 @@ The module uses DataRateBackOff signal for rate control to throttle data and pre
 
 ![alt text](./images/udpipprblockratecontrol.png)
 
-The partial reconfigration module is made up of the following blocks
-*receive ring buffer
 
-*transmit ring buffer
-
-*protocol checker state machine
-
-*protocol responder state machine
-
-*retry ring buffer
-
-*ICAP writer state machine
-
-The module block diagram is shown ins the figure below:
-
-![alt text](./images/prmodule.png)
-
-The partial reconfiguration ICAP runs at 125MHz clock.
-
-
-#Yellow block interface
+### Yellow block interface
 
 The interface to Yellowblock streaming data is done using the AXIS streaming interface on the casper100gethernetblock.vhd
 
@@ -345,6 +331,14 @@ The interface ports have both receive and transmit interface and follows the AXI
 The interface will leave all the addressing information on the first 512-bit word i.e the first 336 bits wil be discarded.
 
 Addressing information must come from the udpdatapacker module.
+
+
+### Partial Reconfiguration Module
+
+The partial reconfiguration module is documented on the link below.
+
+[https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md](https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md)
+
 
 
 
