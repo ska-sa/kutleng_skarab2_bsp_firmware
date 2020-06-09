@@ -32,7 +32,7 @@ To run the code clone it first to a directory
 
 
 ```bash
-git clone https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware.git
+git clone https://github.com/ska-sa/kutleng_skarab2_bsp_firmware.git
 
 cd kutleng_skarab2_bsp_firmware/casperbsp/projects/vivado
 
@@ -72,9 +72,9 @@ After the design is finished building it is necessary to launch Vitis and export
 
 The know working version of the build with the corresponding git hash are updated on the list as follows:
 
-The Firmware Repository is: [https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware](https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware.git)
+The Firmware Repository is: [https://github.com/ska-sa/kutleng_skarab2_bsp_firmware](https://github.com/ska-sa/kutleng_skarab2_bsp_firmware.git)
 
-The Software Repository is: [https://github.com/hectorkutleng/kutleng_skarab2_control_software](https://github.com/hectorkutleng/kutleng_skarab2_control_software.git)
+The Software Repository is: [https://github.com/ska-sa/kutleng_skarab2_control_software](https://github.com/ska-sa/kutleng_skarab2_control_software.git)
 
 
 |           Firmware Version                |   Software Version                        | Date     |Revision log     |
@@ -353,7 +353,7 @@ Addressing information must come from the udpdatapacker module.
 
 The partial reconfiguration module is documented on the link below.
 
-[https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md](https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/blob/master/PartialReconfigDoc.md)
+[https://github.com/ska-sa/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md](https://github.com/ska-sa/kutleng_skarab2_bsp_firmware/blob/master/PartialReconfigDoc.md)
 
 
 
