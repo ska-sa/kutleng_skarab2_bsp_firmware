@@ -57,20 +57,21 @@
 --                    QSFP28+[2].                                              -
 -- Dependencies     : mac100gphy,microblaze_axi_us_plus_wrapper,clockgen100mhz,-
 --                    testcomms,udpipinterfacepr,pciexdma_refbd_wrapper.       -
---                    partialblinker,ledflasher                                -
--- Revision History : V1.0 - Initial design                                     -
+--                    partialblinker,ledflasher,ICAP3E                         -
+-- Revision History : V1.0 - Initial design                                    -
 --------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library unisim;
 use unisim.vcomponents.all;
 
 entity gmactop is
     port(
         -- Reference clock to generate 100MHz from
-        sysclk1_300_p     : in  STD_LOGIC;
-        sysclk1_300_n     : in  STD_LOGIC;
+        sysclk1_100_p     : in  STD_LOGIC;
+        sysclk1_100_n     : in  STD_LOGIC;
         -- Ethernet reference clock for 156.25MHz
         -- QSFP+ 1
         mgt_qsfp1_clock_p : in  STD_LOGIC;
@@ -103,15 +104,6 @@ entity gmactop is
         qsfp2_modprsl_ls  : in  STD_LOGIC;
         qsfp2_intl_ls     : in  STD_LOGIC;
         qsfp2_lpmode_ls   : out STD_LOGIC;
-        -- PCIe Clocks        
-        sys_clk_p         : in  STD_LOGIC;
-        sys_clk_n         : in  STD_LOGIC;
-        sys_rst_n         : in  STD_LOGIC;
-        -- PCIe Data signals
-        pci_exp_txp       : out STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_txn       : out STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_rxp       : in  STD_LOGIC_VECTOR(7 downto 0);
-        pci_exp_rxn       : in  STD_LOGIC_VECTOR(7 downto 0);
         -- UART I/O
         rs232_uart_rxd    : in  STD_LOGIC;
         rs232_uart_txd    : out STD_LOGIC;
@@ -125,20 +117,21 @@ end entity gmactop;
 architecture rtl of gmactop is
     -- If partial reconfiguration is not desired set this variable to false.
     constant C_INCLUDE_ICAP               : boolean                          := true;
---    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";
-    constant C_EMAC_ADDR_2                : std_logic_vector(47 downto 0)    := X"000A_3502_4194";
---    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
+    constant G_INCLUDE_HARDWARE_ARP       : boolean                          := true;
+    --    constant C_EMAC_ADDR_1                : std_logic_vector(47 downto 0)    := X"000A_3502_4192";--10
+    constant C_EMAC_ADDR_2                : std_logic_vector(47 downto 0)    := X"000A_3502_4197"; --15
+    --    constant C_IP_ADDR_1                  : std_logic_vector(31 downto 0)    := X"C0A8_640A"; --192.168.100.10
     constant C_IP_ADDR_2                  : std_logic_vector(31 downto 0)    := X"C0A8_640F"; --192.168.100.15
     constant C_UDP_SERVER_PORT            : natural range 0 to ((2**16) - 1) := 10000;
     constant C_PR_SERVER_PORT             : natural range 0 to ((2**16) - 1) := 20000;
-    constant C_ARP_CACHE_ASIZE            : natural                          := 13;
-    constant C_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 13;
-    constant C_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 13;
+    constant C_ARP_CACHE_ASIZE            : natural                          := 10;
+    constant C_CPU_TX_DATA_BUFFER_ASIZE   : natural                          := 11;
+    constant C_CPU_RX_DATA_BUFFER_ASIZE   : natural                          := 11;
     constant C_SLOT_WIDTH                 : natural                          := 4;
     constant C_NUM_STREAMING_DATA_SERVERS : natural range 1 to 4             := 1;
     constant C_ARP_DATA_WIDTH             : natural                          := 32;
     constant C_AXIS_DATA_WIDTH            : natural                          := 512;
-    
+
     component pciexdma_refbd_wrapper is
         port(
             GPIO2_0_tri_i    : in  STD_LOGIC_VECTOR(31 downto 0);
@@ -164,6 +157,7 @@ architecture rtl of gmactop is
     component udpipinterfacepr is
         generic(
             G_INCLUDE_ICAP               : boolean                          := false;
+            G_INCLUDE_HARDWARE_ARP       : boolean                          := false;
             G_AXIS_DATA_WIDTH            : natural                          := 512;
             G_SLOT_WIDTH                 : natural                          := 4;
             -- Number of UDP Streaming Data Server Modules 
@@ -186,7 +180,7 @@ architecture rtl of gmactop is
             axis_reset                                   : in  STD_LOGIC;
             ------------------------------------------------------------------------
             -- AXILite slave Interface                                            --
-            -- This interface is for register access as the the Ethernet Core     --
+            -- This interface is for register access as per CASPER Ethernet Core  --
             -- memory map, this core has mac & phy registers, arp cache and also  --
             -- cpu transmit and receive buffers                                   --
             ------------------------------------------------------------------------
@@ -278,6 +272,7 @@ architecture rtl of gmactop is
             ------------------------------------------------------------------------
             -- Streaming data clocks 
             axis_streaming_data_clk                      : in  STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+            axis_streaming_data_rx_packet_length         : out STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             -- Streaming data outputs to AXIS of the Yellow Blocks
             axis_streaming_data_rx_tdata                 : out STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_rx_tvalid                : out STD_LOGIC_VECTOR(G_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -289,6 +284,7 @@ architecture rtl of gmactop is
             axis_streaming_data_tx_destination_ip        : in  STD_LOGIC_VECTOR((32 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_destination_udp_port  : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_source_udp_port       : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+            axis_streaming_data_tx_packet_length         : in  STD_LOGIC_VECTOR((16 * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tdata                 : in  STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH * G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tvalid                : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
             axis_streaming_data_tx_tuser                 : in  STD_LOGIC_VECTOR((G_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
@@ -314,6 +310,7 @@ architecture rtl of gmactop is
             gmac_reg_rx_bad_packet_count                 : in  STD_LOGIC_VECTOR(31 downto 0);
             gmac_reg_counters_reset                      : out STD_LOGIC;
             gmac_reg_mac_enable                          : out STD_LOGIC;
+            DataRateBackOff                              : in  STD_LOGIC;
             ------------------------------------------------------------------------
             -- Ethernet MAC Streaming Interface                                   --
             ------------------------------------------------------------------------
@@ -362,7 +359,8 @@ architecture rtl of gmactop is
 
     component mac100gphy is
         generic(
-            C_MAC_INSTANCE : natural range 0 to 1 := 0
+            C_MAC_INSTANCE             : natural range 0 to 1 := 0;
+            C_COURSE_PACKET_THROTTLING : boolean              := false
         );
         port(
             -- Ethernet reference clock for 156.25MHz
@@ -383,6 +381,7 @@ architecture rtl of gmactop is
             -- Global System Enable
             Enable                       : in  STD_LOGIC;
             Reset                        : in  STD_LOGIC;
+            DataRateBackOff              : out STD_LOGIC;
             -- Statistics interface
             gmac_reg_core_type           : out STD_LOGIC_VECTOR(31 downto 0);
             gmac_reg_phy_status_h        : out STD_LOGIC_VECTOR(31 downto 0);
@@ -492,6 +491,10 @@ architecture rtl of gmactop is
             gmac_rx_data_read_data                 : in  STD_LOGIC_VECTOR(7 downto 0);
             gmac_rx_data_read_byte_enable          : in  STD_LOGIC_VECTOR(1 downto 0);
             gmac_rx_data_read_address              : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0);
+            gmac_rx_data_write_data                : out STD_LOGIC_VECTOR(7 downto 0 );
+            gmac_rx_data_write_address             : out STD_LOGIC_VECTOR(C_CPU_RX_DATA_BUFFER_ASIZE - 1 downto 0 );
+            gmac_rx_data_write_byte_enable         : out STD_LOGIC_VECTOR(1 downto 0 );
+            gmac_rx_data_write_enable              : out STD_LOGIC;            
             gmac_rx_ringbuffer_slot_id             : out STD_LOGIC_VECTOR(C_SLOT_WIDTH - 1 downto 0);
             gmac_rx_ringbuffer_slot_clear          : out STD_LOGIC;
             gmac_rx_ringbuffer_slot_status         : in  STD_LOGIC;
@@ -513,7 +516,6 @@ architecture rtl of gmactop is
             clk_in1_n : in  STD_LOGIC
         );
     end component clockgen100mhz;
-
 
     ----------------------------------------------------------------------------
     --                 Vivado logic analyser test modules                     --
@@ -556,8 +558,87 @@ architecture rtl of gmactop is
         );
     end component resetvio;
 
+    component vio_reg is
+        port(
+            clk        : in STD_LOGIC;
+            probe_in0  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in1  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in2  : in STD_LOGIC_VECTOR(47 downto 0);
+            probe_in3  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in4  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in5  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in6  : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in7  : in STD_LOGIC_VECTOR(15 downto 0);
+            probe_in8  : in STD_LOGIC_VECTOR(15 downto 0);
+            probe_in9  : in STD_LOGIC_VECTOR(0 to 0);
+            probe_in10 : in STD_LOGIC_VECTOR(0 to 0);
+            probe_in11 : in STD_LOGIC_VECTOR(0 to 0);
+            probe_in12 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in13 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in14 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in15 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in16 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in17 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in18 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in19 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in20 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in21 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in22 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in23 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in24 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in25 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in26 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in27 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in28 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe_in29 : in STD_LOGIC_VECTOR(15 downto 0);
+            probe_in30 : in STD_LOGIC_VECTOR(15 downto 0);
+            probe_in31 : in STD_LOGIC_VECTOR(15 downto 0);
+            probe_in32 : in STD_LOGIC_VECTOR(15 downto 0)
+        );
+    end component vio_reg;
 
+    component ila_cpu_tx is
+        port(
+            clk     : in STD_LOGIC;
+            probe0  : in STD_LOGIC_VECTOR(0 to 0);
+            probe1  : in STD_LOGIC_VECTOR(0 to 0);
+            probe2  : in STD_LOGIC_VECTOR(7 downto 0);
+            probe3  : in STD_LOGIC_VECTOR(1 downto 0);
+            probe4  : in STD_LOGIC_VECTOR(7 downto 0);
+            probe5  : in STD_LOGIC_VECTOR(1 downto 0);
+            probe6  : in STD_LOGIC_VECTOR(10 downto 0);
+            probe7  : in STD_LOGIC_VECTOR(10 downto 0);
+            probe8  : in STD_LOGIC_VECTOR(3 downto 0);
+            probe9  : in STD_LOGIC_VECTOR(0 to 0);
+            probe10 : in STD_LOGIC_VECTOR(0 to 0);
+            probe11 : in STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component ila_cpu_tx;
 
+    component ila_cpu_rx is
+        port(
+            clk    : in STD_LOGIC;
+            probe0 : in STD_LOGIC_VECTOR(0 to 0);
+            probe1 : in STD_LOGIC_VECTOR(7 downto 0);
+            probe2 : in STD_LOGIC_VECTOR(1 downto 0);
+            probe3 : in STD_LOGIC_VECTOR(10 downto 0);
+            probe4 : in STD_LOGIC_VECTOR(3 downto 0);
+            probe5 : in STD_LOGIC_VECTOR(0 to 0);
+            probe6 : in STD_LOGIC_VECTOR(0 to 0);
+            probe7 : in STD_LOGIC_VECTOR(3 downto 0)
+        );
+    end component ila_cpu_rx;
+    component arp_ila is
+        port(
+            clk    : in STD_LOGIC;
+            probe0 : in STD_LOGIC_VECTOR(0 to 0);
+            probe1 : in STD_LOGIC_VECTOR(0 to 0);
+            probe2 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe3 : in STD_LOGIC_VECTOR(31 downto 0);
+            probe4 : in STD_LOGIC_VECTOR(9 downto 0);
+            probe5 : in STD_LOGIC_VECTOR(9 downto 0)
+        );
+    end component arp_ila;
     ----------------------------------------------------------------------------
     --                       LED blinker test modules                         --
     -- TODO                                                                   --
@@ -582,7 +663,6 @@ architecture rtl of gmactop is
             LED : out STD_LOGIC
         );
     end component ledflasher;
-
 
     signal RefClk100MHz    : std_logic;
     signal ICAPClk125MHz   : std_logic;
@@ -626,22 +706,6 @@ architecture rtl of gmactop is
 
     signal Enable : STD_LOGIC;
 
---    signal ICAP_PRDONE  : std_logic;
---    signal ICAP_PRERROR : std_logic;
---    signal ICAP_AVAIL   : std_logic;
---    signal ICAP_CSIB    : std_logic;
---    signal ICAP_RDWRB   : std_logic;
---    signal ICAP_DataOut : std_logic_vector(31 downto 0);
---    signal ICAP_DataIn  : std_logic_vector(31 downto 0);
---    signal ICAP_CSI                                     : std_logic;
-
-    --    signal ZERO_30_vector : std_logic_vector(29 downto 0);
-    signal Sig_Vcc                                      : std_logic;
-    signal Sig_Gnd                                      : std_logic;
-    signal sys_rst_n_c                                  : std_logic;
-    signal sys_clk_gt                                   : std_logic;
-    signal sys_clk                                      : std_logic;
-    signal ICAP_DataIn_Dummy                            : std_logic_vector(31 downto 0);
     signal port1_gmac_reg_phy_control_h                 : STD_LOGIC_VECTOR(31 downto 0);
     signal port1_gmac_reg_phy_control_l                 : STD_LOGIC_VECTOR(31 downto 0);
     signal port1_gmac_reg_mac_address                   : STD_LOGIC_VECTOR(47 downto 0);
@@ -720,6 +784,7 @@ architecture rtl of gmactop is
     signal udp1_gmac_reg_mac_enable          : STD_LOGIC;
 
     signal axis_streaming_data_clk                     : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+    signal axis_streaming_data_rx_packet_length        : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_rx_tdata                : STD_LOGIC_VECTOR((C_AXIS_DATA_WIDTH * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_rx_tvalid               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
     signal axis_streaming_data_rx_tready               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
@@ -729,19 +794,60 @@ architecture rtl of gmactop is
     signal axis_streaming_data_tx_destination_ip       : STD_LOGIC_VECTOR((32 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_destination_udp_port : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_source_udp_port      : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
+    signal axis_streaming_data_tx_packet_length        : STD_LOGIC_VECTOR((16 * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tdata                : STD_LOGIC_VECTOR((C_AXIS_DATA_WIDTH * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tvalid               : STD_LOGIC_VECTOR((C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tuser                : STD_LOGIC_VECTOR((C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tkeep                : STD_LOGIC_VECTOR(((C_AXIS_DATA_WIDTH / 8) * C_NUM_STREAMING_DATA_SERVERS) - 1 downto 0);
     signal axis_streaming_data_tx_tlast                : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
     signal axis_streaming_data_tx_tready               : STD_LOGIC_VECTOR(C_NUM_STREAMING_DATA_SERVERS - 1 downto 0);
+    signal DataRateBackOff                             : STD_LOGIC;
+
+    component axis_stream_data_tx_rx_ila is
+        port(
+            clk    : in STD_LOGIC;
+            probe0 : in STD_LOGIC_VECTOR(15 downto 0);
+            probe1 : in STD_LOGIC_VECTOR(511 downto 0);
+            probe2 : in STD_LOGIC_VECTOR(63 downto 0);
+            probe3 : in STD_LOGIC_VECTOR(0 to 0);
+            probe4 : in STD_LOGIC_VECTOR(0 to 0);
+            probe5 : in STD_LOGIC_VECTOR(0 to 0);
+            probe6 : in STD_LOGIC_VECTOR(0 to 0);
+            probe7 : in STD_LOGIC_VECTOR(0 to 0)
+        );
+
+    end component axis_stream_data_tx_rx_ila;
 begin
-    --ZERO_30_vector   <= (others => '0');
-    Sig_Vcc          <= '1';
-    Sig_Gnd          <= '0';
-    --ICAP_CSIB        <= not ICAP_CSI;
-    Reset            <= (not RefClkLocked) or lReset;
-    
+
+    axis_streaming_data_clk(0)           <= ClkQSFP1;
+    axis_streaming_data_tx_packet_length <= axis_streaming_data_rx_packet_length;
+    axis_streaming_data_tx_tdata         <= axis_streaming_data_rx_tdata;
+    axis_streaming_data_tx_tvalid        <= axis_streaming_data_rx_tvalid;
+
+    axis_streaming_data_rx_tready <= axis_streaming_data_tx_tready;
+
+    axis_streaming_data_tx_tkeep                <= axis_streaming_data_rx_tkeep;
+    axis_streaming_data_tx_tlast                <= axis_streaming_data_rx_tlast;
+    axis_streaming_data_tx_tuser                <= axis_streaming_data_rx_tuser;
+    axis_streaming_data_tx_destination_ip       <= C_IP_ADDR_2;
+    axis_streaming_data_tx_destination_udp_port <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
+    axis_streaming_data_tx_source_udp_port      <= std_logic_vector(to_unsigned(C_UDP_SERVER_PORT, 16));
+
+    Reset <= (not RefClkLocked) or lReset;
+
+    TXRXIlai : axis_stream_data_tx_rx_ila
+        port map(
+            clk       => axis_streaming_data_clk(0),
+            probe0    => axis_streaming_data_tx_packet_length,
+            probe1    => axis_streaming_data_tx_tdata,
+            probe2    => axis_streaming_data_tx_tkeep,
+            probe3(0) => axis_streaming_data_tx_tready(0),
+            probe4(0) => axis_streaming_data_tx_tlast(0),
+            probe5(0) => axis_streaming_data_tx_tuser(0),
+            probe6(0) => axis_streaming_data_tx_tvalid(0),
+            probe7(0) => DataRateBackOff
+        );
+
     ----------------------------------------------------------------------------
     --             Generic QSFP28+ port configuration settings.               --
     ----------------------------------------------------------------------------
@@ -780,9 +886,9 @@ begin
             clk_out1  => RefClk100MHz,
             clk_out2  => ICAPClk125MHz,
             locked    => RefClkLocked,
-            clk_in1_p => sysclk1_300_p,
-            clk_in1_n => sysclk1_300_n
-        );    
+            clk_in1_p => sysclk1_100_p,
+            clk_in1_n => sysclk1_100_n
+        );
     ----------------------------------------------------------------------------
     --                      Led flasher module                                --       
     -- This module resides on the static portion of the design.               --
@@ -791,6 +897,15 @@ begin
     --   Please remove this on your design it is just here to show the code is--
     --   running for testing purposes only.                                   --
     ----------------------------------------------------------------------------
+    LED1_i : ledflasher
+        generic map(
+            G_CLOCK_FREQUENCY => 322_265_625,
+            G_LED_FLASH_RATE  => 1
+        )
+        port map(
+            Clk => ClkQSFP1,
+            LED => blink_led(0)
+        );
     LED2_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
@@ -803,7 +918,7 @@ begin
     LED3_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
-            G_LED_FLASH_RATE  => 1
+            G_LED_FLASH_RATE  => 3
         )
         port map(
             Clk => ClkQSFP2,
@@ -812,28 +927,29 @@ begin
     LED4_i : ledflasher
         generic map(
             G_CLOCK_FREQUENCY => 322_265_625,
-            G_LED_FLASH_RATE  => 2
+            G_LED_FLASH_RATE  => 4
         )
         port map(
             Clk => ClkQSFP2,
             LED => blink_led(3)
         );
 
-
     ----------------------------------------------------------------------------
     --          QSFP28+ CMAC0 100G MAC Instance (port 1)                      --
     -- The CMAC resides in the static partition of the design.                --
     -- This is the main data port on the design.                              --
-    -- On the VCU128 this is mapped to the top port on the board.             -- 
+    -- On the VCU118 this is mapped to the top port on the board.             -- 
     ----------------------------------------------------------------------------
     GMAC1_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE => 0         -- Instantiate CMAC0 QSFP1
+            C_MAC_INSTANCE             => 0, -- Instantiate CMAC0 QSFP1
+            C_COURSE_PACKET_THROTTLING => true
         )
         port map(
             Clk100MHz                    => RefClk100MHz,
             Enable                       => udp1_gmac_reg_mac_enable,
             Reset                        => Reset,
+            DataRateBackOff              => DataRateBackOff,
             gmac_reg_core_type           => udp1_gmac_reg_core_type,
             gmac_reg_phy_status_h        => udp1_gmac_reg_phy_status_h,
             gmac_reg_phy_status_l        => udp1_gmac_reg_phy_status_l,
@@ -872,6 +988,7 @@ begin
             axis_tx_tlast                => axis_rx_tlast_1,
             axis_tx_tuser                => axis_rx_tuser_1
         );
+
     ----------------------------------------------------------------------------
     --                 Ethernet UDP/IP Communications module                  --
     -- The UDP/IP module resides in the static partition of the design.       --
@@ -887,6 +1004,7 @@ begin
     UDPIPIFFi : udpipinterfacepr
         generic map(
             G_INCLUDE_ICAP               => C_INCLUDE_ICAP,
+            G_INCLUDE_HARDWARE_ARP       => G_INCLUDE_HARDWARE_ARP,
             G_AXIS_DATA_WIDTH            => C_AXIS_DATA_WIDTH,
             G_SLOT_WIDTH                 => C_SLOT_WIDTH,
             -- Number of UDP Streaming Data Server Modules 
@@ -963,6 +1081,7 @@ begin
             aximm_gmac_rx_ringbuffer_slot_status         => port1_gmac_rx_ringbuffer_slot_status,
             aximm_gmac_rx_ringbuffer_number_slots_filled => port1_gmac_rx_ringbuffer_number_slots_filled,
             axis_streaming_data_clk                      => axis_streaming_data_clk,
+            axis_streaming_data_rx_packet_length         => axis_streaming_data_rx_packet_length,
             axis_streaming_data_rx_tdata                 => axis_streaming_data_rx_tdata,
             axis_streaming_data_rx_tvalid                => axis_streaming_data_rx_tvalid,
             axis_streaming_data_rx_tready                => axis_streaming_data_rx_tready,
@@ -972,6 +1091,7 @@ begin
             axis_streaming_data_tx_destination_ip        => axis_streaming_data_tx_destination_ip,
             axis_streaming_data_tx_destination_udp_port  => axis_streaming_data_tx_destination_udp_port,
             axis_streaming_data_tx_source_udp_port       => axis_streaming_data_tx_source_udp_port,
+            axis_streaming_data_tx_packet_length         => axis_streaming_data_tx_packet_length,
             axis_streaming_data_tx_tdata                 => axis_streaming_data_tx_tdata,
             axis_streaming_data_tx_tvalid                => axis_streaming_data_tx_tvalid,
             axis_streaming_data_tx_tuser                 => axis_streaming_data_tx_tuser,
@@ -994,6 +1114,7 @@ begin
             gmac_reg_rx_bad_packet_count                 => udp1_gmac_reg_rx_bad_packet_count,
             gmac_reg_counters_reset                      => udp1_gmac_reg_counters_reset,
             gmac_reg_mac_enable                          => udp1_gmac_reg_mac_enable,
+            DataRateBackOff                              => DataRateBackOff,
             axis_tx_tdata                                => axis_tx_tdata_1,
             axis_tx_tvalid                               => axis_tx_tvalid_1,
             axis_tx_tready                               => axis_tx_tready_1,
@@ -1006,6 +1127,7 @@ begin
             axis_rx_tkeep                                => axis_rx_tkeep_1,
             axis_rx_tlast                                => axis_rx_tlast_1
         );
+
     ----------------------------------------------------------------------------
     --                   Microblaze CPU Instance                              --
     -- The CPU resides in the static partition of the design.                 --
@@ -1096,12 +1218,14 @@ begin
     ----------------------------------------------------------------------------
     GMAC2_i : mac100gphy
         generic map(
-            C_MAC_INSTANCE => 1         -- Instantiate CMAC1 QSFP2
+            C_MAC_INSTANCE             => 1, -- Instantiate CMAC1 QSFP2
+            C_COURSE_PACKET_THROTTLING => false
         )
         port map(
             Clk100MHz                    => RefClk100MHz,
             Reset                        => Reset,
             Enable                       => udp1_gmac_reg_mac_enable,
+            DataRateBackOff              => open,
             gmac_reg_core_type           => open,
             gmac_reg_phy_status_h        => open,
             gmac_reg_phy_status_l        => open,
@@ -1143,7 +1267,6 @@ begin
             axis_tx_tuser                => axis_rx_tuser_2
         );
 
-
     ----------------------------------------------------------------------------
     --                 Ethernet Bandwidth test Interface                      --
     -- This module is used only for Ethernet bandwidth testing nothing more.  --
@@ -1173,7 +1296,6 @@ begin
             axis_rx_tkeep  => axis_rx_tkeep_2,
             axis_rx_tlast  => axis_rx_tlast_2
         );
-
 
     MAINAXIS_i : axisila
         port map(
@@ -1229,77 +1351,91 @@ begin
             probe_out2(0) => Enable
         );
 
-
-    ----------------------------------------------------------------------------
-    --                    PCIe sub system instantiation                       --
-    -- The PCIe sub system with its QDMA engine is instantiated here.         --
-    -- This module resides on the static portion of the design.               --
-    -- This code must boot first on a minimal tandem bitstream to meet PCIe   --
-    -- system bus enumeration and meet the full line sync of less than 10ms   --
-    -- for successful device enumeration,else the FPGA wont be recognized on  --
-    -- the system PCIe bus.                                                   --
-    -- TODO                                                                   --
-    -- Add the PCIe vEthernet MAC controller.                                 --
-    ----------------------------------------------------------------------------   
-
-    -- PCIe Refference clock buffer for PCI Express clocking
-    refclk_ibuf : IBUFDS_GTE4
-        generic map(
-            REFCLK_HROW_CK_SEL => "00"
-        )
+    REGVIoi : vio_reg
         port map(
-            O     => sys_clk_gt,
-            ODIV2 => sys_clk,
-            CEB   => '0',
-            I     => sys_clk_p,
-            IB    => sys_clk_n
+            clk           => ICAPClk125MHz,
+            probe_in0     => port1_gmac_reg_phy_control_h,
+            probe_in1     => port1_gmac_reg_phy_control_l,
+            probe_in2     => port1_gmac_reg_mac_address,
+            probe_in3     => port1_gmac_reg_local_ip_address,
+            probe_in4     => port1_gmac_reg_gateway_ip_address,
+            probe_in5     => port1_gmac_reg_multicast_ip_address,
+            probe_in6     => port1_gmac_reg_multicast_ip_mask,
+            probe_in7     => port1_gmac_reg_udp_port,
+            probe_in8     => port1_gmac_reg_udp_port_mask,
+            probe_in9(0)  => port1_gmac_reg_mac_enable,
+            probe_in10(0) => port1_gmac_reg_mac_promiscous_mode,
+            probe_in11(0) => port1_gmac_reg_counters_reset,
+            probe_in12    => port1_gmac_reg_core_type,
+            probe_in13    => port1_gmac_reg_phy_status_h,
+            probe_in14    => port1_gmac_reg_phy_status_l,
+            probe_in15    => port1_gmac_reg_tx_packet_rate,
+            probe_in16    => port1_gmac_reg_tx_packet_count,
+            probe_in17    => port1_gmac_reg_tx_valid_rate,
+            probe_in18    => port1_gmac_reg_tx_valid_count,
+            probe_in19    => port1_gmac_reg_tx_overflow_count,
+            probe_in20    => port1_gmac_reg_tx_afull_count,
+            probe_in21    => port1_gmac_reg_rx_packet_rate,
+            probe_in22    => port1_gmac_reg_rx_packet_count,
+            probe_in23    => port1_gmac_reg_rx_valid_rate,
+            probe_in24    => port1_gmac_reg_rx_valid_count,
+            probe_in25    => port1_gmac_reg_rx_overflow_count,
+            probe_in26    => port1_gmac_reg_rx_almost_full_count,
+            probe_in27    => port1_gmac_reg_rx_bad_packet_count,
+            probe_in28    => port1_gmac_reg_arp_size,
+            probe_in29    => port1_gmac_reg_tx_word_size,
+            probe_in30    => port1_gmac_reg_rx_word_size,
+            probe_in31    => port1_gmac_reg_tx_buffer_max_size,
+            probe_in32    => port1_gmac_reg_rx_buffer_max_size
         );
 
-    -- PCIe reset buffer for PCI Express card reset
-    sys_reset_n_ibuf : IBUF
-        port map(
-            O => sys_rst_n_c,
-            I => sys_rst_n
-        );
+    --    CPUTXILAi : ila_cpu_tx
+    --        port map(
+    --            clk        => ICAPClk125MHz,
+    --            probe0(0)  => port1_gmac_tx_data_write_enable,
+    --            probe1(0)  => port1_gmac_tx_data_read_enable,
+    --            probe2     => port1_gmac_tx_data_write_data,
+    --            probe3     => port1_gmac_tx_data_write_byte_enable,
+    --            probe4     => port1_gmac_tx_data_read_data,
+    --            probe5     => port1_gmac_tx_data_read_byte_enable,
+    --            probe6     => port1_gmac_tx_data_write_address,
+    --            probe7     => port1_gmac_tx_data_read_address,
+    --            probe8     => port1_gmac_tx_ringbuffer_slot_id,
+    --            probe9(0)  => port1_gmac_tx_ringbuffer_slot_set,
+    --            probe10(0) => port1_gmac_tx_ringbuffer_slot_status,
+    --            probe11    => port1_gmac_tx_ringbuffer_number_slots_filled
+    --        );
 
+    --    CPURXILAi : ila_cpu_rx
+    --        port map(
+    --            clk       => ICAPClk125MHz,
+    --            probe0(0) => port1_gmac_rx_data_read_enable,
+    --            probe1    => port1_gmac_rx_data_read_data,
+    --            probe2    => port1_gmac_rx_data_read_byte_enable,
+    --            probe3    => port1_gmac_rx_data_read_address,
+    --            probe4    => port1_gmac_rx_ringbuffer_slot_id,
+    --            probe5(0) => port1_gmac_rx_ringbuffer_slot_clear,
+    --            probe6(0) => port1_gmac_rx_ringbuffer_slot_status,
+    --            probe7    => port1_gmac_rx_ringbuffer_number_slots_filled
+    --        );
 
-    PCIE_i : pciexdma_refbd_wrapper
-        port map(
-            GPIO2_0_tri_i(31 downto 0) => ICAP_DataIn_Dummy(31 downto 0),            
-            --GPIO2_0_tri_i(31 downto 2) => ZERO_30_vector,
-            --GPIO2_0_tri_i(1)           => ICAP_PRERROR,
-            --GPIO2_0_tri_i(0)           => ICAP_PRDONE,
-            GPIO_0_tri_o               => open,
-            --M_AXIS_0_tdata             => ICAP_DataIn,
-            M_AXIS_0_tdata             => ICAP_DataIn_Dummy,
-            M_AXIS_0_tkeep             => open,
-            M_AXIS_0_tlast             => open,
-            M_AXIS_0_tready            => Enable, --ICAP_AVAIL,
-            --            M_AXIS_0_tvalid            => ICAP_CSI,
-            M_AXIS_0_tvalid            => open,
-            m_axis_aclk_0              => ICAPClk125MHz,
-            m_axis_aresetn_0           => Sig_Vcc,
-            pcie_mgt_0_rxn             => pci_exp_rxn,
-            pcie_mgt_0_rxp             => pci_exp_rxp,
-            pcie_mgt_0_txn             => pci_exp_txn,
-            pcie_mgt_0_txp             => pci_exp_txp,
-            sys_clk_0                  => sys_clk,
-            sys_clk_gt_0               => sys_clk_gt,
-            sys_rst_n_0                => sys_rst_n_c,
-            user_lnk_up_0              => blink_led(0)
-        );
-
+    --    ARPILAi : arp_ila
+    --        port map(
+    --            clk       => ICAPClk125MHz,
+    --            probe0(0) => port1_gmac_arp_cache_write_enable,
+    --            probe1(0) => port1_gmac_arp_cache_read_enable,
+    --            probe2    => port1_gmac_arp_cache_write_data,
+    --            probe3    => port1_gmac_arp_cache_read_data,
+    --            probe4    => port1_gmac_arp_cache_write_address,
+    --            probe5    => port1_gmac_arp_cache_read_address
+    --        );
     ----------------------------------------------------------------------------
     -- End of static portion of the design.                                   --       
     -- All modules after this portion must be fixed on partial reconfigurable --
     -- partition (PRM).                                                       --
     ----------------------------------------------------------------------------
 
-
-
     --                Transition to partial reconfigurable region             --   
-
-
 
     ----------------------------------------------------------------------------
     --                      Partial Reconfiguration Module                    --       
@@ -1313,7 +1449,7 @@ begin
     -- TODO                                                                   --
     --    Add your partial reconfiguration module code here.                  --       
     --    Hint:                                                               --       
-    --        For the initial bitstream put an very tiny placeholder RM and   --
+    --        For the initial bitstream put a very tiny placeholder RM and    --
     --        use bitstream compression for loading the bitstream to flash.   --
     --        In that way you can have a very tiny bitstream that will enable --
     --        the FPGA to be initially configured within 5ms needed for PCIe  --

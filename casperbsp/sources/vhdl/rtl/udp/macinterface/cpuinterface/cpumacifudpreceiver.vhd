@@ -175,29 +175,29 @@ architecture rtl of cpumacifudpreceiver is
             TxPacketSlotStatus     : out STD_LOGIC
         );
         end component cpuifreceiverpacketringbuffer;
-    component ila_cpu_rx is
-        port(
-            clk    : in STD_LOGIC;
-            probe0 : in STD_LOGIC_VECTOR(0 to 0);
-            probe1 : in STD_LOGIC_VECTOR(7 downto 0);
-            probe2 : in STD_LOGIC_VECTOR(1 downto 0);
-            probe3 : in STD_LOGIC_VECTOR(10 downto 0);
-            probe4 : in STD_LOGIC_VECTOR(3 downto 0);
-            probe5 : in STD_LOGIC_VECTOR(0 to 0);
-            probe6 : in STD_LOGIC_VECTOR(0 to 0);
-            probe7 : in STD_LOGIC_VECTOR(3 downto 0);
-            probe8 : in STD_LOGIC_VECTOR(3 downto 0);
-            probe9 : in STD_LOGIC_VECTOR(0 downto 0);
-            probe10 : in STD_LOGIC_VECTOR(0 downto 0);
-            probe11 : in STD_LOGIC_VECTOR(63 downto 0);
-            probe12 : in STD_LOGIC_VECTOR(511 downto 0);
-            probe13 : in STD_LOGIC_VECTOR(4 downto 0);
-            probe14 : in STD_LOGIC_VECTOR(0 downto 0);
-            probe15 : in STD_LOGIC_VECTOR(0 downto 0);
-            probe16 : in STD_LOGIC_VECTOR(3 downto 0);
-            probe17 : in STD_LOGIC_VECTOR(3 downto 0)
-        );
-    end component ila_cpu_rx;    
+--    component ila_cpu_rx is
+--        port(
+--            clk    : in STD_LOGIC;
+--            probe0 : in STD_LOGIC_VECTOR(0 to 0);
+--            probe1 : in STD_LOGIC_VECTOR(7 downto 0);
+--            probe2 : in STD_LOGIC_VECTOR(1 downto 0);
+--            probe3 : in STD_LOGIC_VECTOR(10 downto 0);
+--            probe4 : in STD_LOGIC_VECTOR(3 downto 0);
+--            probe5 : in STD_LOGIC_VECTOR(0 to 0);
+--            probe6 : in STD_LOGIC_VECTOR(0 to 0);
+--            probe7 : in STD_LOGIC_VECTOR(3 downto 0);
+--            probe8 : in STD_LOGIC_VECTOR(3 downto 0);
+--            probe9 : in STD_LOGIC_VECTOR(0 downto 0);
+--            probe10 : in STD_LOGIC_VECTOR(0 downto 0);
+--            probe11 : in STD_LOGIC_VECTOR(63 downto 0);
+--            probe12 : in STD_LOGIC_VECTOR(511 downto 0);
+--            probe13 : in STD_LOGIC_VECTOR(4 downto 0);
+--            probe14 : in STD_LOGIC_VECTOR(0 downto 0);
+--            probe15 : in STD_LOGIC_VECTOR(0 downto 0);
+--            probe16 : in STD_LOGIC_VECTOR(3 downto 0);
+--            probe17 : in STD_LOGIC_VECTOR(3 downto 0)
+--        );
+--    end component ila_cpu_rx;    
 
     signal IngressRingBufferDataEnable : STD_LOGIC_VECTOR((G_AXIS_DATA_WIDTH / 8) - 1 downto 0);
     signal IngressRingBufferDataWrite  : STD_LOGIC;
@@ -232,13 +232,13 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
                 lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 2 downto 0) & IngressRingBufferSlotSet;
                 lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 2 downto 0) & ringbuffer_slot_clear;
                 -- Slot clear is late processed
-                if (lSlotClearBuffer = b"1100") then
+                if (lSlotClearBuffer = b"0001") then
                     lSlotClear <= '1';
                 else
                     lSlotClear <= '0';
                 end if;
                 -- Slot set is early processed
-                if (lSlotSetBuffer = b"0011") then
+                if (lSlotSetBuffer = b"0001") then
                     lSlotSet <= '1';
                 else
                     lSlotSet <= '0';
