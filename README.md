@@ -1,13 +1,25 @@
 # kutleng_skarab2_bsp_firmware
 
-# Table of Contents
+Table of Contents
+=================
 
-[TOC]
-
+   * [kutleng_skarab2_bsp_firmware](#kutleng_skarab2_bsp_firmware)
+   * [Table of Contents](#table-of-contents)
+      * [Introduction](#introduction)
+      * [Building the Vivado Project](#building-the-vivado-project)
+      * [Version Description Document](#version-description-document)
+      * [Design Export to Vitis](#design-export-to-vitis)
+         * [Creating a new hardware plaform in Vitis](#creating-a-new-hardware-plaform-in-vitis)
+      * [Test setup](#test-setup)
+         * [Bandwidth test](#bandwidth-test)
+         * [Partial reconfiguration test](#partial-reconfiguration-test)
+      * [Firmware Module Layout](#firmware-module-layout)
+         * [Yellow block interface](#yellow-block-interface)
+         * [Partial Reconfiguration Module](#partial-reconfiguration-module)
 
 ## Introduction
 
-In this document the Vivado firmware for the skarab2 100G Ethernet and Partial Reconfiguration is describe together with the different modes of operation and testing.
+In this document the Vivado firmware for the 100G Ethernet and Partial Reconfiguration is describe together with the different modes of operation and testing.
 
 This is the work for the port of the 100G Ethernet to the VCU118+VCU1525 board.
 
@@ -312,7 +324,11 @@ This module has two modules
 
 ![alt text](./images/udpipprblock.png)
 
-This module has a generic to enable/disable partial reconfiguration.
+This module has a generic (C_INCLUDE_ICAP) to enable/disable partial reconfiguration.
+
+ * C_INCLUDE_ICAP := TRUE enables partial reconfiguration
+
+ * C_INCLUDE_ICAP := FALSE disables partial reconfiguration
  
 ![alt text](./images/udpipnoprblock.png)
 

@@ -9,8 +9,25 @@ To reduce partial reconfiguration time, it is recommended to use bitstream compr
 All packet modes support bitstream encryption. For increased security the module doesn't support frame readback. Status register read is supported in order to give the user access to the FPGA configuration register status. Some status registers wont be available depending on the static bistream and device security settings.
 
 
-# Table of Contents
-[TOC]
+Table of Contents
+=================
+
+   * [Partial Reconfiguration Module](#partial-reconfiguration-module)
+   * [Table of Contents](#table-of-contents)
+   * [Introduction](#introduction)
+      * [Partial Reconfiguration UDP Protocol](#partial-reconfiguration-udp-protocol)
+         * [32 Bit Word Write (DWORD_WRITE)](#32-bit-word-write-dword_write)
+         * [32 Bit Word Read (DWORD_READ)](#32-bit-word-read-dword_read)
+         * [Dynamic Length Frame Write (DFRAME_WRITE)](#dynamic-length-frame-write-dframe_write)
+         * [Perframe CRC Frame Write (FRAME_WRITE)](#perframe-crc-frame-write-frame_write)
+         * [32 Bit Word Responce from PR Module](#32-bit-word-responce-from-pr-module)
+      * [Partial Reconfig Firmware Modules](#partial-reconfig-firmware-modules)
+         * [Protocol Checksum Checker State Machine](#protocol-checksum-checker-state-machine)
+         * [Protocol Responder State Machine](#protocol-responder-state-machine)
+         * [ICAP Writer State Machine](#icap-writer-state-machine)
+      * [Software Interface](#software-interface)
+         * [Simple Partial Reconfiguration Sequence Diagram](#simple-partial-reconfiguration-sequence-diagram)
+         * [Advanced Partial Reconfiguration using sliding window protocol](#advanced-partial-reconfiguration-using-sliding-window-protocol)
 
 
 # Introduction
