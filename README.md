@@ -353,7 +353,8 @@ Addressing information must come from the udpdatapacker module.
 
 The partial reconfiguration module is documented on the link below.
 
-[https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md](https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md)
+[https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/PartialReconfigDoc.md]
+(https://github.com/hectorkutleng/kutleng_skarab2_bsp_firmware/blob/master/PartialReconfigDoc.md)
 
 
 
