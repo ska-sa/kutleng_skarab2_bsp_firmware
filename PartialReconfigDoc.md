@@ -59,7 +59,7 @@ Bitstream rate flow control data is always sent to the Work station through resp
 ## Partial Reconfiguration UDP Protocol
 
 UDP is used as the basic protocol for interacting with the Partial Reconfiguration module.
-The granurality of the protocol is 32 Bit WORD as per Xilinx Bitsream command and data granurality.
+The granularity of the protocol is 32 Bit WORD as per Xilinx Bitsream command and data granularity.
 
 The transmit packets (excluding all UDP/IP/Ethernet framing data) follows a basic structure as follows:
 
