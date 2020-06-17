@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -19,7 +19,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
+   
 entity macaxisreceiver is
     generic(
         G_SLOT_WIDTH : natural := 4;

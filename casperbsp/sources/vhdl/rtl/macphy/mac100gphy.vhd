@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -17,6 +17,9 @@ use ieee.std_logic_1164.all;
 
 entity mac100gphy is
     generic(
+        FABRIC_MAC : STD_LOGIC_VECTOR(47 downto 0);
+        FABRIC_IP : STD_LOGIC_VECTOR(31 downto 0);
+        FABRIC_PORT : STD_LOGIC_VECTOR(15 downto 0);
         C_MAC_INSTANCE             : natural range 0 to 1 := 0;
         C_COURSE_PACKET_THROTTLING : boolean              := false
     );
@@ -78,12 +81,23 @@ entity mac100gphy is
         axis_tx_tkeep                : out STD_LOGIC_VECTOR(63 downto 0);
         axis_tx_tlast                : out STD_LOGIC;
         -- User signal for errors and dropping of packets
-        axis_tx_tuser                : out STD_LOGIC
+        axis_tx_tuser                : out STD_LOGIC;
+
+        yellow_block_user_clk    : in STD_LOGIC;
+        yellow_block_rx_data     : out  STD_LOGIC_VECTOR(511 downto 0);
+        yellow_block_rx_valid    : out  STD_LOGIC;
+        yellow_block_rx_eof      : out  STD_LOGIC;
+        yellow_block_rx_overrun  : out STD_LOGIC
     );
 end entity mac100gphy;
 
 architecture rtl of mac100gphy is
-    component gmacqsfp1top is
+    component gmacqsfptop is
+    generic(
+        FABRIC_MAC : STD_LOGIC_VECTOR(47 downto 0);
+        FABRIC_IP : STD_LOGIC_VECTOR(31 downto 0);
+        FABRIC_PORT : STD_LOGIC_VECTOR(15 downto 0)
+    );
         port(
             -- Reference clock to generate 100MHz from
             Clk100MHz                    : in  STD_LOGIC;
@@ -142,72 +156,14 @@ architecture rtl of mac100gphy is
             axis_tx_tkeep                : out STD_LOGIC_VECTOR(63 downto 0);
             axis_tx_tlast                : out STD_LOGIC;
             -- User signal for errors and dropping of packets
-            axis_tx_tuser                : out STD_LOGIC
+            axis_tx_tuser                : out STD_LOGIC;
+            yellow_block_user_clk    : in STD_LOGIC;
+            yellow_block_rx_data     : out  STD_LOGIC_VECTOR(511 downto 0);
+            yellow_block_rx_valid    : out  STD_LOGIC;
+            yellow_block_rx_eof      : out  STD_LOGIC;
+            yellow_block_rx_overrun  : out STD_LOGIC
         );
-    end component gmacqsfp1top;
-
-    component gmacqsfp2top is
-        port(
-            -- Reference clock to generate 100MHz from
-            Clk100MHz                    : in  STD_LOGIC;
-            -- Ethernet reference clock for 156.25MHz
-            -- QSFP+ 
-            mgt_qsfp_clock_p             : in  STD_LOGIC;
-            mgt_qsfp_clock_n             : in  STD_LOGIC;
-            --RX     
-            qsfp_mgt_rx_p                : in  STD_LOGIC_VECTOR(3 downto 0);
-            qsfp_mgt_rx_n                : in  STD_LOGIC_VECTOR(3 downto 0);
-            -- TX
-            qsfp_mgt_tx_p                : out STD_LOGIC_VECTOR(3 downto 0);
-            qsfp_mgt_tx_n                : out STD_LOGIC_VECTOR(3 downto 0);
-            ------------------------------------------------------------------------
-            -- These signals/buses run at 322.265625MHz clock domain               -
-            ------------------------------------------------------------------------
-            -- Global System Enable
-            Enable                       : in  STD_LOGIC;
-            Reset                        : in  STD_LOGIC;
-            -- Statistics interface            
-            gmac_reg_core_type           : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_status_h        : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_status_l        : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_control_h       : in  STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_phy_control_l       : in  STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_packet_rate      : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_packet_count     : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_valid_rate       : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_tx_valid_count      : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_packet_rate      : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_packet_count     : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_valid_rate       : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_valid_count      : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_rx_bad_packet_count : out STD_LOGIC_VECTOR(31 downto 0);
-            gmac_reg_counters_reset      : in  STD_LOGIC;
-            -- Lbus and AXIS
-            -- This bus runs at 322.265625MHz
-            lbus_reset                   : in  STD_LOGIC;
-            -- Overflow signal
-            lbus_tx_ovfout               : out STD_LOGIC;
-            -- Underflow signal
-            lbus_tx_unfout               : out STD_LOGIC;
-            -- AXIS Bus
-            -- RX Bus
-            axis_rx_clkin                : in  STD_LOGIC;
-            axis_rx_tdata                : in  STD_LOGIC_VECTOR(511 downto 0);
-            axis_rx_tvalid               : in  STD_LOGIC;
-            axis_rx_tready               : out STD_LOGIC;
-            axis_rx_tkeep                : in  STD_LOGIC_VECTOR(63 downto 0);
-            axis_rx_tlast                : in  STD_LOGIC;
-            axis_rx_tuser                : in  STD_LOGIC;
-            -- TX Bus
-            axis_tx_clkout               : out STD_LOGIC;
-            axis_tx_tdata                : out STD_LOGIC_VECTOR(511 downto 0);
-            axis_tx_tvalid               : out STD_LOGIC;
-            axis_tx_tkeep                : out STD_LOGIC_VECTOR(63 downto 0);
-            axis_tx_tlast                : out STD_LOGIC;
-            -- User signal for errors and dropping of packets
-            axis_tx_tuser                : out STD_LOGIC
-        );
-    end component gmacqsfp2top;
+    end component gmacqsfptop;
     component macaxisdecoupler is
         port(
             axis_tx_clk       : in  STD_LOGIC;
@@ -285,7 +241,7 @@ begin
     DataRateBackOff <= lDataRateBackOff;
 
     axis_tx_clkout <= laxis_tx_clk;
-    Throttle_i : if (C_COURSE_PACKET_THROTTLING = false) generate
+    Throttle_false_i : if (C_COURSE_PACKET_THROTTLING = false) generate
     begin
         ------------------------------------------------------------------------
         -- Here we generate a simple packet decoupling FIFO buffer.           -- 
@@ -309,7 +265,9 @@ begin
                 m_axis_tuser(0) => axis_tuser,
                 axis_prog_full  => lDataRateBackOff
             );
-    else generate
+    end generate;
+
+    Throttle_true_i : if (C_COURSE_PACKET_THROTTLING = true) generate
         ------------------------------------------------------------------------
         -- Here we generate a course packet decoupling FIFO buffer.           -- 
         -- This buffer will have course packet throttling through the use of  --         
@@ -374,98 +332,58 @@ begin
 
     assert C_MAC_INSTANCE > 1 report "Error bad C_MAC_INSTANCE = " & integer'image(C_MAC_INSTANCE) severity failure;
 
-    MAC0i : if (C_MAC_INSTANCE = 0) generate
-    begin
-        CMAC0_i : gmacqsfp1top
-            port map(
-                Clk100MHz                    => Clk100MHz,
-                Enable                       => Enable,
-                Reset                        => Reset,
-                mgt_qsfp_clock_p             => mgt_qsfp_clock_p,
-                mgt_qsfp_clock_n             => mgt_qsfp_clock_n,
-                qsfp_mgt_rx_p                => qsfp_mgt_rx_p,
-                qsfp_mgt_rx_n                => qsfp_mgt_rx_n,
-                qsfp_mgt_tx_p                => qsfp_mgt_tx_p,
-                qsfp_mgt_tx_n                => qsfp_mgt_tx_n,
-                gmac_reg_core_type           => gmac_reg_core_type,
-                gmac_reg_phy_status_h        => gmac_reg_phy_status_h,
-                gmac_reg_phy_status_l        => gmac_reg_phy_status_l,
-                gmac_reg_phy_control_h       => gmac_reg_phy_control_h,
-                gmac_reg_phy_control_l       => gmac_reg_phy_control_l,
-                gmac_reg_tx_packet_rate      => gmac_reg_tx_packet_rate,
-                gmac_reg_tx_packet_count     => gmac_reg_tx_packet_count,
-                gmac_reg_tx_valid_rate       => gmac_reg_tx_valid_rate,
-                gmac_reg_tx_valid_count      => gmac_reg_tx_valid_count,
-                gmac_reg_rx_packet_rate      => gmac_reg_rx_packet_rate,
-                gmac_reg_rx_packet_count     => gmac_reg_rx_packet_count,
-                gmac_reg_rx_valid_rate       => gmac_reg_rx_valid_rate,
-                gmac_reg_rx_valid_count      => gmac_reg_rx_valid_count,
-                gmac_reg_rx_bad_packet_count => gmac_reg_rx_bad_packet_count,
-                gmac_reg_counters_reset      => gmac_reg_counters_reset,
-                lbus_reset                   => lbus_reset,
-                lbus_tx_ovfout               => lbus_tx_ovfout,
-                lbus_tx_unfout               => lbus_tx_unfout,
-                axis_rx_clkin                => axis_rx_clkin,
-                axis_rx_tdata                => axis_tdata,
-                axis_rx_tvalid               => axis_tvalid,
-                axis_rx_tready               => axis_tready,
-                axis_rx_tkeep                => axis_tkeep,
-                axis_rx_tlast                => axis_tlast,
-                axis_rx_tuser                => axis_tuser,
-                axis_tx_clkout               => laxis_tx_clk,
-                axis_tx_tdata                => axis_tx_tdata,
-                axis_tx_tvalid               => axis_tx_tvalid,
-                axis_tx_tkeep                => axis_tx_tkeep,
-                axis_tx_tlast                => axis_tx_tlast,
-                axis_tx_tuser                => axis_tx_tuser
-            );
-    end generate;
-
-    MAC1i : if (C_MAC_INSTANCE = 1) generate
-    begin
-        CMAC1_i : gmacqsfp2top
-            port map(
-                Clk100MHz                    => Clk100MHz,
-                Enable                       => Enable,
-                Reset                        => Reset,
-                mgt_qsfp_clock_p             => mgt_qsfp_clock_p,
-                mgt_qsfp_clock_n             => mgt_qsfp_clock_n,
-                qsfp_mgt_rx_p                => qsfp_mgt_rx_p,
-                qsfp_mgt_rx_n                => qsfp_mgt_rx_n,
-                qsfp_mgt_tx_p                => qsfp_mgt_tx_p,
-                qsfp_mgt_tx_n                => qsfp_mgt_tx_n,
-                gmac_reg_core_type           => gmac_reg_core_type,
-                gmac_reg_phy_status_h        => gmac_reg_phy_status_h,
-                gmac_reg_phy_status_l        => gmac_reg_phy_status_l,
-                gmac_reg_phy_control_h       => gmac_reg_phy_control_h,
-                gmac_reg_phy_control_l       => gmac_reg_phy_control_l,
-                gmac_reg_tx_packet_rate      => gmac_reg_tx_packet_rate,
-                gmac_reg_tx_packet_count     => gmac_reg_tx_packet_count,
-                gmac_reg_tx_valid_rate       => gmac_reg_tx_valid_rate,
-                gmac_reg_tx_valid_count      => gmac_reg_tx_valid_count,
-                gmac_reg_rx_packet_rate      => gmac_reg_rx_packet_rate,
-                gmac_reg_rx_packet_count     => gmac_reg_rx_packet_count,
-                gmac_reg_rx_valid_rate       => gmac_reg_rx_valid_rate,
-                gmac_reg_rx_valid_count      => gmac_reg_rx_valid_count,
-                gmac_reg_rx_bad_packet_count => gmac_reg_rx_bad_packet_count,
-                gmac_reg_counters_reset      => gmac_reg_counters_reset,
-                lbus_reset                   => lbus_reset,
-                lbus_tx_ovfout               => lbus_tx_ovfout,
-                lbus_tx_unfout               => lbus_tx_unfout,
-                axis_rx_clkin                => axis_rx_clkin,
-                axis_rx_tdata                => axis_tdata,
-                axis_rx_tvalid               => axis_tvalid,
-                axis_rx_tready               => axis_tready,
-                axis_rx_tkeep                => axis_tkeep,
-                axis_rx_tlast                => axis_tlast,
-                axis_rx_tuser                => axis_tuser,
-                axis_tx_clkout               => laxis_tx_clk,
-                axis_tx_tdata                => axis_tx_tdata,
-                axis_tx_tvalid               => axis_tx_tvalid,
-                axis_tx_tkeep                => axis_tx_tkeep,
-                axis_tx_tlast                => axis_tx_tlast,
-                axis_tx_tuser                => axis_tx_tuser
-            );
-    end generate;
+    CMAC0_i : gmacqsfptop
+        generic map(
+            FABRIC_MAC  => FABRIC_MAC,
+            FABRIC_IP   => FABRIC_IP,
+            FABRIC_PORT => FABRIC_PORT
+        )
+        port map(
+            Clk100MHz                    => Clk100MHz,
+            Enable                       => Enable,
+            Reset                        => Reset,
+            mgt_qsfp_clock_p             => mgt_qsfp_clock_p,
+            mgt_qsfp_clock_n             => mgt_qsfp_clock_n,
+            qsfp_mgt_rx_p                => qsfp_mgt_rx_p,
+            qsfp_mgt_rx_n                => qsfp_mgt_rx_n,
+            qsfp_mgt_tx_p                => qsfp_mgt_tx_p,
+            qsfp_mgt_tx_n                => qsfp_mgt_tx_n,
+            gmac_reg_core_type           => gmac_reg_core_type,
+            gmac_reg_phy_status_h        => gmac_reg_phy_status_h,
+            gmac_reg_phy_status_l        => gmac_reg_phy_status_l,
+            gmac_reg_phy_control_h       => gmac_reg_phy_control_h,
+            gmac_reg_phy_control_l       => gmac_reg_phy_control_l,
+            gmac_reg_tx_packet_rate      => gmac_reg_tx_packet_rate,
+            gmac_reg_tx_packet_count     => gmac_reg_tx_packet_count,
+            gmac_reg_tx_valid_rate       => gmac_reg_tx_valid_rate,
+            gmac_reg_tx_valid_count      => gmac_reg_tx_valid_count,
+            gmac_reg_rx_packet_rate      => gmac_reg_rx_packet_rate,
+            gmac_reg_rx_packet_count     => gmac_reg_rx_packet_count,
+            gmac_reg_rx_valid_rate       => gmac_reg_rx_valid_rate,
+            gmac_reg_rx_valid_count      => gmac_reg_rx_valid_count,
+            gmac_reg_rx_bad_packet_count => gmac_reg_rx_bad_packet_count,
+            gmac_reg_counters_reset      => gmac_reg_counters_reset,
+            lbus_reset                   => lbus_reset,
+            lbus_tx_ovfout               => lbus_tx_ovfout,
+            lbus_tx_unfout               => lbus_tx_unfout,
+            axis_rx_clkin                => axis_rx_clkin,
+            axis_rx_tdata                => axis_tdata,
+            axis_rx_tvalid               => axis_tvalid,
+            axis_rx_tready               => axis_tready,
+            axis_rx_tkeep                => axis_tkeep,
+            axis_rx_tlast                => axis_tlast,
+            axis_rx_tuser                => axis_tuser,
+            axis_tx_clkout               => laxis_tx_clk,
+            axis_tx_tdata                => axis_tx_tdata,
+            axis_tx_tvalid               => axis_tx_tvalid,
+            axis_tx_tkeep                => axis_tx_tkeep,
+            axis_tx_tlast                => axis_tx_tlast,
+            axis_tx_tuser                => axis_tx_tuser,
+            yellow_block_user_clk        => yellow_block_user_clk,
+            yellow_block_rx_data         => yellow_block_rx_data, 
+            yellow_block_rx_valid        => yellow_block_rx_valid,
+            yellow_block_rx_eof          => yellow_block_rx_eof,
+            yellow_block_rx_overrun      => yellow_block_rx_overrun
+        );
 
 end architecture rtl;
