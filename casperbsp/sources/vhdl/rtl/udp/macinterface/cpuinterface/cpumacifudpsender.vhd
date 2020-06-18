@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -76,7 +76,6 @@ architecture rtl of cpumacifudpsender is
     port(
         RxClk                  : in  STD_LOGIC;
         TxClk                  : in  STD_LOGIC;
-        Reset                  : in  STD_LOGIC; 
         -- Transmission port
         TxPacketByteEnable     : out STD_LOGIC_VECTOR((G_TX_DATA_WIDTH / 8) - 1 downto 0);
         TxPacketDataRead       : in  STD_LOGIC;
@@ -152,43 +151,8 @@ architecture rtl of cpumacifudpsender is
     signal lSlotClear                     : STD_LOGIC;
     signal lSlotSetBuffer                 : STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
     signal lSlotSet                       : STD_LOGIC;
---    component ila_cpu_tx is
---        port(
---            clk     : in STD_LOGIC;
---            probe0  : in STD_LOGIC_VECTOR(0 to 0);
---            probe1  : in STD_LOGIC_VECTOR(0 to 0);
---            probe2  : in STD_LOGIC_VECTOR(7 downto 0);
---            probe3  : in STD_LOGIC_VECTOR(1 downto 0);
---            probe4  : in STD_LOGIC_VECTOR(7 downto 0);
---            probe5  : in STD_LOGIC_VECTOR(1 downto 0);
---            probe6  : in STD_LOGIC_VECTOR(10 downto 0);
---            probe7  : in STD_LOGIC_VECTOR(10 downto 0);
---            probe8  : in STD_LOGIC_VECTOR(3 downto 0);
---            probe9  : in STD_LOGIC_VECTOR(0 to 0);
---            probe10 : in STD_LOGIC_VECTOR(0 to 0);
---            probe11 : in STD_LOGIC_VECTOR(3 downto 0);
---            probe12 : in STD_LOGIC_VECTOR(63 downto 0);
---            probe13 : in STD_LOGIC_VECTOR(0 downto 0);
---           probe14 : in STD_LOGIC_VECTOR(511 downto 0);
---            probe15 : in STD_LOGIC_VECTOR(4 downto 0);
---            probe16 : in STD_LOGIC_VECTOR(0 downto 0);
---            probe17 : in STD_LOGIC_VECTOR(3 downto 0);
---            probe18 : in STD_LOGIC_VECTOR(0 downto 0);
---            probe19 : in STD_LOGIC_VECTOR(0 downto 0);
---            probe20 : in STD_LOGIC_VECTOR(0 downto 0);
---            probe21 : in STD_LOGIC_VECTOR(3 downto 0);
---            probe22 : in STD_LOGIC_VECTOR(3 downto 0)
---        );
---    end component ila_cpu_tx;
-           
 
-    signal ldata_read_data             : STD_LOGIC_VECTOR(7 downto 0);
-    signal ldata_read_byte_enable      : STD_LOGIC_VECTOR(1 downto 0);
-    signal lringbuffer_slot_status     : STD_LOGIC;
 begin
-data_read_data <= ldata_read_data;
-data_read_byte_enable <= ldata_read_byte_enable;
-ringbuffer_slot_status <= lringbuffer_slot_status;
     --These slot clear and set operations are slow and must be spaced atleast
     -- 8 clock cycles apart for a conflict not to exist
     -- As these are controlled by the CPU this is not a problem
@@ -198,19 +162,17 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
             if (axis_reset = '1') then
                 lSlotClear <= '0';
                 lSlotSet   <= '0';
-		lSlotClearBuffer <= (others => '0');
-		lSlotSetBuffer <= (others => '0');
             else
                 lSlotClearBuffer <= lSlotClearBuffer(G_SLOT_WIDTH - 2 downto 0) & EgressRingBufferSlotClear;
                 lSlotSetBuffer   <= lSlotSetBuffer(G_SLOT_WIDTH - 2 downto 0) & ringbuffer_slot_set;
-                -- Slot clear is early processed
-                if (lSlotClearBuffer = B"0001") then
+                -- Slot clear is late processed
+                if (lSlotClearBuffer = X"1100") then
                     lSlotClear <= '1';
                 else
                     lSlotClear <= '0';
                 end if;
-                -- Slot set is late processed
-                if (lSlotSetBuffer = B"0001") then
+                -- Slot set is early processed
+                if (lSlotSetBuffer = X"0001") then
                     lSlotSet <= '1';
                 else
                     lSlotSet <= '0';
@@ -259,10 +221,9 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
         port map(
             RxClk                   => aximm_clk,
             TxClk                   => axis_clk,
-            Reset                   => axis_reset,
-            RxPacketReadByteEnable  => ldata_read_byte_enable,
+            RxPacketReadByteEnable  => data_read_byte_enable,
             RxPacketDataRead        => data_read_enable,
-            RxPacketDataOut         => ldata_read_data,
+            RxPacketDataOut         => data_read_data,
             RxPacketReadAddress     => data_read_address,
             RxPacketByteEnable      => data_write_byte_enable,
             RxPacketDataWrite       => data_write_enable,
@@ -270,7 +231,7 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
             RxPacketAddress         => data_write_address,
             RxPacketSlotSet         => ringbuffer_slot_set,
             RxPacketSlotID          => ringbuffer_slot_id,
-            RxPacketSlotStatus      => lringbuffer_slot_status,
+            RxPacketSlotStatus      => ringbuffer_slot_status,
             TxPacketByteEnable      => EgressRingBufferDataEnable,
             TxPacketDataRead        => EgressRingBufferDataRead,
             TxPacketData            => EgressRingBufferDataIn,
@@ -304,32 +265,4 @@ ringbuffer_slot_status <= lringbuffer_slot_status;
             axis_tx_tkeep            => axis_tx_tkeep,
             axis_tx_tlast            => axis_tx_tlast
         );
-        
---        CPUTXILAi : ila_cpu_tx
---            port map(
---                clk        => axis_clk,
---                probe0(0)  => data_write_enable,
---                probe1(0)  => data_read_enable,
---                probe2     => data_write_data,
---                probe3     => data_write_byte_enable,
---                probe4     => ldata_read_data,
---                probe5     => ldata_read_byte_enable,
---                probe6     => data_write_address,
---                probe7     => data_read_address,
---                probe8     => ringbuffer_slot_id,
---                probe9(0)  => ringbuffer_slot_set,
---                probe10(0) => lringbuffer_slot_status,
---                probe11    => std_logic_vector(lFilledSlots),
---                probe12    => EgressRingBufferDataEnable,
---                probe13(0) => EgressRingBufferDataRead,
---                probe14    => EgressRingBufferDataIn,
---                probe15    => EgressRingBufferAddress,
---                probe16(0) => EgressRingBufferSlotClear,
---                probe17    => EgressRingBufferSlotID,
---                probe18(0) => EgressRingBufferSlotStatus,
---                probe19(0) => lSlotSet,
---                probe20(0) => lSlotClear,                                
---                probe21    => lSlotSetBuffer,
---                probe22    => lSlotClearBuffer                                
---            );         
 end architecture rtl;

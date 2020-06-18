@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -160,7 +160,6 @@ architecture rtl of cpuifsenderpacketringbuffer is
 
 	signal EgressRingBufferDataWrite  : std_logic;
 	signal EgressRingBufferData       : std_logic_vector(G_TX_DATA_WIDTH - 1 downto 0);
-	signal EgressRingBufferDataWriteEnable : std_logic_vector((G_TX_DATA_WIDTH/8) - 1 downto 0);
 	signal EgressRingBufferAddress    : unsigned(G_TX_ADDR_WIDTH - 1 downto 0);
 	signal EgressRingBufferSlotSet    : std_logic;
 	signal EgressRingBufferSlotID     : unsigned(G_SLOT_WIDTH - 1 downto 0);
@@ -219,7 +218,7 @@ begin
 			TxPacketSlotID         => TxPacketSlotID,
 			TxPacketSlotStatus     => TxPacketSlotStatus,
 			TxPacketSlotTypeStatus => open,
-			RxPacketByteEnable     => EgressRingBufferDataWriteEnable,
+			RxPacketByteEnable     => lRingBufferDataEnable,
 			RxPacketDataWrite      => EgressRingBufferDataWrite,
 			RxPacketData           => EgressRingBufferData,
 			RxPacketAddress        => std_logic_vector(EgressRingBufferAddress),
@@ -266,20 +265,17 @@ begin
 						lByteIndex                 <= 0;
 
 					when FindPresentSlotsSt =>
-						-- Clear the egress ring buffer data
-						EgressRingBufferDataWriteEnable <= (others => '0');
-						EgressRingBufferData <= (others => '0');
-						for i in 0 to C_BYTE_INDEX_MAX loop
-							lRingBufferData(i) <= (others => '0');
-							lRingBufferDataEnable(i) <= '0';
-						end loop;
 						if (IngressRingBufferSlotStatus = '1') then
 							-- There is a packet waiting on the ring buffer
 							-- Start from the base address to extract the packet
 							IngressRingBufferAddress  <= (others => '0');
-							EgressRingBufferAddress   <= (others => '0');							
+							EgressRingBufferAddress   <= (others => '0');
 							IngressRingBufferDataRead <= '1';
 							lFrameIndex               <= 0;
+							-- Clear the egress ring buffer data
+							for i in 0 to C_BYTE_INDEX_MAX loop
+								lRingBufferData(i) <= (others => '0');
+							end loop;
 							StateVariable             <= PullIngressDataSt;
 						else
 							-- Keep searching for a packet
@@ -310,9 +306,7 @@ begin
 						-- Save the data and the byte enable 
 						IngressRingBufferDataRead   <= '0';
 						-- Save the current ingress data on the egress byte index
-						if(IngressRingBufferDataEnable(0) = '1') then
-							lRingBufferData(lByteIndex) <= IngressRingBufferDataOut;
-						end if;
+						lRingBufferData(lByteIndex) <= IngressRingBufferDataOut;
 						if (IngressRingBufferDataEnable(1) = '1') then
 							-- This is the last byte
 							-- Since the last EN is a reflection of TLAST then output TLAST
@@ -361,16 +355,10 @@ begin
 							lByteIndex    <= 0;
 							StateVariable <= NextEgressAddressSt;
 						end if;
-						
 						-- Write the entire data bytes out
 						for i in 0 to C_BYTE_INDEX_MAX loop
-							EgressRingBufferDataWriteEnable(i) <= lRingBufferDataEnable(i);
 							EgressRingBufferData((8 * (i + 1)) - 1 downto (8 * i)) <= lRingBufferData(i);
 						end loop;
-						
-						--Clear the lRingBufferDataEnable for the next processing 64 byte word
-						lRingBufferDataEnable <= (others => '0');
-						
 					when NextEgressAddressSt =>
 						EgressRingBufferDataWrite  <= '0';
 						EgressRingBufferAddress <= EgressRingBufferAddress + 1;

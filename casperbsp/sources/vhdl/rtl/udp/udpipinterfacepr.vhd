@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -583,7 +583,7 @@ architecture rtl of udpipinterfacepr is
     end component icapdecoupler;
 
     constant C_MAX_PACKET_BLOCKS_SIZE : natural := 64;
-    constant C_PRIORITY_WIDTH         : natural := 4;
+    constant C_PRIORITY_WIDTH         : natural := G_SLOT_WIDTH;
 
     signal axis_tx_tpriority_1_arp : STD_LOGIC_VECTOR(C_PRIORITY_WIDTH - 1 downto 0);
     signal axis_tx_tdata_1_arp     : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
@@ -632,26 +632,26 @@ architecture rtl of udpipinterfacepr is
     signal ICAP_RDWRB                      : std_logic;
     signal ICAP_DataOut                    : std_logic_vector(31 downto 0);
     signal ICAP_DataIn                     : std_logic_vector(31 downto 0);
-    component axis_ila_server is
-        port(
-            clk     : IN STD_LOGIC;
-            probe0  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-            probe1  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe2  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe3  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe4  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-            probe5  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe6  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-            probe7  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
-            probe8  : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-            probe9  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-            probe10 : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
-            probe11 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            probe13 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-            probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
-        );
-    end component axis_ila_server;
+--    component axis_ila_server is
+--        port(
+--            clk     : IN STD_LOGIC;
+--            probe0  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+--            probe1  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe2  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe3  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe4  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+--            probe5  : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe6  : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+--            probe7  : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+--            probe8  : IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+--            probe9  : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+--            probe10 : IN STD_LOGIC_VECTOR(511 DOWNTO 0);
+--            probe11 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            probe13 : IN STD_LOGIC_VECTOR(63 DOWNTO 0);
+--            probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
+--        );
+--    end component axis_ila_server;
 
     signal laxis_tx_tdata  : STD_LOGIC_VECTOR(G_AXIS_DATA_WIDTH - 1 downto 0);
     signal laxis_tx_tvalid : STD_LOGIC;
@@ -1099,24 +1099,24 @@ begin
 
     end generate;
 
-    ILAMUXAPSS_i : axis_ila_server
-        port map(
-            clk                => axis_clk,
-            probe0             => axis_tx_tpriority_1_cpu,
-            probe1(0)          => axis_tx_tready,
-            probe2(0)          => laxis_tx_tuser,
-            probe3(0)          => laxis_tx_tlast,
-            probe4             => axis_tx_tpriority_1_arp,
-            probe5(0)          => laxis_tx_tvalid,
-            probe6             => laxis_tx_tkeep,
-            probe7             => laxis_tx_tdata,
-            probe8(4)          => axis_tx_tpriority_1_pr(3),
-            probe8(3 downto 0) => axis_tx_tpriority_1_pr,
-            probe9             => axis_tx_tpriority_1_udp,
-            probe10            => axis_tx_tdata_1_udp,
-            probe11(0)         => axis_tx_tvalid_1_udp,
-            probe12(0)         => axis_tx_tready_1_udp,
-            probe13            => axis_tx_tkeep_1_udp,
-            probe14(0)         => axis_tx_tlast_1_udp
-        );
+--    ILAMUXAPSS_i : axis_ila_server
+--        port map(
+--            clk                => axis_clk,
+--            probe0             => axis_tx_tpriority_1_cpu,
+--            probe1(0)          => axis_tx_tready,
+--            probe2(0)          => laxis_tx_tuser,
+--            probe3(0)          => laxis_tx_tlast,
+--            probe4             => axis_tx_tpriority_1_arp,
+--            probe5(0)          => laxis_tx_tvalid,
+--            probe6             => laxis_tx_tkeep,
+--            probe7             => laxis_tx_tdata,
+--            probe8(4)          => axis_tx_tpriority_1_pr(3),
+--            probe8(3 downto 0) => axis_tx_tpriority_1_pr,
+--            probe9             => axis_tx_tpriority_1_udp,
+--            probe10            => axis_tx_tdata_1_udp,
+--            probe11(0)         => axis_tx_tvalid_1_udp,
+--            probe12(0)         => axis_tx_tready_1_udp,
+--            probe13            => axis_tx_tkeep_1_udp,
+--            probe14(0)         => axis_tx_tlast_1_udp
+--        );
 end architecture rtl;

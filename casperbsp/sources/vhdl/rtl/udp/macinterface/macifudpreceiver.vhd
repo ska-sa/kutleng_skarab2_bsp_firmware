@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -112,7 +112,7 @@ architecture rtl of macifudpreceiver is
     constant C_IPV4_TYPE         : std_logic_vector(15 downto 0)       := X"0800";
     -- IP Version and Header Length =0x45 
     constant C_IPV_IHL           : std_logic_vector(7 downto 0)        := X"45";
-    -- UDP Protocol =0x06 	
+    -- UDP Protocol =0x06   
     constant C_UDP_PROTOCOL      : std_logic_vector(7 downto 0)        := X"11";
     -- Tuples registers
     constant C_FILLED_SLOT_MAX   : unsigned(G_SLOT_WIDTH - 1 downto 0) := (others => '1');
@@ -320,7 +320,7 @@ begin
                                         (lDestinationUDPPort = byteswap(ReceiverUDPPort)) and -- Check the UDP Port   
                                         (lDestinationIPAddress = byteswap(ReceiverIPAddress)) and -- Check the Destination IP Address   
                                         (lDestinationMACAddress = byteswap(ReceiverMACAddress)) and -- Check the Destination MAC Address   
-                                        (lIPVIHL = C_IPV_IHL) and -- Check the IPV4 IHL 									 
+                                        (lIPVIHL = C_IPV_IHL) and -- Check the IPV4 IHL                                      
                                         (lProtocol = C_UDP_PROTOCOL) -- Check the UDP Protocol
                                     )   -- First Time processing a packet or 64 byte packet
                                 )       -- First Time processing a packet or 64 byte packet 
@@ -329,7 +329,7 @@ begin
                             lPacketDataWrite <= axis_rx_tvalid;
                             --Send the ARP Response
                             if (lInpacket = '0') then
-                                -- This is the first 64 bytes								
+                                -- This is the first 64 bytes                               
                                 lPacketData(47 downto 0)    <= lSourceMACAddress;
                                 lPacketData(95 downto 48)   <= lDestinationMACAddress;
                                 lPacketData(111 downto 96)  <= lEtherType;

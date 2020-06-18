@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+--=============================================================================-
 -- Company          : Kutleng Dynamic Electronics Systems (Pty) Ltd            -
 -- Engineer         : Benjamin Hector Hlophe                                   -
 --                                                                             -
@@ -115,19 +115,23 @@ architecture rtl of udpdatastripper is
     signal lThrottleCounter       : unsigned(G_ADDR_WIDTH - 1 downto 0);    
     signal VioThrottleMax         : std_logic_vector(G_ADDR_WIDTH - 1 downto 0);    
 begin
+    UseLocalSlotID <= '0';
+    StripperEnable <= '0';
+    StripperClearEnable <= '0';
+    
     RecvRingBufferAddress <= std_logic_vector(lRecvRingBufferAddress);
 
     RecvRingBufferSlotID <= lSlotID when (UseLocalSlotID = '1') else std_logic_vector(lRecvRingBufferSlotID);
 
-    VIOTi : vio_stripper
-        port map(
-            clk           => axis_clk,
-            probe_out0(0) => StripperEnable,
-            probe_out1(0) => StripperClearEnable,
-            probe_out2(0) => UseLocalSlotID,
-            probe_out3    => lSlotID,
-            probe_out4    => VioThrottleMax
-        );
+--    VIOTi : vio_stripper
+--        port map(
+--            clk           => axis_clk,
+--            probe_out0(0) => StripperEnable,
+--            probe_out1(0) => StripperClearEnable,
+--            probe_out2(0) => UseLocalSlotID,
+--            probe_out3    => lSlotID,
+--            probe_out4    => VioThrottleMax
+--        );
 
 
     SynchStateProc : process(axis_clk)
@@ -216,12 +220,12 @@ begin
                         lThrottleCounter        <= (others => '0');
                         StateVariable           <= WaitThrottle;
                    when WaitThrottle =>
-                       if (std_logic_vector(lThrottleCounter) = VioThrottleMax) then
+                    --   if (std_logic_vector(lThrottleCounter) = VioThrottleMax) then
                             StateVariable           <= CheckEmptySlotSt;
-                       else
-                            lThrottleCounter <= lThrottleCounter + 1;
-                            StateVariable           <= WaitThrottle;                           
-                       end if;
+                    --   else
+                    --        lThrottleCounter <= lThrottleCounter + 1;
+                    --        StateVariable           <= WaitThrottle;                           
+                    --   end if;
 
                     when others =>
                         StateVariable <= InitialiseSt;

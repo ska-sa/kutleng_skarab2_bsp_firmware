@@ -77,8 +77,6 @@ architecture rtl of arpreceiver is
             RxPacketAddress        : in  STD_LOGIC_VECTOR(G_ADDR_WIDTH - 1 downto 0);
             RxPacketSlotSet        : in  STD_LOGIC;
             RxPacketSlotID         : in  STD_LOGIC_VECTOR(G_SLOT_WIDTH - 1 downto 0);
-            RxPacketSlotStatus     : out STD_LOGIC;
-            RxPacketSlotTypeStatus : out STD_LOGIC;
             RxPacketSlotType       : in  STD_LOGIC
         );
     end component packetringbuffer;
@@ -215,8 +213,6 @@ begin
             RxPacketAddress        => std_logic_vector(lPacketAddress),
             RxPacketSlotSet        => lPacketSlotSet,
             RxPacketSlotID         => std_logic_vector(lPacketSlotID),
-            RxPacketSlotStatus     => open,
-            RxPacketSlotTypeStatus => open,
             RxPacketSlotType       => lPacketSlotType
         );
 
